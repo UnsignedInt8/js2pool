@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "alwaysStrict": true,
+        "target": "es6",
+        "sourceMap": true,
+        "module": "commonjs",
+        "outDir": "dist",
+        "rootDir": ".",
+        "lib": [
+            "es2015.promise",
+            "es2016"
+        ]
+    },
+    "exclude": [
+        ".vscode",
+        "dist",
+        "node_modules"
+    ]
+}

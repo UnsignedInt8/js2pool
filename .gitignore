@@ -35,3 +35,17 @@ jspm_packages
 
 # Optional REPL history
 .node_repl_history
+
+# Dependency directory
+# https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
+node_modules
+*.js.map
+*.ignore
+
+# Typescript declaration files
+build/*.d.ts
+build/**/*.d.ts
+build/**/*.js
+build/**/*.js.map
+dist/**/*.*
+typings/

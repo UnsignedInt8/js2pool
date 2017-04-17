@@ -1,0 +1,35 @@
+{
+  "name": "rice",
+  "version": "0.0.1",
+  "description": "A mining pool",
+  "main": "index.js",
+  "scripts": {
+    "test": "node_modules/.bin/mocha ./dist/**/*.js --no-timeouts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UnsignedInt8/rice.git"
+  },
+  "keywords": [
+    "pool",
+    "mining"
+  ],
+  "author": "UnsignedInt8",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/UnsignedInt8/rice/issues"
+  },
+  "homepage": "https://github.com/UnsignedInt8/rice#readme",
+  "dependencies": {
+    "base58-native": "*",
+    "bignum": "*",
+    "bitcoin-core": "^1.2.0",
+    "bitcoinjs-lib": "^2.3.0",
+    "merkle-lib": "^2.0.10",
+    "node-multi-hashing": "unsignedInt8/node-multi-hashing",
+    "kinq": "UnsignedInt8/Kinq"
+  },
+  "devDependencies": {
+    "mocha": "^3.2.0"
+  }
+}

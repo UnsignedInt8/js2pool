@@ -1,0 +1,12 @@
+{
+  "globalDependencies": {
+    "kinq": "github:unsignedint8/kinq/kinq.d.ts#c8ca992043fbf299495445c855d140f096b44516",
+    "mocha": "registry:dt/mocha#2.2.5+20170311011848",
+    "node": "registry:env/node#6.0.0+20170213133316"
+  },
+  "dependencies": {
+    "bignum": "registry:dt/bignum#0.0.0+20160620211513",
+    "bitcoinjs-lib": "registry:dt/bitcoinjs-lib#2.3.0+20161229203420",
+    "node-multi-hashing": "github:unsignedint8/node-multi-hashing/node-multi-hashing.d.ts#ed581998395c82984efdec3f723e6d947926c796"
+  }
+}
