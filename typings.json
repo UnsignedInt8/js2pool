@@ -1,5 +1,6 @@
 {
   "globalDependencies": {
+    "bitcoin-core": "github:unsignedint8/bitcoin-core/bitcoin-core.d.ts#2cf756315a75179e9902dd69c0a8f666a52aaf5f",
     "kinq": "github:unsignedint8/kinq/kinq.d.ts#c8ca992043fbf299495445c855d140f096b44516",
     "mocha": "registry:dt/mocha#2.2.5+20170311011848",
     "node": "registry:env/node#6.0.0+20170213133316"
