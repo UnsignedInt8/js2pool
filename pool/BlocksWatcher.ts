@@ -38,13 +38,8 @@ export default class BlocksWatcher extends Event {
     }
 
     private async refreshBlockTemplateAsync() {
-        try {
-            let value: GetBlockTemplate = await this.client.command('getblocktemplate');
-            super.trigger(Events.blockTemplateUpdate, this, value);
-            return true;
-        } catch (error) {
-            return false;
-        }
+        let value: GetBlockTemplate = await this.client.command('getblocktemplate');
+        super.trigger(Events.blockTemplateUpdate, this, value);
     }
 
     onBlockTemplateUpdated(callback: (sender: BlocksWatcher, template: GetBlockTemplate) => void) {
