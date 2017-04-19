@@ -4,6 +4,13 @@ import { GetBlockTemplate } from "./BlockchainWatcher";
 import * as merkle from 'merkle-lib';
 import MerkleTree from "./MerkleTree";
 
+export type Task = {
+    coinbaseTx: { part1: Buffer, part2: Buffer },
+    stratumParams: (string | boolean | string[])[],
+    taskId: string,
+    merkleLink: Buffer[],
+};
+
 export default class TaskConstructor {
     private poolAddrPubkeyScript: Buffer;
     private recipients = new Array<{ pubkeyScript: Buffer, percent: number }>();
@@ -35,20 +42,24 @@ export default class TaskConstructor {
      * @param auxMerkleRoot 
      * @param auxMerkleSize 
      */
-    buildTaskParamsTemplate(template: GetBlockTemplate, auxMerkleRoot: Buffer, auxMerkleSize) {
-        let tx = this.buildGenerationTx(template, auxMerkleRoot, auxMerkleSize);
+    buildTask(template: GetBlockTemplate, auxMerkleRoot: Buffer, auxMerkleSize): Task {
+        let coinbaseTx = this.buildGenerationTx(template, auxMerkleRoot, auxMerkleSize);
+        let taskId = crypto.randomBytes(4).toString('hex');
+        let merkleLink = (new MerkleTree([null].concat(template.transactions.map(tx => Utils.uint256BufferFromHash(tx.txid ? tx.txid : tx.hash))))).steps;
 
-        return [
-            '',
+        let stratumParams = [
+            taskId,
             Utils.reverseByteOrder(Buffer.from(template.previousblockhash, 'hex')).toString('hex'),
-            tx.part1.toString('hex'),
-            tx.part2.toString('hex'),
-            (new MerkleTree([null].concat(template.transactions.map(tx => Utils.uint256BufferFromHash(tx.txid ? tx.txid : tx.hash))))).getMerkleHashes(),
+            coinbaseTx.part1.toString('hex'),
+            coinbaseTx.part2.toString('hex'),
+            merkleLink.map(item => item.toString('hex')),
             Utils.packUInt32BE(template.version).toString('hex'),
             template.bits,
             Utils.packUInt32BE(template.curtime).toString('hex'),
             true, // Force to start new task
         ];
+
+        return { coinbaseTx, stratumParams, taskId, merkleLink };
     }
 
     private buildGenerationTx(template: GetBlockTemplate, auxMerkleRoot: Buffer = Buffer.alloc(0), auxMerkleSize: number = 0) {

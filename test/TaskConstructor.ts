@@ -13,9 +13,9 @@ describe('TaskConstructor tests', () => {
         let tc = new TaskConstructor('mwT5FhANpkurDKBVXVyAH1b6T3rz9T1owr');
         let auxTree = MerkleTree.buildMerkleTree([]);
 
-        let task = tc.buildTaskParamsTemplate(JSON.parse(template), auxTree.root, auxTree.data.length);
-        
-        assert.equal(task[3], p2);
-// 1492564149
+        let task = tc.buildTask(JSON.parse(template), auxTree.root, auxTree.data.length);
+        let part2 = task.coinbaseTx.part2.toString('hex')
+        assert.equal(part2, p2);
+        assert.equal((task.stratumParams[4] as Array<any>).length, 0);
     })
 });

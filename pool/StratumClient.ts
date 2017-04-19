@@ -34,6 +34,7 @@ export default class StratumClient extends Event {
     subscriptionId: string = null;
     lastActivity = Date.now();
     authorized = false;
+    difficulty = 0;
     remoteAddress: string;
     miner: string;
     readonly extraNonce1: string;
@@ -96,11 +97,12 @@ export default class StratumClient extends Event {
         me.socket.on('error', err => {
             me.close();
         });
+
     }
 
     private handleMessage(message: TypeStratumMessage) {
         this.lastActivity = Date.now();
-        console.log(message.method);
+        
         switch (message.method) {
             case 'mining.subscribe':
                 this.trigger(Events.subscribe, this, message);
@@ -133,7 +135,7 @@ export default class StratumClient extends Event {
 
                 let result = {
                     miner: message.params[0],
-                    jobId: message.params[1],
+                    taskId: message.params[1],
                     extraNonce2: message.params[2],
                     nTime: message.params[3],
                     nonce: message.params[4]
@@ -152,8 +154,8 @@ export default class StratumClient extends Event {
     close() {
         this.socket.end();
         this.socket.removeAllListeners();
-        super.removeAllEvents();
         super.trigger(Events.end, this);
+        super.removeAllEvents();
     }
 
     onFlood(callback: (sender: StratumClient) => void) {
@@ -221,6 +223,7 @@ export default class StratumClient extends Event {
     }
 
     sendDifficulty(difficulty: number) {
+        this.difficulty = difficulty;
         this.sendJson({ id: null, method: "mining.set_difficulty", params: [difficulty] });
     }
 

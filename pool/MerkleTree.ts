@@ -1,3 +1,7 @@
+/**
+ * Code from NOMP
+ */
+
 import * as Utils from '../misc/Utils';
 
 export default class MerkleTree {
@@ -11,7 +15,7 @@ export default class MerkleTree {
         this.root = this.calculateRoot(data[0] == null ? data.slice(1) : data);
     }
 
-    merkleJoin(h1: Buffer, h2: Buffer) {
+    static merkleJoin(h1: Buffer, h2: Buffer) {
         let joined = Buffer.concat([h1, h2]);
         return Utils.sha256d(joined);
     }
@@ -47,7 +51,7 @@ export default class MerkleTree {
 
                 let Ld = [];
                 let r = Utils.range(StartL, Ll, 2);
-                r.forEach(i => Ld.push(me.merkleJoin(L[i], L[i + 1])));
+                r.forEach(i => Ld.push(MerkleTree.merkleJoin(L[i], L[i + 1])));
                 L = PreL.concat(Ld);
                 Ll = L.length;
             }
@@ -64,7 +68,7 @@ export default class MerkleTree {
                 data.push(data[data.length - 1]);
             // Hash
             let newData = [];
-            for (let i = 0; i < data.length; i += 2) newData.push(this.merkleJoin(data[i], data[i + 1]));
+            for (let i = 0; i < data.length; i += 2) newData.push(MerkleTree.merkleJoin(data[i], data[i + 1]));
             return this.calculateRoot(newData);
         }
 
@@ -106,7 +110,7 @@ export default class MerkleTree {
             }
             // Calculate the next level of the merkle root.
             let newData = [];
-            for (let i = 0; i < data.length; i += 2) newData.push(this.merkleJoin(data[i], data[i + 1]));
+            for (let i = 0; i < data.length; i += 2) newData.push(MerkleTree.merkleJoin(data[i], data[i + 1]));
             data = newData;
             ind = Math.floor(ind / 2);
         }

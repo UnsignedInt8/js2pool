@@ -7,10 +7,14 @@ type TypeMiningTask = {
 
 export default class TaskManager {
 
-    private tasks = new Map<string, TypeMiningTask>();
+    tasks = new Map<string, TypeMiningTask>();
 
     createTask(paramsTemplate: (string | boolean | string[])[]) {
-        let taskId = crypto.randomBytes(8).toString('hex');
+        let taskId: string;
+        do {
+            taskId = crypto.randomBytes(8).toString('hex');
+        } while (this.tasks.has(taskId));
+
         let stratumParams = Array.from(paramsTemplate);
         stratumParams[0] = taskId;
 
@@ -21,6 +25,14 @@ export default class TaskManager {
 
         this.tasks.set(taskId, task);
         return task;
+    }
+
+    hasTask(id: string) {
+        return this.tasks.has(id);
+    }
+
+    deleteTask(id: string) {
+        this.tasks.delete(id);
     }
 
     cleanTasks() {
