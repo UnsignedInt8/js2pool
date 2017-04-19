@@ -23,7 +23,7 @@ type TypeStratumMessage = {
 };
 
 type TypeSubmitResult = {
-    minername: string,
+    miner: string,
     taskId: string,
     extraNonce2: string,
     nTime: string,
@@ -35,13 +35,16 @@ export default class StratumClient extends Event {
     lastActivity = Date.now();
     authorized = false;
     remoteAddress: string;
+    miner: string;
+    readonly extraNonce1: string;
 
     private socket: Socket;
 
-    constructor(socket: Socket) {
+    constructor(socket: Socket, extraNonce1Size: number) {
         super();
         socket.setKeepAlive(true);
-        
+
+        this.extraNonce1 = crypto.randomBytes(extraNonce1Size).toString('hex');
         this.socket = socket;
         this.remoteAddress = socket.remoteAddress;
         this.setupSocket();
@@ -111,6 +114,7 @@ export default class StratumClient extends Event {
 
                 let username = message.params[0];
                 let password = message.params[1];
+                this.miner = username;
                 this.trigger(Events.authorize, this, username, password, message);
                 break;
             case 'mining.get_multiplier':
@@ -128,14 +132,14 @@ export default class StratumClient extends Event {
                 }
 
                 let result = {
-                    minername: message.params[0],
+                    miner: message.params[0],
                     jobId: message.params[1],
                     extraNonce2: message.params[2],
                     nTime: message.params[3],
                     nonce: message.params[4]
                 }
 
-                this.trigger(Events.submit, this, message, result);
+                this.trigger(Events.submit, this, result, message);
                 break;
             case 'mining.get_transactions':
                 this.sendError();
@@ -196,7 +200,7 @@ export default class StratumClient extends Event {
         this.sendJson({ id: null, result: [], error: true });
     }
 
-    sendSubscription(id: number, extraNonce1: string, extraNonce2Size: number) {
+    sendSubscription(id: number, extraNonce2Size: number) {
         if (this.subscriptionId) return;
 
         this.subscriptionId = crypto.randomBytes(8).toString('hex');
@@ -205,7 +209,7 @@ export default class StratumClient extends Event {
             error: null,
             result: [
                 [["mining.set_difficulty", this.subscriptionId], ["mining.notify", this.subscriptionId]],
-                extraNonce1,
+                this.extraNonce1,
                 extraNonce2Size
             ],
         });
@@ -220,7 +224,11 @@ export default class StratumClient extends Event {
         this.sendJson({ id: null, method: "mining.set_difficulty", params: [difficulty] });
     }
 
-    sendTask(task: any[]) {
+    sendTask(task: (string | boolean | string[])[]) {
         this.sendJson({ id: null, method: "mining.notify", params: task });
+    }
+
+    sendSubmissionResult(id: number, result: boolean, error?: any) {
+        this.sendJson({ id: id, result: result, error: error });
     }
 }

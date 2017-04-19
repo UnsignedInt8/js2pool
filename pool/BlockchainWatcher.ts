@@ -13,7 +13,7 @@ let Events = {
     blockTemplateUpdate: 'BlockTemplateUpdated',
 }
 
-export default class BlocksWatcher extends Event {
+export default class BlockchainWatcher extends Event {
     private client: Client;
     private blockHeight = 0;
     private timerId: NodeJS.Timer;
@@ -42,7 +42,7 @@ export default class BlocksWatcher extends Event {
         super.trigger(Events.blockTemplateUpdate, this, value);
     }
 
-    onBlockTemplateUpdated(callback: (sender: BlocksWatcher, template: GetBlockTemplate) => void) {
+    onBlockTemplateUpdated(callback: (sender: BlockchainWatcher, template: GetBlockTemplate) => void) {
         super.register(Events.blockTemplateUpdate, callback);
     }
 }

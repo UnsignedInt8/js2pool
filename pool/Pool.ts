@@ -1,5 +1,5 @@
 
-import BlocksWatcher, { GetBlockTemplate } from "./BlocksWatcher";
+import BlockchainWatcher, { GetBlockTemplate } from "./BlockchainWatcher";
 import * as merkle from 'merkle-lib';
 import { Algos } from '../misc/Algos';
 import * as Utils from '../misc/Utils';
@@ -9,51 +9,66 @@ import { Server } from "net";
 import * as net from 'net';
 import StratumClient from "./StratumClient";
 import * as kinq from 'kinq';
+import TaskManager from "./TaskManager";
 
 kinq.enable();
 
 export default class Pool {
-    watcher: BlocksWatcher;
+    watcher: BlockchainWatcher;
     taskConstructor: TaskConstructor;
+    taskManager = new TaskManager();
     stratumServer: Server;
 
     clients = new Set<StratumClient>();
 
     constructor() {
-        this.watcher = new BlocksWatcher({ host: 'localhost', port: 19001, username: 'admin1', password: '123' });
+        this.watcher = new BlockchainWatcher({ host: 'localhost', port: 19001, username: 'admin1', password: '123' });
         this.taskConstructor = new TaskConstructor('mwT5FhANpkurDKBVXVyAH1b6T3rz9T1owr');
 
         this.watcher.beginWatching();
         this.watcher.onBlockTemplateUpdated(this.handleBlockTemplateUpdated.bind(this));
     }
-    currentTask: any[];
 
-    handleBlockTemplateUpdated(sender: BlocksWatcher, template: GetBlockTemplate) {
+    currentTaskTemplate: (string | boolean | string[])[];
+
+    handleBlockTemplateUpdated(sender: BlockchainWatcher, template: GetBlockTemplate) {
         console.log(template.height);
+        this.taskManager.cleanTasks();
+
         let auxTree = MerkleTree.buildMerkleTree(template.auxes || []);
-        let task = this.taskConstructor.buildTask(template, auxTree.root, auxTree.data.length);
-        this.currentTask = task;
+        let taskTemplate = this.taskConstructor.buildTaskParamsTemplate(template, auxTree.root, auxTree.data.length);
+        this.currentTaskTemplate = taskTemplate;
+
         for (let item of this.clients) {
-            item.sendTask(task);
+            item.sendTask(taskTemplate);
         }
+
     }
 
     startStratumServer() {
         let me = this;
         this.stratumServer = net.createServer(s => {
-            let client = new StratumClient(s);
+            let client = new StratumClient(s, 4);
             console.log('new client: ', s.remoteAddress);
             me.clients.add(client);
 
-            client.onSubscribe((sender, msg) => { sender.sendSubscription(msg.id, '08000002', 4); });
+            client.onSubscribe((sender, msg) => { sender.sendSubscription(msg.id, 4); });
             client.onAuthorize((sender, name, pass, msg) => {
                 sender.sendAuthorization(msg.id, true);
-                sender.sendDifficulty(1);
-                if (me.currentTask) sender.sendTask(me.currentTask);
+                sender.sendDifficulty(0.01);
+                if (!me.currentTaskTemplate) return;
+
+                let task = me.taskManager.createTask(me.currentTaskTemplate);
+                sender.sendTask(task.stratumParams);
             });
-            client.onEnd((sender) => me.clients.delete(sender));
+            client.onEnd((sender) => {
+                console.log('End: ', sender.miner);
+                me.clients.delete(sender);
+            });
             client.onSubmit((sender, result, msg) => {
                 console.log(result);
+                result.taskId
+                client.sendSubmissionResult(msg.id, true, null);
             });
         }).listen(3333);
 

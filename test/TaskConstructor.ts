@@ -13,7 +13,7 @@ describe('TaskConstructor tests', () => {
         let tc = new TaskConstructor('mwT5FhANpkurDKBVXVyAH1b6T3rz9T1owr');
         let auxTree = MerkleTree.buildMerkleTree([]);
 
-        let task = tc.buildTask(JSON.parse(template), auxTree.root, auxTree.data.length);
+        let task = tc.buildTaskParamsTemplate(JSON.parse(template), auxTree.root, auxTree.data.length);
         
         assert.equal(task[3], p2);
 // 1492564149

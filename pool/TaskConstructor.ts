@@ -1,6 +1,6 @@
 import * as Utils from '../misc/Utils';
 import * as crypto from 'crypto';
-import { GetBlockTemplate } from "./BlocksWatcher";
+import { GetBlockTemplate } from "./BlockchainWatcher";
 import * as merkle from 'merkle-lib';
 import MerkleTree from "./MerkleTree";
 
@@ -8,7 +8,7 @@ export default class TaskConstructor {
     private poolAddrPubkeyScript: Buffer;
     private recipients = new Array<{ pubkeyScript: Buffer, percent: number }>();
 
-    extraNonceHolderSize = 8;
+    extraNonceSize = 8;
     extraNonce2Size = 4;
     txMessageRequired = false;
     proof: 'POW' | 'POS' = 'POW';
@@ -29,11 +29,17 @@ export default class TaskConstructor {
         });
     }
 
-    buildTask(template: GetBlockTemplate, auxMerkleRoot: Buffer, auxMerkleSize) {
+    /**
+     * Create stratum mining job params
+     * @param template RPC getblocktemplate
+     * @param auxMerkleRoot 
+     * @param auxMerkleSize 
+     */
+    buildTaskParamsTemplate(template: GetBlockTemplate, auxMerkleRoot: Buffer, auxMerkleSize) {
         let tx = this.buildGenerationTx(template, auxMerkleRoot, auxMerkleSize);
 
         return [
-            crypto.randomBytes(8).toString('hex'),
+            '',
             Utils.reverseByteOrder(Buffer.from(template.previousblockhash, 'hex')).toString('hex'),
             tx.part1.toString('hex'),
             tx.part2.toString('hex'),
@@ -50,7 +56,7 @@ export default class TaskConstructor {
             Utils.serializeScriptSigNumber(template.height),
             Buffer.from(template.coinbaseaux.flags, 'hex'),
             Utils.serializeScriptSigNumber(Date.now() / 1000 | 0),
-            Utils.packUInt8(this.extraNonceHolderSize),// extra nonce size
+            Utils.packUInt8(Math.min(this.extraNonceSize, 255)),// extra nonce size
             Buffer.from('fabe6d6d', 'hex'),
             Utils.reverseBuffer(auxMerkleRoot),
             Utils.packUInt32LE(auxMerkleSize),
@@ -76,7 +82,7 @@ export default class TaskConstructor {
             Utils.varIntBuffer(txInputsCount),
             Utils.uint256BufferFromHash(txPreviousOutputHash),
             Utils.packUInt32LE(txInPrevOutIndex),
-            Utils.varIntBuffer(coinbaseScriptSig1.length + this.extraNonceHolderSize + coinbaseScriptSig2.length),
+            Utils.varIntBuffer(coinbaseScriptSig1.length + this.extraNonceSize + coinbaseScriptSig2.length),
             coinbaseScriptSig1,
         ]);
 
