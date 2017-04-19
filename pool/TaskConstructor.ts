@@ -8,7 +8,8 @@ export default class TaskConstructor {
     private poolAddrPubkeyScript: Buffer;
     private recipients = new Array<{ pubkeyScript: Buffer, percent: number }>();
 
-    extraNonceSize = 8;
+    extraNonceHolderSize = 8;
+    extraNonce2Size = 4;
     txMessageRequired = false;
     proof: 'POW' | 'POS' = 'POW';
 
@@ -28,18 +29,18 @@ export default class TaskConstructor {
         });
     }
 
-    buildTask(template: GetBlockTemplate, auxMerkleRoot: Buffer = Buffer.alloc(0), auxMerkleSize = 0) {
+    buildTask(template: GetBlockTemplate, auxMerkleRoot: Buffer, auxMerkleSize) {
         let tx = this.buildGenerationTx(template, auxMerkleRoot, auxMerkleSize);
-        
+
         return [
-            crypto.randomBytes(16).toString('hex'),
+            crypto.randomBytes(8).toString('hex'),
             Utils.reverseByteOrder(Buffer.from(template.previousblockhash, 'hex')).toString('hex'),
-            tx.part1,
-            tx.part2,
+            tx.part1.toString('hex'),
+            tx.part2.toString('hex'),
             (new MerkleTree([null].concat(template.transactions.map(tx => Utils.uint256BufferFromHash(tx.txid ? tx.txid : tx.hash))))).getMerkleHashes(),
-            Utils.packUInt32LE(template.version).toString('hex'),
+            Utils.packUInt32BE(template.version).toString('hex'),
             template.bits,
-            Utils.packUInt32LE(template.curtime).toString('hex'),
+            Utils.packUInt32BE(template.curtime).toString('hex'),
             true, // Force to start new task
         ];
     }
@@ -49,7 +50,7 @@ export default class TaskConstructor {
             Utils.serializeScriptSigNumber(template.height),
             Buffer.from(template.coinbaseaux.flags, 'hex'),
             Utils.serializeScriptSigNumber(Date.now() / 1000 | 0),
-            Utils.packUInt8(this.extraNonceSize),// extra nonce size
+            Utils.packUInt8(this.extraNonceHolderSize),// extra nonce size
             Buffer.from('fabe6d6d', 'hex'),
             Utils.reverseBuffer(auxMerkleRoot),
             Utils.packUInt32LE(auxMerkleSize),
@@ -75,7 +76,7 @@ export default class TaskConstructor {
             Utils.varIntBuffer(txInputsCount),
             Utils.uint256BufferFromHash(txPreviousOutputHash),
             Utils.packUInt32LE(txInPrevOutIndex),
-            Utils.varIntBuffer(coinbaseScriptSig1.length + this.extraNonceSize + coinbaseScriptSig2.length),
+            Utils.varIntBuffer(coinbaseScriptSig1.length + this.extraNonceHolderSize + coinbaseScriptSig2.length),
             coinbaseScriptSig1,
         ]);
 

@@ -33,7 +33,7 @@ export default class BlocksWatcher extends Event {
                 if (value.blocks <= me.blockHeight) return;
                 this.blockHeight = value.blocks;
                 await me.refreshBlockTemplateAsync();
-            } catch (error) { }
+            } catch (error) { console.log(error); }
         }, 500);
     }
 

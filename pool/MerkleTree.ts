@@ -114,7 +114,7 @@ export default class MerkleTree {
         return Buffer.concat([Utils.varIntBuffer(branch_len), hash_buffer, Utils.serializeScriptSigNumber(side_mask)]);
     }
 
-    static buildMerkleTree(auxData) {
+    static buildMerkleTree(auxData: any[]) {
         // Determine which slots the merkle hashes will go into in the merkle tree
         // Strategy derived from p2pool
         let size = 1;
@@ -123,7 +123,7 @@ export default class MerkleTree {
                 continue;
             let res = new Array(size);
             for (let i = 0; i < size; i++)
-                res[i] = new Buffer(32);
+                res[i] = Buffer.alloc(32, 0);
             let c = [];
             for (let i = 0; i < auxData.length; i++) {
                 let pos = Utils.getAuxMerklePosition(auxData[i].chainid, size);

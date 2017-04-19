@@ -40,7 +40,12 @@ export abstract class Event {
         observers.splice(observers.indexOf(callback), 1);
     }
 
-    removeAllEvents(event: string) {
+    removeAllEvents(event?: string) {
+        if (!event) {
+            this.events.clear();
+            return;
+        }
+
         if (!this.events.has(event)) return false;
         let observers = this.events.get(event);
         return observers.splice(0, observers.length).length > 0;
