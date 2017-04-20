@@ -7,8 +7,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch A Special Program",
-            "program": "${workspaceRoot}/test/TaskConstructor.ts",
+            "name": "Launch A Special Test Program",
+            "program": "${workspaceRoot}/test/BlockConstructor.ts",
             "outFiles": [
                 "${workspaceRoot}/dist/**/*.js"
             ]

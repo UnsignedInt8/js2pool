@@ -13,7 +13,7 @@ let Events = {
     blockTemplateUpdate: 'BlockTemplateUpdated',
 }
 
-export default class BlockchainWatcher extends Event {
+export default class DaemonWatcher extends Event {
     private client: Client;
     private blockHeight = 0;
     private timerId: NodeJS.Timer;
@@ -37,14 +37,29 @@ export default class BlockchainWatcher extends Event {
         }, 500);
     }
 
+    async submitBlockAsync(blockHex: string) {
+        try {
+            let results: any[] = await this.client.command([{ method: 'submitblock', parameters: [blockHex] }]);
+            let result = results.first();
+            if (result == null) return true;
+            console.log(result);
+            if (typeof (result) === 'string') return false;
+            if (result.error || result.result === 'reject') return false;
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
     private async refreshBlockTemplateAsync() {
         let value: GetBlockTemplate = await this.client.command('getblocktemplate');
         super.trigger(Events.blockTemplateUpdate, this, value);
     }
 
-    onBlockTemplateUpdated(callback: (sender: BlockchainWatcher, template: GetBlockTemplate) => void) {
+    onBlockTemplateUpdated(callback: (sender: DaemonWatcher, template: GetBlockTemplate) => void) {
         super.register(Events.blockTemplateUpdate, callback);
     }
+
 }
 
 export type GetBlockTemplate = {

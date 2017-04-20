@@ -1,6 +1,6 @@
 import * as Utils from '../misc/Utils';
 import * as crypto from 'crypto';
-import { GetBlockTemplate } from "./BlockchainWatcher";
+import { GetBlockTemplate } from "./DaemonWatcher";
 import * as merkle from 'merkle-lib';
 import MerkleTree from "./MerkleTree";
 
@@ -8,6 +8,7 @@ export type Task = {
     coinbaseTx: { part1: Buffer, part2: Buffer },
     stratumParams: (string | boolean | string[])[],
     taskId: string,
+    previousBlockHash: string,
     merkleLink: Buffer[],
 };
 
@@ -59,14 +60,14 @@ export default class TaskConstructor {
             true, // Force to start new task
         ];
 
-        return { coinbaseTx, stratumParams, taskId, merkleLink };
+        return { coinbaseTx, stratumParams, taskId, merkleLink, previousBlockHash: template.previousblockhash };
     }
-
+    debugTxTime: number;
     private buildGenerationTx(template: GetBlockTemplate, auxMerkleRoot: Buffer = Buffer.alloc(0), auxMerkleSize: number = 0) {
         let coinbaseScriptSig1 = Buffer.concat([
             Utils.serializeScriptSigNumber(template.height),
             Buffer.from(template.coinbaseaux.flags, 'hex'),
-            Utils.serializeScriptSigNumber(Date.now() / 1000 | 0),
+            Utils.serializeScriptSigNumber(this.debugTxTime || Date.now() / 1000 | 0),
             Utils.packUInt8(Math.min(this.extraNonceSize, 255)),// extra nonce size
             Buffer.from('fabe6d6d', 'hex'),
             Utils.reverseBuffer(auxMerkleRoot),

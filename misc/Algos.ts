@@ -5,6 +5,7 @@ import * as util from './Utils';
 export const BaseDiff = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
 
 export const Algos = {
+    sha256d: { hash: function () { } },
     sha256: {
         //Uncomment diff if you want to use hardcoded truncated diff
         //diff: '00000000ffff0000000000000000000000000000000000000000000000000000',
@@ -222,6 +223,7 @@ export const Algos = {
     }
 };
 
+Algos['sha256d'] = Algos.sha256;
 
 for (let algo in Algos) {
     if (!Algos[algo].multiplier)
