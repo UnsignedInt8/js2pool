@@ -43,7 +43,7 @@ export default class TaskConstructor {
      * @param auxMerkleRoot 
      * @param auxMerkleSize 
      */
-    buildTask(template: GetBlockTemplate, auxMerkleRoot: Buffer, auxMerkleSize): Task {
+    buildTask(template: GetBlockTemplate, auxMerkleRoot: Buffer, auxMerkleSize: number): Task {
         let coinbaseTx = this.buildGenerationTx(template, auxMerkleRoot, auxMerkleSize);
         let taskId = crypto.randomBytes(4).toString('hex');
         let merkleLink = (new MerkleTree([null].concat(template.transactions.map(tx => Utils.uint256BufferFromHash(tx.txid ? tx.txid : tx.hash))))).steps;
