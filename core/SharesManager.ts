@@ -43,6 +43,10 @@ export default class SharesManager {
     buildShare(task: Task, nonce: string, extraNonce1: string, extraNonce2: string, nTime: string) {
         if (task.previousBlockHash !== this.template.previousblockhash) return null;
 
+        let now = Date.now() / 1000 | 0;
+        let nTimeValue = Number.parseInt(nTime, 16);
+        if (nTimeValue < this.template.curtime || nTimeValue > now + 7200) return null;
+
         let fingerprint = `${extraNonce1}/${extraNonce2}/${nonce}/${nTime}`;
         if (this.shares.has(fingerprint)) return null;
         this.shares.add(fingerprint);
@@ -75,7 +79,7 @@ export default class SharesManager {
             ]).toString('hex');
         }
 
-        return { shareDiff, shareHex, shareHash, merkleRoot };
+        return { shareDiff, shareHex, shareHash, merkleRoot, timestamp: now };
     }
 
     private buildHeader(nonce: string, nTime: string, merkleRoot: string) {

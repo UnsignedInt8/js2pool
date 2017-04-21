@@ -1,9 +1,9 @@
 
-import TaskConstructor from "../pool/TaskConstructor";
-import MerkleTree from "../pool/MerkleTree";
 import * as assert from 'assert';
-import SharesManager from "../pool/SharesManager";
 import * as kinq from 'kinq';
+import MerkleTree from "../core/MerkleTree";
+import SharesManager from "../core/SharesManager";
+import TaskConstructor from "../core/TaskConstructor";
 kinq.enable();
 
 let auxTree = MerkleTree.buildMerkleTree([]);

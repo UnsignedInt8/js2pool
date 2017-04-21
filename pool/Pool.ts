@@ -51,11 +51,11 @@ export default class Pool {
         this.stratumServer = net.createServer(s => {
             let client = new StratumClient(s, 4);
             me.clients.add(client);
-            
+
             client.onSubscribe((sender, msg) => { sender.sendSubscription(msg.id, 4); });
             client.onAuthorize((sender, name, pass, msg) => {
                 sender.sendAuthorization(msg.id, true);
-                sender.sendDifficulty(0.002);
+                sender.sendDifficulty(0.1502);
                 if (!me.currentTask) return;
                 sender.sendTask(me.currentTask.stratumParams);
             });
@@ -65,10 +65,11 @@ export default class Pool {
             });
             client.onSubmit((sender, result, msg) => {
                 let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
-                if (share.shareHex) this.watcher.submitBlockAsync(share.shareHex);
+                if (share && share.shareHex) this.watcher.submitBlockAsync(share.shareHex);
 
-                client.sendSubmissionResult(msg.id, share != null, null);
-                console.log(msg.id, result.nonce, result.nTime, result.taskId, me.currentTask.taskId);
+                client.sendSubmissionResult(msg.id, share != null && share.shareDiff >= sender.difficulty, null);
+                console.log(msg.id, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime, result.taskId, me.currentTask.taskId);
+                console.log('share diff', share ? share.shareDiff : 0);
             });
         }).listen(3333);
 

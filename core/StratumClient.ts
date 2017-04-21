@@ -31,15 +31,17 @@ type TypeSubmitResult = {
 }
 
 export default class StratumClient extends Event {
+    readonly extraNonce1: string;
+    
     subscriptionId: string = null;
     lastActivity = Date.now();
     authorized = false;
     difficulty = 0;
     remoteAddress: string;
     miner: string;
-    readonly extraNonce1: string;
-
+    
     private socket: Socket;
+    private difficultyTimer: NodeJS.Timer;
 
     constructor(socket: Socket, extraNonce1Size: number) {
         super();
@@ -102,7 +104,7 @@ export default class StratumClient extends Event {
 
     private handleMessage(message: TypeStratumMessage) {
         this.lastActivity = Date.now();
-        
+
         switch (message.method) {
             case 'mining.subscribe':
                 this.trigger(Events.subscribe, this, message);
@@ -147,8 +149,9 @@ export default class StratumClient extends Event {
                 this.sendError();
                 break;
             default:
-                break;
+                return;
         }
+
     }
 
     close() {
@@ -156,6 +159,7 @@ export default class StratumClient extends Event {
         this.socket.removeAllListeners();
         super.trigger(Events.end, this);
         super.removeAllEvents();
+        if (this.difficultyTimer) clearInterval(this.difficultyTimer);
     }
 
     onFlood(callback: (sender: StratumClient) => void) {
@@ -195,7 +199,12 @@ export default class StratumClient extends Event {
     }
 
     sendPong() {
-        this.sendJson({ id: null, result: [], method: "pong" });
+        this.sendJson({ id: null, result: [], method: 'pong' });
+    }
+
+    sendPing() {
+        console.log('ping');
+        this.sendJson({ id: Math.random() * 100000 | 0, result: [], method: 'pong' });
     }
 
     sendError() {
@@ -234,4 +243,6 @@ export default class StratumClient extends Event {
     sendSubmissionResult(id: number, result: boolean, error?: any) {
         this.sendJson({ id: id, result: result, error: error });
     }
+
+
 }
