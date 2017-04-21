@@ -1,16 +1,16 @@
 
-import DaemonWatcher, { GetBlockTemplate } from "./DaemonWatcher";
 import * as merkle from 'merkle-lib';
 import { Algos } from '../misc/Algos';
 import * as Utils from '../misc/Utils';
-import MerkleTree from "./MerkleTree";
-import TaskConstructor, { Task } from "./TaskConstructor";
 import { Server } from "net";
 import * as net from 'net';
-import StratumClient from "./StratumClient";
 import * as kinq from 'kinq';
 import * as assert from 'assert';
-import SharesManager from "./SharesManager";
+import DaemonWatcher, { GetBlockTemplate } from "../core/DaemonWatcher";
+import TaskConstructor, { Task } from "../core/TaskConstructor";
+import SharesManager from "../core/SharesManager";
+import StratumClient from "../core/StratumClient";
+import MerkleTree from "../core/MerkleTree";
 
 kinq.enable();
 

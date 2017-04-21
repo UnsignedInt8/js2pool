@@ -9,7 +9,7 @@ type Options = {
     password: string,
 }
 
-let Events = {
+const Events = {
     blockTemplateUpdate: 'BlockTemplateUpdated',
 }
 
