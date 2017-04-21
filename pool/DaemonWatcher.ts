@@ -42,7 +42,6 @@ export default class DaemonWatcher extends Event {
             let results: any[] = await this.client.command([{ method: 'submitblock', parameters: [blockHex] }]);
             let result = results.first();
             if (result == null) return true;
-            console.log(result);
             if (typeof (result) === 'string') return false;
             if (result.error || result.result === 'reject') return false;
             return true;

@@ -13,7 +13,7 @@ export type Task = {
 };
 
 export default class TaskConstructor {
-    private poolAddrPubkeyScript: Buffer;
+    private poolPubkeyScript: Buffer;
     private recipients = new Array<{ pubkeyScript: Buffer, percent: number }>();
 
     extraNonceSize = 8;
@@ -26,14 +26,14 @@ export default class TaskConstructor {
         const addrToScript = proof === 'POW' ? Utils.addressToScript : Utils.pubkeyToScript;
 
         me.proof = proof;
-        me.poolAddrPubkeyScript = addrToScript(poolAddr);
+        me.poolPubkeyScript = addrToScript(poolAddr);
         if (!recipients) return;
 
-        recipients.forEach(recipient => {
-            me.recipients.push({
+        this.recipients = recipients.map(recipient => {
+            return {
                 percent: recipient.percent / 100,
                 pubkeyScript: recipient.address.length === 40 ? Utils.hash160ToScript(recipient.address) : Utils.addressToScript(recipient.address)
-            });
+            }
         });
     }
 
@@ -118,7 +118,7 @@ export default class TaskConstructor {
     private buildOutputs(template: GetBlockTemplate) {
         let total = template.coinbasevalue;
         let rewardToPool = total;
-        let txOutputScriptPubkeys = new Array<Buffer>();
+        let txOutputsPubkeyScripts = new Array<Buffer>();
 
         /* Dash 12.1 */
         if (template.masternode && template.superblock) {
@@ -130,7 +130,7 @@ export default class TaskConstructor {
                 rewardToPool -= payeeReward;
 
                 let payeeScript = Utils.addressToScript(template.masternode.payee);
-                txOutputScriptPubkeys.push(Buffer.concat([
+                txOutputsPubkeyScripts.push(Buffer.concat([
                     Utils.packInt64LE(payeeReward),
                     Utils.varIntBuffer(payeeScript.length),
                     payeeScript
@@ -144,7 +144,7 @@ export default class TaskConstructor {
                     rewardToPool -= payeeReward;
 
                     let payeeScript = Utils.addressToScript(template.superblock[i].payee);
-                    txOutputScriptPubkeys.push(Buffer.concat([
+                    txOutputsPubkeyScripts.push(Buffer.concat([
                         Utils.packInt64LE(payeeReward),
                         Utils.varIntBuffer(payeeScript.length),
                         payeeScript
@@ -166,7 +166,7 @@ export default class TaskConstructor {
             rewardToPool -= payeeReward;
 
             let payeeScript = Utils.addressToScript(template.payee);
-            txOutputScriptPubkeys.push(Buffer.concat([
+            txOutputsPubkeyScripts.push(Buffer.concat([
                 Utils.packInt64LE(payeeReward),
                 Utils.varIntBuffer(payeeScript.length),
                 payeeScript
@@ -177,23 +177,23 @@ export default class TaskConstructor {
             let recipientReward = Math.floor(this.recipients[i].percent * total);
             rewardToPool -= recipientReward;
 
-            txOutputScriptPubkeys.push(Buffer.concat([
+            txOutputsPubkeyScripts.push(Buffer.concat([
                 Utils.packInt64LE(recipientReward),
                 Utils.varIntBuffer(this.recipients[i].pubkeyScript.length),
                 this.recipients[i].pubkeyScript
             ]));
         }
 
-        txOutputScriptPubkeys.unshift(Buffer.concat([
+        txOutputsPubkeyScripts.unshift(Buffer.concat([
             Utils.packInt64LE(rewardToPool),
-            Utils.varIntBuffer(this.poolAddrPubkeyScript.length),
-            this.poolAddrPubkeyScript
+            Utils.varIntBuffer(this.poolPubkeyScript.length),
+            this.poolPubkeyScript
         ]));
 
         // https://bitcointalk.org/index.php?topic=1676471.0;prev_next=prev
         if (template.default_witness_commitment !== undefined) {
             let witness_commitment = new Buffer(template.default_witness_commitment, 'hex');
-            txOutputScriptPubkeys.unshift(Buffer.concat([
+            txOutputsPubkeyScripts.unshift(Buffer.concat([
                 Utils.packInt64LE(0),
                 Utils.varIntBuffer(witness_commitment.length),
                 witness_commitment
@@ -201,8 +201,8 @@ export default class TaskConstructor {
         }
 
         return Buffer.concat([
-            Utils.varIntBuffer(txOutputScriptPubkeys.length),
-            Buffer.concat(txOutputScriptPubkeys)
+            Utils.varIntBuffer(txOutputsPubkeyScripts.length),
+            Buffer.concat(txOutputsPubkeyScripts)
         ]);
     }
 

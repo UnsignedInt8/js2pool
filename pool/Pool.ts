@@ -51,7 +51,7 @@ export default class Pool {
         this.stratumServer = net.createServer(s => {
             let client = new StratumClient(s, 4);
             me.clients.add(client);
-
+            
             client.onSubscribe((sender, msg) => { sender.sendSubscription(msg.id, 4); });
             client.onAuthorize((sender, name, pass, msg) => {
                 sender.sendAuthorization(msg.id, true);
