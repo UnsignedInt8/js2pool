@@ -6,7 +6,7 @@
 import * as Utils from '../misc/Utils';
 import { GetBlockTemplate } from "./DaemonWatcher";
 import { Task } from "./TaskConstructor";
-import { Algos, BaseDiff } from "../misc/Algos";
+import { Algos, BaseDiff } from "./Algos";
 import * as BigNum from 'bignum';
 
 function bitsToTarget(bits: number) {

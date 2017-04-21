@@ -1,6 +1,6 @@
 
 import * as merkle from 'merkle-lib';
-import { Algos } from '../misc/Algos';
+import { Algos } from '../core/Algos';
 import * as Utils from '../misc/Utils';
 import { Server } from "net";
 import * as net from 'net';
@@ -65,9 +65,12 @@ export default class Pool {
             });
             client.onSubmit((sender, result, msg) => {
                 let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
-                if (share && share.shareHex) this.watcher.submitBlockAsync(share.shareHex);
+                if (!share) client.sendSubmissionResult(msg.id, false, null);
 
-                client.sendSubmissionResult(msg.id, share != null && share.shareDiff >= sender.difficulty, null);
+                if (share.shareHex) this.watcher.submitBlockAsync(share.shareHex);
+                let isExceptionDiff = share.shareDiff < sender.difficulty;
+                client.sendSubmissionResult(msg.id, !isExceptionDiff, null);
+                
                 console.log(msg.id, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime, result.taskId, me.currentTask.taskId);
                 console.log('share diff', share ? share.shareDiff : 0);
             });
