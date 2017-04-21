@@ -71,11 +71,6 @@ export function stringToReversedBuffer(str: string, encoding = 'hex') {
     return reverseBuffer(buf);
 }
 
-// export function getHashBuffers(hashes: string[]): Buffer[] {
-//     let res = hashes.map(h => uint256BufferFromHash(h));
-//     return [null].concat(res);
-// }
-
 /**
  * internal bytes order to rpc bytes order http://bitcoin.stackexchange.com/questions/32765/how-do-i-calculate-the-txid-of-this-raw-transaction
  * so, it can be transfered on the internet

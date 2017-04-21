@@ -223,7 +223,7 @@ export const Algos = {
     }
 };
 
-Algos['sha256d'] = Algos.sha256;
+Algos.sha256d = Algos.sha256;
 
 for (let algo in Algos) {
     if (!Algos[algo].multiplier)

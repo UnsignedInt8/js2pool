@@ -65,12 +65,15 @@ export default class Pool {
             });
             client.onSubmit((sender, result, msg) => {
                 let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
-                if (!share) client.sendSubmissionResult(msg.id, false, null);
+                if (!share) {
+                    client.sendSubmissionResult(msg.id, false, null);
+                    return;
+                }
 
                 if (share.shareHex) this.watcher.submitBlockAsync(share.shareHex);
                 let isExceptionDiff = share.shareDiff < sender.difficulty;
                 client.sendSubmissionResult(msg.id, !isExceptionDiff, null);
-                
+
                 console.log(msg.id, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime, result.taskId, me.currentTask.taskId);
                 console.log('share diff', share ? share.shareDiff : 0);
             });

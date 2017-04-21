@@ -62,6 +62,7 @@ export default class TaskConstructor {
 
         return { coinbaseTx, stratumParams, taskId, merkleLink, previousBlockHash: template.previousblockhash };
     }
+    
     debugTxTime: number;
     private buildGenerationTx(template: GetBlockTemplate, auxMerkleRoot: Buffer = Buffer.alloc(0), auxMerkleSize: number = 0) {
         let coinbaseScriptSig1 = Buffer.concat([
