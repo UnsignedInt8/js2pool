@@ -7,7 +7,7 @@ const Events = {
     flood: 'Flood',
     malformedMessage: 'MalformedMessage',
     end: 'End',
-    miningNotificationTimeout: 'MiningNotificationTimeout',
+    submissionTimeout: 'SubmissionTimeout',
 
     subscribe: 'Subscribe',
     authorize: 'Authorize',
@@ -39,10 +39,10 @@ export default class StratumClient extends Event {
     difficulty = 0;
     remoteAddress: string;
     miner: string;
-    miningNotifyTimeout = 45;
+    submissionTimeout = 90;
 
     private socket: Socket;
-    // private miningNotificationTimer: NodeJS.Timer;
+    private submissionTimeoutTimer: NodeJS.Timer;
 
     constructor(socket: Socket, extraNonce1Size: number) {
         super();
@@ -194,8 +194,8 @@ export default class StratumClient extends Event {
         super.register(Events.submit, callback);
     }
 
-    onMiningNotificationTimeout(callback: (sender: StratumClient) => void) {
-        super.register(Events.miningNotificationTimeout, callback);
+    onSubmissionTimeout(callback: (sender: StratumClient) => void) {
+        super.register(Events.submissionTimeout, callback);
     }
 
     private sendJson(msg: TypeStratumMessage, ...args) {
@@ -247,9 +247,9 @@ export default class StratumClient extends Event {
     sendTask(task: (string | boolean | string[])[]) {
         this.sendJson({ id: null, method: "mining.notify", params: task });
 
-        // let me = this;
-        // if (this.miningNotificationTimer) clearTimeout(this.miningNotificationTimer);
-        // this.miningNotificationTimer = setTimeout(() => me.trigger(Events.miningNotificationTimeout, me), this.miningNotifyTimeout * 1000);
+        let me = this;
+        if (this.submissionTimeoutTimer) clearTimeout(this.submissionTimeoutTimer);
+        this.submissionTimeoutTimer = setTimeout(() => me.trigger(Events.submissionTimeout, me), this.submissionTimeout * 1000);
     }
 
     sendSubmissionResult(id: number, result: boolean, error?: any) {

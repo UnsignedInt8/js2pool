@@ -63,9 +63,9 @@ export default class Pool {
                 console.log('End: ', sender.miner);
                 me.clients.delete(sender);
             });
-            client.onMiningNotificationTimeout(sender => {
-                console.log('send task as timeout')
-                sender.sendTask(me.currentTask.stratumParams);
+            client.onSubmissionTimeout(sender => {
+                console.log('send ping as timeout')
+                sender.sendPing();
             });
             client.onSubmit((sender, result, msg) => {
                 let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
