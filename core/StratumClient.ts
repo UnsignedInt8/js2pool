@@ -211,7 +211,7 @@ export default class StratumClient extends Event {
     }
 
     sendPing() {
-        this.sendJson({ id: Math.random() * 100000 | 0, result: [], method: 'ping' });
+        this.sendJson({ id: null, result: [], method: 'ping' });
     }
 
     sendError() {
@@ -278,7 +278,7 @@ export default class StratumClient extends Event {
         let actualTime = (Date.now() - this.firstShareTimestamp) / 1000;
         let newDiff = this.difficulty * (actualTime / (this.secondsPerShare * this.blocksThresold));
         console.log(`${this.blocksThresold} blocks, actual: ${actualTime}, new diff: ${newDiff}`);
-        
+
         this.sendDifficulty(newDiff);
     }
 
