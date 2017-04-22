@@ -211,8 +211,7 @@ export default class StratumClient extends Event {
     }
 
     sendPing() {
-        console.log('ping');
-        this.sendJson({ id: Math.random() * 100000 | 0, result: [], method: 'pong' });
+        this.sendJson({ id: Math.random() * 100000 | 0, result: [], method: 'ping' });
     }
 
     sendError() {
