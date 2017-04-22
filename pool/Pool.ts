@@ -56,6 +56,7 @@ export default class Pool {
             client.onAuthorize((sender, name, pass, msg) => {
                 sender.sendAuthorization(msg.id, true);
                 sender.sendDifficulty(0.1502);
+                // sender.enableAutoDiff();
                 if (!me.currentTask) return;
                 sender.sendTask(me.currentTask.stratumParams);
             });
@@ -63,8 +64,13 @@ export default class Pool {
                 console.log('End: ', sender.miner);
                 me.clients.delete(sender);
             });
+            client.onMiningNotificationTimeout(sender => {
+                console.log('send task as timeout')
+                sender.sendTask(me.currentTask.stratumParams);
+            });
             client.onSubmit((sender, result, msg) => {
                 let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
+                
                 if (!share) {
                     client.sendSubmissionResult(msg.id, false, null);
                     return;
