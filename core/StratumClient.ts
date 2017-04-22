@@ -2,7 +2,6 @@
 import { Event } from "../nodejs/Event";
 import { Socket } from "net";
 import * as crypto from 'crypto';
-import { setTimeout } from "timers";
 
 const Events = {
     flood: 'Flood',
@@ -43,7 +42,7 @@ export default class StratumClient extends Event {
     miningNotifyTimeout = 45;
 
     private socket: Socket;
-    private miningNotificationTimer: NodeJS.Timer;
+    // private miningNotificationTimer: NodeJS.Timer;
 
     constructor(socket: Socket, extraNonce1Size: number) {
         super();
@@ -161,7 +160,7 @@ export default class StratumClient extends Event {
         this.socket.removeAllListeners();
         super.trigger(Events.end, this);
         super.removeAllEvents();
-        if (this.miningNotificationTimer) clearTimeout(this.miningNotificationTimer);
+        // if (this.miningNotificationTimer) clearTimeout(this.miningNotificationTimer);
         if (this.submittingTimeoutTimer) clearInterval(this.submittingTimeoutTimer);
     }
 
@@ -248,9 +247,9 @@ export default class StratumClient extends Event {
     sendTask(task: (string | boolean | string[])[]) {
         this.sendJson({ id: null, method: "mining.notify", params: task });
 
-        let me = this;
-        if (this.miningNotificationTimer) clearTimeout(this.miningNotificationTimer);
-        this.miningNotificationTimer = setTimeout(() => me.trigger(Events.miningNotificationTimeout, me), this.miningNotifyTimeout * 1000);
+        // let me = this;
+        // if (this.miningNotificationTimer) clearTimeout(this.miningNotificationTimer);
+        // this.miningNotificationTimer = setTimeout(() => me.trigger(Events.miningNotificationTimeout, me), this.miningNotifyTimeout * 1000);
     }
 
     sendSubmissionResult(id: number, result: boolean, error?: any) {
