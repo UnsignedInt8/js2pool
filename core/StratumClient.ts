@@ -163,7 +163,7 @@ export default class StratumClient extends Event {
         this.socket.removeAllListeners();
         super.trigger(Events.end, this);
         super.removeAllEvents();
-        if (this.keepAliveTimer) clearTimeout(this.keepAliveTimer);
+        if (this.keepAliveTimer) clearInterval(this.keepAliveTimer);
         if (this.taskTimeoutTimer) clearTimeout(this.taskTimeoutTimer);
     }
 
@@ -219,7 +219,6 @@ export default class StratumClient extends Event {
 
     sendPing() {
         this.sendJson({ id: null, result: [], method: 'ping' });
-        this.resetKeepAliveTimer();
     }
 
     sendError() {
@@ -244,6 +243,7 @@ export default class StratumClient extends Event {
     sendAuthorization(id: number, authorized: boolean, error: string = null) {
         this.sendJson({ id: id, result: authorized, error: error });
         this.authorized = authorized;
+        if (authorized) this.startKeepingAliveTimer();
     }
 
     sendDifficulty(difficulty: number) {
@@ -253,7 +253,6 @@ export default class StratumClient extends Event {
 
     sendTask(task: (string | boolean | string[])[]) {
         this.sendJson({ id: null, method: "mining.notify", params: task });
-        this.resetKeepAliveTimer();
         this.resetTaskTimeoutTimer();
     }
 
@@ -261,10 +260,10 @@ export default class StratumClient extends Event {
         this.sendJson({ id: id, result: validity, error: error });
     }
 
-    private resetKeepAliveTimer() {
+    private startKeepingAliveTimer() {
         let me = this;
-        if (this.keepAliveTimer) clearTimeout(this.keepAliveTimer);
-        this.keepAliveTimer = setTimeout(() => me.trigger(Events.keepAliveTimeout, me), this.keepAliveTimeout * 1000);
+        if (this.keepAliveTimer) clearInterval(this.keepAliveTimer);
+        this.keepAliveTimer = setInterval(() => me.trigger(Events.keepAliveTimeout, me), this.keepAliveTimeout * 1000);
     }
 
     private resetTaskTimeoutTimer() {

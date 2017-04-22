@@ -33,7 +33,7 @@ export default class Pool {
     currentTask: Task;
 
     handleBlockTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
-        console.log(template.height);
+        console.info('new block height: ', template.height);
         this.sharesManager.updateTemplate(template);
 
         let auxTree = MerkleTree.buildMerkleTree(template.auxes || []);
