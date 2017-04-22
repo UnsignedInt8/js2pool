@@ -7,7 +7,7 @@ const Events = {
     flood: 'Flood',
     malformedMessage: 'MalformedMessage',
     end: 'End',
-    submissionTimeout: 'SubmissionTimeout',
+    keepAliveTimeout: 'KeepAliveTimeout',
 
     subscribe: 'Subscribe',
     authorize: 'Authorize',
@@ -39,10 +39,10 @@ export default class StratumClient extends Event {
     difficulty = 0;
     remoteAddress: string;
     miner: string;
-    submissionTimeout = 40;
+    keepAliveTimeout = 45;
 
     private socket: Socket;
-    private submissionTimeoutTimer: NodeJS.Timer;
+    private keepAliveTimer: NodeJS.Timer;
 
     constructor(socket: Socket, extraNonce1Size: number) {
         super();
@@ -144,7 +144,6 @@ export default class StratumClient extends Event {
                 }
 
                 this.trigger(Events.submit, this, result, message);
-                this.handleSubmit();
                 break;
             case 'mining.get_transactions':
                 this.sendError();
@@ -160,8 +159,7 @@ export default class StratumClient extends Event {
         this.socket.removeAllListeners();
         super.trigger(Events.end, this);
         super.removeAllEvents();
-        // if (this.miningNotificationTimer) clearTimeout(this.miningNotificationTimer);
-        if (this.submittingTimeoutTimer) clearInterval(this.submittingTimeoutTimer);
+        if (this.keepAliveTimer) clearTimeout(this.keepAliveTimer);
     }
 
     // ------------------ Events ---------------------
@@ -194,8 +192,8 @@ export default class StratumClient extends Event {
         super.register(Events.submit, callback);
     }
 
-    onSubmissionTimeout(callback: (sender: StratumClient) => void) {
-        super.register(Events.submissionTimeout, callback);
+    onKeepAliveTimeout(callback: (sender: StratumClient) => void) {
+        super.register(Events.keepAliveTimeout, callback);
     }
 
     private sendJson(msg: TypeStratumMessage, ...args) {
@@ -212,7 +210,7 @@ export default class StratumClient extends Event {
 
     sendPing() {
         this.sendJson({ id: null, result: [], method: 'ping' });
-        this.resetSubmissionTimeoutTimer();
+        this.resetKeepAliveTimer();
     }
 
     sendError() {
@@ -246,61 +244,18 @@ export default class StratumClient extends Event {
 
     sendTask(task: (string | boolean | string[])[]) {
         this.sendJson({ id: null, method: "mining.notify", params: task });
-        this.resetSubmissionTimeoutTimer();
+        this.resetKeepAliveTimer();
     }
 
     sendSubmissionResult(id: number, validity: boolean, error?: any) {
         this.sendJson({ id: id, result: validity, error: error });
     }
 
-    private resetSubmissionTimeoutTimer() {
+    private resetKeepAliveTimer() {
         let me = this;
-        if (this.submissionTimeoutTimer) clearTimeout(this.submissionTimeoutTimer);
-        this.submissionTimeoutTimer = setTimeout(() => me.trigger(Events.submissionTimeout, me), this.submissionTimeout * 1000);
+        if (this.keepAliveTimer) clearTimeout(this.keepAliveTimer);
+        this.keepAliveTimer = setTimeout(() => me.trigger(Events.keepAliveTimeout, me), this.keepAliveTimeout * 1000);
     }
 
-    // ----------------- Auto diff -------------------
-
-    private secondsPerShare = 0;
-    private autoDiffEnabled = false;
-    private firstShareTimestamp: number;
-    private blocksThresold = 0;
-    private sharesCount = 0;
-    private submittingTimeoutTimer: NodeJS.Timer;
-
-    private handleSubmit() {
-        if (!this.autoDiffEnabled || this.blocksThresold === 0) return;
-
-        if (this.sharesCount == 0) this.firstShareTimestamp = Date.now();
-        if (this.submittingTimeoutTimer) clearInterval(this.submittingTimeoutTimer);
-        this.submittingTimeoutTimer = setInterval(this.onSubmittingShareTimeout.bind(this), this.secondsPerShare * 1000);
-        this.sharesCount++;
-
-        if (this.sharesCount < this.blocksThresold) return;
-
-        this.sharesCount = 0;
-        let actualTime = (Date.now() - this.firstShareTimestamp) / 1000;
-        let newDiff = this.difficulty * (actualTime / (this.secondsPerShare * this.blocksThresold));
-        console.log(`${this.blocksThresold} blocks, actual: ${actualTime}, new diff: ${newDiff}`);
-
-        this.sendDifficulty(newDiff);
-    }
-
-    private onSubmittingShareTimeout() {
-        console.log('submitting share timeout');
-        console.log('new diff: ', this.difficulty * 0.75);
-        this.sendDifficulty(this.difficulty * 0.75);
-    }
-
-    enableAutoDiff(secondsPerBlock = 600, secondsPerShare = 15) {
-        this.secondsPerShare = secondsPerShare;
-        this.blocksThresold = secondsPerBlock / secondsPerShare;
-        this.autoDiffEnabled = true;
-        this.submittingTimeoutTimer = setInterval(this.onSubmittingShareTimeout.bind(this), secondsPerShare * 1000);
-        console.log(secondsPerBlock, secondsPerShare);
-    }
-
-    disableAutoDiff() {
-        this.autoDiffEnabled = false;
-    }
+  
 }

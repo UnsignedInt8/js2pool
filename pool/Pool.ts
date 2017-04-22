@@ -63,8 +63,8 @@ export default class Pool {
                 console.log('End: ', sender.miner);
                 me.clients.delete(sender);
             });
-            client.onSubmissionTimeout(sender => {
-                console.log('send ping as timeout')
+            client.onKeepAliveTimeout(sender => {
+                console.log('send ping as keeping alive')
                 sender.sendPing();
             });
             client.onSubmit((sender, result, msg) => {
