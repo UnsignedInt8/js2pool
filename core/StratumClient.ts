@@ -39,7 +39,7 @@ export default class StratumClient extends Event {
     difficulty = 0;
     remoteAddress: string;
     miner: string;
-    submissionTimeout = 90;
+    submissionTimeout = 40;
 
     private socket: Socket;
     private submissionTimeoutTimer: NodeJS.Timer;
@@ -212,6 +212,7 @@ export default class StratumClient extends Event {
 
     sendPing() {
         this.sendJson({ id: null, result: [], method: 'ping' });
+        this.resetSubmissionTimeoutTimer();
     }
 
     sendError() {
@@ -245,14 +246,17 @@ export default class StratumClient extends Event {
 
     sendTask(task: (string | boolean | string[])[]) {
         this.sendJson({ id: null, method: "mining.notify", params: task });
+        this.resetSubmissionTimeoutTimer();
+    }
 
+    sendSubmissionResult(id: number, validity: boolean, error?: any) {
+        this.sendJson({ id: id, result: validity, error: error });
+    }
+
+    private resetSubmissionTimeoutTimer() {
         let me = this;
         if (this.submissionTimeoutTimer) clearTimeout(this.submissionTimeoutTimer);
         this.submissionTimeoutTimer = setTimeout(() => me.trigger(Events.submissionTimeout, me), this.submissionTimeout * 1000);
-    }
-
-    sendSubmissionResult(id: number, result: boolean, error?: any) {
-        this.sendJson({ id: id, result: result, error: error });
     }
 
     // ----------------- Auto diff -------------------
