@@ -8,6 +8,7 @@ const Events = {
     malformedMessage: 'MalformedMessage',
     end: 'End',
     keepAliveTimeout: 'KeepAliveTimeout',
+    taskTimeout: 'TaskTimeout',
 
     subscribe: 'Subscribe',
     authorize: 'Authorize',
@@ -40,9 +41,11 @@ export default class StratumClient extends Event {
     remoteAddress: string;
     miner: string;
     keepAliveTimeout = 45;
+    taskTimeout = 125;
 
     private socket: Socket;
     private keepAliveTimer: NodeJS.Timer;
+    private taskTimeoutTimer: NodeJS.Timer;
 
     constructor(socket: Socket, extraNonce1Size: number) {
         super();
@@ -144,6 +147,7 @@ export default class StratumClient extends Event {
                 }
 
                 this.trigger(Events.submit, this, result, message);
+                this.resetTaskTimeoutTimer();
                 break;
             case 'mining.get_transactions':
                 this.sendError();
@@ -160,6 +164,7 @@ export default class StratumClient extends Event {
         super.trigger(Events.end, this);
         super.removeAllEvents();
         if (this.keepAliveTimer) clearTimeout(this.keepAliveTimer);
+        if (this.taskTimeoutTimer) clearTimeout(this.taskTimeoutTimer);
     }
 
     // ------------------ Events ---------------------
@@ -194,6 +199,10 @@ export default class StratumClient extends Event {
 
     onKeepAliveTimeout(callback: (sender: StratumClient) => void) {
         super.register(Events.keepAliveTimeout, callback);
+    }
+
+    onTaskTimeout(callback: (sender: StratumClient) => void) {
+        super.register(Events.taskTimeout, callback);
     }
 
     private sendJson(msg: TypeStratumMessage, ...args) {
@@ -245,6 +254,7 @@ export default class StratumClient extends Event {
     sendTask(task: (string | boolean | string[])[]) {
         this.sendJson({ id: null, method: "mining.notify", params: task });
         this.resetKeepAliveTimer();
+        this.resetTaskTimeoutTimer();
     }
 
     sendSubmissionResult(id: number, validity: boolean, error?: any) {
@@ -257,5 +267,9 @@ export default class StratumClient extends Event {
         this.keepAliveTimer = setTimeout(() => me.trigger(Events.keepAliveTimeout, me), this.keepAliveTimeout * 1000);
     }
 
-  
+    private resetTaskTimeoutTimer() {
+        let me = this;
+        if (this.taskTimeoutTimer) clearTimeout(this.taskTimeoutTimer);
+        this.taskTimeoutTimer = setTimeout(() => me.trigger(Events.taskTimeout, me), this.taskTimeout * 1000);
+    }
 }

@@ -24,7 +24,7 @@ export default class Pool {
 
     constructor() {
         this.watcher = new DaemonWatcher({ host: 'localhost', port: 19001, username: 'admin1', password: '123' });
-        this.taskConstructor = new TaskConstructor('mwT5FhANpkurDKBVXVyAH1b6T3rz9T1owr');
+        this.taskConstructor = new TaskConstructor('mpBjJJtJK5mFuuvFxdPHFp1wgdVMiXsaHW');
         this.sharesManager = new SharesManager('sha256d');
         this.watcher.beginWatching();
         this.watcher.onBlockTemplateUpdated(this.handleBlockTemplateUpdated.bind(this));
@@ -55,7 +55,7 @@ export default class Pool {
             client.onSubscribe((sender, msg) => { sender.sendSubscription(msg.id, 4); });
             client.onAuthorize((sender, name, pass, msg) => {
                 sender.sendAuthorization(msg.id, true);
-                sender.sendDifficulty(0.502);
+                sender.sendDifficulty(0.02502);
                 if (!me.currentTask) return;
                 sender.sendTask(me.currentTask.stratumParams);
             });
@@ -66,6 +66,11 @@ export default class Pool {
             client.onKeepAliveTimeout(sender => {
                 console.log('send ping as keeping alive')
                 sender.sendPing();
+            });
+            client.onTaskTimeout(sender => {
+                console.log('task timeout, resend task');
+                if (!this.currentTask) return;
+                sender.sendTask(this.currentTask.stratumParams);
             });
             client.onSubmit((sender, result, msg) => {
                 let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
