@@ -2,6 +2,7 @@
 import { Event } from "../nodejs/Event";
 import { Socket } from "net";
 import * as crypto from 'crypto';
+import { setTimeout } from "timers";
 
 const Events = {
     flood: 'Flood',
@@ -249,7 +250,7 @@ export default class StratumClient extends Event {
 
         let me = this;
         if (this.miningNotificationTimer) clearTimeout(this.miningNotificationTimer);
-        this.miningNotificationTimer = setInterval(() => me.trigger(Events.miningNotificationTimeout, me), this.miningNotifyTimeout * 1000);
+        this.miningNotificationTimer = setTimeout(() => me.trigger(Events.miningNotificationTimeout, me), this.miningNotifyTimeout * 1000);
     }
 
     sendSubmissionResult(id: number, result: boolean, error?: any) {
@@ -294,6 +295,7 @@ export default class StratumClient extends Event {
         this.blocksThresold = secondsPerBlock / secondsPerShare;
         this.autoDiffEnabled = true;
         this.submittingTimeoutTimer = setInterval(this.onSubmittingShareTimeout.bind(this), secondsPerShare * 1000);
+        console.log(secondsPerBlock, secondsPerShare);
     }
 
     disableAutoDiff() {

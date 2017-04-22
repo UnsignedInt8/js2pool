@@ -55,8 +55,7 @@ export default class Pool {
             client.onSubscribe((sender, msg) => { sender.sendSubscription(msg.id, 4); });
             client.onAuthorize((sender, name, pass, msg) => {
                 sender.sendAuthorization(msg.id, true);
-                sender.sendDifficulty(0.1502);
-                // sender.enableAutoDiff();
+                sender.sendDifficulty(0.502);
                 if (!me.currentTask) return;
                 sender.sendTask(me.currentTask.stratumParams);
             });
@@ -70,9 +69,11 @@ export default class Pool {
             });
             client.onSubmit((sender, result, msg) => {
                 let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
-                
+
                 if (!share) {
                     client.sendSubmissionResult(msg.id, false, null);
+                    console.log(msg.id, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime, result.taskId, me.currentTask.taskId);
+                    console.log('share diff', share ? share.shareDiff : 0);
                     return;
                 }
 
