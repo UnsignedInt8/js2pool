@@ -49,3 +49,6 @@ build/**/*.js
 build/**/*.js.map
 dist/**/*.*
 typings/
+
+# temporary ignore
+p2p/

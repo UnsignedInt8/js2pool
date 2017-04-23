@@ -4,6 +4,14 @@ import * as util from '../misc/Utils';
 
 export const BaseDiff = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
 
+export function bitsToTarget(bits: number) {
+    return (bits & 0x00ffffff) * Math.pow(2, 8 * ((bits >> 24) - 3));
+}
+
+export function targetToDifficulty(target: number) {
+    return (0xffff0000 * Math.pow(2, 256 - 64) + 1) / (target + 1)
+}
+
 export const Algos = {
     sha256d: { hash: function () { } },
     sha256: {

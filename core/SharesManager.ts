@@ -6,16 +6,8 @@
 import * as Utils from '../misc/Utils';
 import { GetBlockTemplate } from "./DaemonWatcher";
 import { Task } from "./TaskConstructor";
-import { Algos, BaseDiff } from "./Algos";
+import { Algos, BaseDiff, bitsToTarget } from "./Algos";
 import * as BigNum from 'bignum';
-
-function bitsToTarget(bits: number) {
-    return (bits & 0x00ffffff) * Math.pow(2, 8 * ((bits >> 24) - 3));
-}
-
-function targetToDifficulty(target: number) {
-    return (0xffff0000 * Math.pow(2, 256 - 64) + 1) / (target + 1)
-}
 
 export default class SharesManager {
     private txHasher: (data: Buffer) => Buffer;
