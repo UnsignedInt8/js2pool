@@ -1,7 +1,7 @@
 
 import * as assert from 'assert';
 import MerkleTree from "../core/MerkleTree";
-import TaskConstructor from "../core/TaskConstructor";
+import { TaskConstructor } from "../core/TaskConstructor";
 
 describe('TaskConstructor tests', () => {
     let template = `{"capabilities":["proposal"],"version":805306371,"rules":[],"vbavailable":{"testdummy":28,"csv":0,"segwit":1},"vbrequired":0,"previousblockhash":"77d5e44e5fe7c2fddf1bab082545ffe3ebe21fb6e8d004acbde1bcdb82ae4cff","transactions":[],"coinbaseaux":{"flags":""},"coinbasevalue":2500000000,"longpollid":"77d5e44e5fe7c2fddf1bab082545ffe3ebe21fb6e8d004acbde1bcdb82ae4cff15","target":"7fffff0000000000000000000000000000000000000000000000000000000000","mintime":1492518207,"mutable":["time","transactions","prevblock"],"noncerange":"00000000ffffffff","sigoplimit":20000,"sizelimit":1000000,"curtime":1492564149,"bits":"207fffff","height":222,"default_witness_commitment":"6a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf9","auxes":[]}`;

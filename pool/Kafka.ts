@@ -1,7 +1,7 @@
-import { Client, Producer, ConsumerGroup, Consumer } from 'kafka-node';
+import { Client, Producer, ConsumerGroup, Consumer, HighLevelProducer } from 'kafka-node';
 
 let zkClient = new Client('localhost:2181', 'producer1');
-let producer = new Producer(zkClient);
+let producer = new HighLevelProducer(zkClient);
 producer.on('ready', () => {
     console.log('ready');
     producer.createTopics(['hello'], true, (err, data) => console.log(err, data));

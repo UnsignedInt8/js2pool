@@ -3,7 +3,7 @@ import * as assert from 'assert';
 import * as kinq from 'kinq';
 import MerkleTree from "../core/MerkleTree";
 import SharesManager from "../core/SharesManager";
-import TaskConstructor from "../core/TaskConstructor";
+import { TaskConstructor } from "../core/TaskConstructor";
 kinq.enable();
 
 let auxTree = MerkleTree.buildMerkleTree([]);

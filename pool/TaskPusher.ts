@@ -1,8 +1,9 @@
-import { Producer, Client } from 'kafka-node';
+import { Client, HighLevelProducer } from 'kafka-node';
 import { Event } from "../nodejs/Event";
 import * as crypto from 'crypto';
-import { DaemonWatcher, DaemonOptions, } from "../core/DaemonWatcher";
+import { DaemonWatcher, DaemonOptions, GetBlockTemplate, } from "../core/DaemonWatcher";
 import { TaskConstructor, Task } from "../core/TaskConstructor";
+import MerkleTree from "../core/MerkleTree";
 
 export type ZookeeperOptions = {
     address: string,
@@ -19,26 +20,35 @@ export type TaskPusherOptions = {
 
 export default class TaskPusher extends Event {
 
-    private zkClient: Client;
-    private kaProducer: Producer;
+    private zookeeper: Client;
+    private taskProducer: HighLevelProducer;
     private daemonWatcher: DaemonWatcher;
     private taskConstructor: TaskConstructor;
 
     constructor(opts: TaskPusherOptions) {
         super();
-        this.daemonWatcher = new DaemonWatcher(opts.daemon);
         this.taskConstructor = new TaskConstructor(opts.address, opts.recipients)
-        this.zkClient = new Client(`${opts.zookeeper.address}:${opts.zookeeper.port}`, crypto.randomBytes(4).toString());
-        this.kaProducer = new Producer(this.zkClient);
-        this.kaProducer.on('ready', this.onProducerReady);
-        this.kaProducer.on('error', this.onProducerError);
+
+        this.daemonWatcher = new DaemonWatcher(opts.daemon);
+        this.daemonWatcher.onBlockTemplateUpdated(this.onTemplateUpdated);
+
+        this.zookeeper = new Client(`${opts.zookeeper.address}:${opts.zookeeper.port}`, crypto.randomBytes(4).toString());
+        this.taskProducer = new HighLevelProducer(this.zookeeper);
+        this.taskProducer.on('ready', this.onProducerReady);
+        this.taskProducer.on('error', this.onProducerError);
     }
 
     private onProducerReady() {
-
+        this.taskProducer.createTopics(['Task'], true, error => { });
+        this.daemonWatcher.beginWatching();
     }
 
     private onProducerError(error) {
 
+    }
+
+    private onTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
+        let auxTree = MerkleTree.buildMerkleTree(template.auxes || []);
+        let task = this.taskConstructor.buildTask(template, auxTree.root, auxTree.data.length);
     }
 }
