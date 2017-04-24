@@ -25,6 +25,7 @@ export type TaskSerialization = {
     previousBlockHash: string,
     merkleLink: string[],
     height: number,
+    template: GetBlockTemplate,
 }
 
 export const Topics = {
@@ -77,6 +78,7 @@ export default class TaskPusher extends Event {
             previousBlockHash: task.previousBlockHash,
             height: task.height,
             merkleLink: task.merkleLink.map(n => n.toString('hex')),
+            template
         };
 
         this.taskProducer.send([{

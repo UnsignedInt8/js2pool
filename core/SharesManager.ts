@@ -19,7 +19,7 @@ export default class SharesManager {
 
     proof: 'POW' | 'POS' = 'POW';
 
-    constructor(algorithm: string, configs?: { normalHash: boolean }) {
+    constructor(algorithm: string, configs?: { normalHash?: boolean }) {
         this.txHasher = ['keccak', 'blake', 'fugue', 'groestl'].includes(algorithm) && (configs && !configs.normalHash) ? Utils.sha256 : Utils.sha256d;
         this.mutliplier = Algos[algorithm].mutliplier || 1;
         this.headerHasher = Algos[algorithm].hash(configs)

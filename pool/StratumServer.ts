@@ -6,11 +6,17 @@ import * as crypto from 'crypto';
 import { Server, Socket } from "net";
 import * as net from 'net';
 import StratumClient from "../core/StratumClient";
+import SharesManager from "../core/SharesManager";
 
 type StratumServerOptions = {
     zookeeper: ZookeeperOptions,
     groupId: string,
     port: number, // stratum server port
+
+    coin: {
+        algorithm: string,
+        normalHash?: boolean,
+    }
 }
 
 export class StratumServer extends Event {
@@ -21,6 +27,7 @@ export class StratumServer extends Event {
     private server: Server;
     private port: number;
     private clients = new Map<string, StratumClient>();
+    private sharesManager: SharesManager;
 
     private static Events = {
         Ready: 'Ready',
@@ -40,6 +47,7 @@ export class StratumServer extends Event {
         this.taskConsumer.on('offsetOutOfRange', this.onOffsetOutOfRange.bind(this));
 
         this.port = opts.port;
+        this.sharesManager = new SharesManager(opts.coin.algorithm, opts.coin);
     }
 
     private onMessage(msg: string) {
@@ -50,13 +58,14 @@ export class StratumServer extends Event {
             previousBlockHash: taskMessage.previousBlockHash,
             stratumParams: taskMessage.stratumParams,
             height: taskMessage.height,
+            template: taskMessage.template,
             coinbaseTx: {
                 part1: Buffer.from(taskMessage.coinbaseTx[0], 'hex'),
                 part2: Buffer.from(taskMessage.coinbaseTx[1], 'hex'),
             },
         };
 
-
+        this.sharesManager.updateTemplate(taskMessage.template);
     }
 
     private onError(error) {

@@ -96,18 +96,18 @@ export default class Pool {
     }
 }
 
-// new Pool().startStratumServer();
+new Pool().startStratumServer();
 
-let pusher = new TaskPusher({
-    zookeeper: {
-        address: 'localhost',
-        port: 2181,
-    },
-    address: 'mpBjJJtJK5mFuuvFxdPHFp1wgdVMiXsaHW',
-    daemon: {
-        host: 'localhost',
-        port: 19001,
-        password: '123',
-        username: 'admin1',
-    },
-});
+// let pusher = new TaskPusher({
+//     zookeeper: {
+//         address: 'localhost',
+//         port: 2181,
+//     },
+//     address: 'mpBjJJtJK5mFuuvFxdPHFp1wgdVMiXsaHW',
+//     daemon: {
+//         host: 'localhost',
+//         port: 19001,
+//         password: '123',
+//         username: 'admin1',
+//     },
+// });
