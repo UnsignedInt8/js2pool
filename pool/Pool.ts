@@ -64,7 +64,7 @@ export default class Pool {
                 console.log('End: ', sender.miner);
                 me.clients.delete(sender);
             });
-            client.onKeepAliveTimeout(sender => {
+            client.onKeepingAliveTimeout(sender => {
                 console.log('send ping as keeping alive')
                 sender.sendPing();
             });

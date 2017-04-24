@@ -203,7 +203,7 @@ export default class StratumClient extends Event {
         super.register(Events.submit, callback);
     }
 
-    onKeepAliveTimeout(callback: (sender: StratumClient) => void) {
+    onKeepingAliveTimeout(callback: (sender: StratumClient) => void) {
         super.register(Events.keepAliveTimeout, callback);
     }
 

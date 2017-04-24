@@ -3,7 +3,7 @@ import { Event } from "../nodejs/Event";
 import { Client, Consumer, Producer, HighLevelProducer } from 'kafka-node';
 import { ZookeeperOptions, Topics, TaskSerialization } from "./TaskPusher";
 import * as crypto from 'crypto';
-import { Server } from "net";
+import { Server, Socket } from "net";
 import * as net from 'net';
 import StratumClient from "../core/StratumClient";
 
@@ -44,15 +44,27 @@ export class StratumServer extends Event {
 
     private onMessage(msg: string) {
         let taskMessage = JSON.parse(msg) as TaskSerialization;
+        let task = {
+            taskId: taskMessage.taskId,
+            merkleLink: taskMessage.merkleLink.map(s => Buffer.from(s, 'hex')),
+            previousBlockHash: taskMessage.previousBlockHash,
+            stratumParams: taskMessage.stratumParams,
+            height: taskMessage.height,
+            coinbaseTx: {
+                part1: Buffer.from(taskMessage.coinbaseTx[0], 'hex'),
+                part2: Buffer.from(taskMessage.coinbaseTx[1], 'hex'),
+            },
+        };
+
 
     }
 
     private onError(error) {
-
+        console.error(error);
     }
 
     private onOffsetOutOfRange(error) {
-
+        console.error(error);
     }
 
     private onProducerReady() {
@@ -63,19 +75,28 @@ export class StratumServer extends Event {
         super.register(StratumServer.Events.Ready, callback);
     }
 
-    start() {
-        let me = this;
+    // -------------- Stratum Server ------------------
 
-        try {
-            this.server = net.createServer(s => {
-                let client = new StratumClient(s, 4);
-            }).listen(this.port);
-            return true;
-        } catch (error) {
-            console.error(error);
-            return false;
-        }
+    start() {
+        if (this.server) return;
+        this.server = net.createServer(this.onSocketConnected.bind(this)).listen(this.port);
     }
 
-    
+    private onSocketConnected(socket: Socket) {
+        let me = this;
+        let client = new StratumClient(socket, 4);
+        while (this.clients.has(client.extraNonce1)) {
+            client.changeExtraNonce1();
+        }
+
+        client.onSubscribe((sender, msg) => sender.sendSubscription(msg.id, 4));
+        client.onAuthorize((sender, username, password, raw) => sender.sendAuthorization(raw.id, true));
+        client.onEnd(sender => me.clients.delete(sender.extraNonce1));
+        client.onKeepingAliveTimeout(sender => sender.sendPing());
+        client.onTaskTimeout(sender => { });
+        client.onSubmit((sender, result, message) => {
+
+        });
+        me.clients.set(client.extraNonce1, client);
+    }
 }
