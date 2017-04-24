@@ -12,7 +12,7 @@ export type Task = {
     merkleLink: Buffer[],
 };
 
-export default class TaskConstructor {
+export class TaskConstructor {
     private poolPubkeyScript: Buffer;
     private recipients = new Array<{ pubkeyScript: Buffer, percent: number }>();
 
@@ -62,7 +62,7 @@ export default class TaskConstructor {
 
         return { coinbaseTx, stratumParams, taskId, merkleLink, previousBlockHash: template.previousblockhash };
     }
-    
+
     debugTxTime: number;
     private buildGenerationTx(template: GetBlockTemplate, auxMerkleRoot: Buffer = Buffer.alloc(0), auxMerkleSize: number = 0) {
         let coinbaseScriptSig1 = Buffer.concat([

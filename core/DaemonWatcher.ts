@@ -2,7 +2,7 @@ import Client from 'bitcoin-core';
 import { Event } from "../nodejs/Event";
 const BitcoinClient = require('bitcoin-core');
 
-type Options = {
+export type DaemonOptions = {
     host: string,
     port: number,
     username: string,
@@ -13,12 +13,12 @@ const Events = {
     blockTemplateUpdate: 'BlockTemplateUpdated',
 }
 
-export default class DaemonWatcher extends Event {
+export class DaemonWatcher extends Event {
     private client: Client;
     private blockHeight = 0;
     private timerId: NodeJS.Timer;
 
-    constructor(opts: Options) {
+    constructor(opts: DaemonOptions) {
         super();
         this.client = new BitcoinClient(opts) as Client;
     }
