@@ -18,7 +18,6 @@ export class TaskConstructor {
     private recipients = new Array<{ pubkeyScript: Buffer, percent: number }>();
 
     extraNonceSize = 8;
-    extraNonce2Size = 4;
     txMessageRequired = false;
     proof: 'POW' | 'POS' = 'POW';
 

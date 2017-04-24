@@ -4,6 +4,7 @@ import * as crypto from 'crypto';
 import { DaemonWatcher, DaemonOptions, GetBlockTemplate, } from "../core/DaemonWatcher";
 import { TaskConstructor, Task } from "../core/TaskConstructor";
 import MerkleTree from "../core/MerkleTree";
+import { ExtraNonceSize } from "./Constant";
 
 export type ZookeeperOptions = {
     address: string,
@@ -48,6 +49,7 @@ export default class TaskPusher extends Event {
     constructor(opts: TaskPusherOptions) {
         super();
         this.taskConstructor = new TaskConstructor(opts.address, opts.recipients)
+        this.taskConstructor.extraNonceSize = ExtraNonceSize;
 
         this.daemonWatcher = new DaemonWatcher(opts.daemon);
         this.daemonWatcher.onBlockTemplateUpdated(this.onTemplateUpdated.bind(this));

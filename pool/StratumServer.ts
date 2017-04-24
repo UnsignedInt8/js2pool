@@ -7,12 +7,14 @@ import { Server, Socket } from "net";
 import * as net from 'net';
 import StratumClient from "../core/StratumClient";
 import SharesManager from "../core/SharesManager";
+import { DaemonOptions, DaemonWatcher } from "../core/DaemonWatcher";
+import { ExtraNonce1Size, ExtraNonce2Size } from "./Constant";
 
 type StratumServerOptions = {
     zookeeper: ZookeeperOptions,
     groupId: string,
     port: number, // stratum server port
-
+    daemon: DaemonOptions,
     coin: {
         algorithm: string,
         normalHash?: boolean,
@@ -28,6 +30,7 @@ export class StratumServer extends Event {
     private port: number;
     private clients = new Map<string, StratumClient>();
     private sharesManager: SharesManager;
+    private fastSubmitter: DaemonWatcher;
 
     private static Events = {
         Ready: 'Ready',
@@ -48,6 +51,7 @@ export class StratumServer extends Event {
 
         this.port = opts.port;
         this.sharesManager = new SharesManager(opts.coin.algorithm, opts.coin);
+        this.fastSubmitter = new DaemonWatcher(opts.daemon);
     }
 
     private onMessage(msg: string) {
@@ -93,12 +97,12 @@ export class StratumServer extends Event {
 
     private onSocketConnected(socket: Socket) {
         let me = this;
-        let client = new StratumClient(socket, 4);
+        let client = new StratumClient(socket, ExtraNonce1Size);
         while (this.clients.has(client.extraNonce1)) {
             client.changeExtraNonce1();
         }
 
-        client.onSubscribe((sender, msg) => sender.sendSubscription(msg.id, 4));
+        client.onSubscribe((sender, msg) => sender.sendSubscription(msg.id, ExtraNonce2Size));
         client.onAuthorize((sender, username, password, raw) => sender.sendAuthorization(raw.id, true));
         client.onEnd(sender => me.clients.delete(sender.extraNonce1));
         client.onKeepingAliveTimeout(sender => sender.sendPing());

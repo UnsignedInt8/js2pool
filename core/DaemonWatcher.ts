@@ -9,14 +9,14 @@ export type DaemonOptions = {
     password: string,
 }
 
-const Events = {
-    blockTemplateUpdate: 'BlockTemplateUpdated',
-}
-
 export class DaemonWatcher extends Event {
     private client: Client;
     private blockHeight = 0;
     private timerId: NodeJS.Timer;
+
+    static Events = {
+        blockTemplateUpdate: 'BlockTemplateUpdated',
+    };
 
     constructor(opts: DaemonOptions) {
         super();
@@ -34,7 +34,7 @@ export class DaemonWatcher extends Event {
                 this.blockHeight = value.blocks;
                 await me.refreshBlockTemplateAsync();
             } catch (error) { console.log(error); }
-        }, 500);
+        }, 250);
     }
 
     async submitBlockAsync(blockHex: string) {
@@ -52,11 +52,11 @@ export class DaemonWatcher extends Event {
 
     private async refreshBlockTemplateAsync() {
         let value: GetBlockTemplate = await this.client.command('getblocktemplate');
-        super.trigger(Events.blockTemplateUpdate, this, value);
+        super.trigger(DaemonWatcher.Events.blockTemplateUpdate, this, value);
     }
 
     onBlockTemplateUpdated(callback: (sender: DaemonWatcher, template: GetBlockTemplate) => void) {
-        super.register(Events.blockTemplateUpdate, callback);
+        super.register(DaemonWatcher.Events.blockTemplateUpdate, callback);
     }
 
 }
