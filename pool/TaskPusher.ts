@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import { DaemonWatcher, DaemonOptions, GetBlockTemplate, } from "../core/DaemonWatcher";
 import { TaskConstructor, Task } from "../core/TaskConstructor";
 import MerkleTree from "../core/MerkleTree";
-import { ExtraNonceSize } from "./Constant";
+import { ExtraNonceSize, Topics } from "./Constant";
 
 export type ZookeeperOptions = {
     address: string,
@@ -28,11 +28,6 @@ export type TaskSerialization = {
     height: number,
     template: GetBlockTemplate,
 }
-
-export const Topics = {
-    Task: 'Task',
-}
-
 
 export default class TaskPusher extends Event {
 
