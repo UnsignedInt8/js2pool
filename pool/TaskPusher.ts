@@ -18,6 +18,20 @@ export type TaskPusherOptions = {
     recipients?: [{ address: string, percent: number }],
 }
 
+export type TaskSerialization = {
+    taskId: string,
+    coinbaseTx: string[],
+    stratumParams: (string | boolean | string[])[],
+    previousBlockHash: string,
+    merkleLink: string[],
+    height: number,
+}
+
+export const Topics = {
+    Task: 'Task',
+}
+
+
 export default class TaskPusher extends Event {
 
     private zookeeper: Client;
@@ -25,30 +39,60 @@ export default class TaskPusher extends Event {
     private daemonWatcher: DaemonWatcher;
     private taskConstructor: TaskConstructor;
 
+    private static Events = {
+        Error: 'Error',
+        TemplatePushed: 'TemplatePushed',
+    };
+
     constructor(opts: TaskPusherOptions) {
         super();
         this.taskConstructor = new TaskConstructor(opts.address, opts.recipients)
 
         this.daemonWatcher = new DaemonWatcher(opts.daemon);
-        this.daemonWatcher.onBlockTemplateUpdated(this.onTemplateUpdated);
+        this.daemonWatcher.onBlockTemplateUpdated(this.onTemplateUpdated.bind(this));
 
-        this.zookeeper = new Client(`${opts.zookeeper.address}:${opts.zookeeper.port}`, crypto.randomBytes(4).toString());
+        this.zookeeper = new Client(`${opts.zookeeper.address}:${opts.zookeeper.port}`, crypto.randomBytes(4).toString('hex'));
         this.taskProducer = new HighLevelProducer(this.zookeeper);
-        this.taskProducer.on('ready', this.onProducerReady);
-        this.taskProducer.on('error', this.onProducerError);
+        this.taskProducer.on('ready', this.onProducerReady.bind(this));
+        this.taskProducer.on('error', this.onProducerError.bind(this));
     }
 
     private onProducerReady() {
-        this.taskProducer.createTopics(['Task'], true, error => { });
+        this.taskProducer.createTopics([Topics.Task], true, error => { if (error) console.error(error); });
         this.daemonWatcher.beginWatching();
     }
 
     private onProducerError(error) {
-
+        this.trigger(TaskPusher.Events.Error, this, error);
     }
 
     private onTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
+        let me = this;
         let auxTree = MerkleTree.buildMerkleTree(template.auxes || []);
         let task = this.taskConstructor.buildTask(template, auxTree.root, auxTree.data.length);
+        let taskMessage = {
+            taskId: task.taskId,
+            coinbaseTx: [task.coinbaseTx.part1, task.coinbaseTx.part2].map(tx => tx.toString('hex')),
+            stratumParams: task.stratumParams,
+            previousBlockHash: task.previousBlockHash,
+            height: task.height,
+            merkleLink: task.merkleLink.map(n => n.toString('hex')),
+        };
+
+        this.taskProducer.send([{
+            topic: Topics.Task,
+            messages: JSON.stringify(taskMessage),
+            attributes: 0, // no compress
+        }], (error, data) => me.trigger(TaskPusher.Events.TemplatePushed, this, error));
+    }
+
+    onTemplatePushed(callback: (sender: TaskPusher, error) => void) {
+        super.register(TaskPusher.Events.TemplatePushed, callback);
+    }
+
+    onError(callback: (sender: TaskPusher, error: string) => void) {
+        super.register(TaskPusher.Events.Error, callback);
     }
 }
+
+Object.freeze(Topics);

@@ -33,7 +33,6 @@ type TypeSubmitResult = {
 }
 
 export default class StratumClient extends Event {
-    readonly extraNonce1: string;
 
     subscriptionId: string = null;
     authorized = false;
@@ -42,6 +41,8 @@ export default class StratumClient extends Event {
     miner: string;
     keepAliveTimeout = 45;
     taskTimeout = 125;
+    extraNonce1Size: number;
+    extraNonce1: string;
 
     private socket: Socket;
     private keepAliveTimer: NodeJS.Timer;
@@ -51,6 +52,7 @@ export default class StratumClient extends Event {
         super();
         socket.setKeepAlive(true);
 
+        this.extraNonce1Size = extraNonce1Size;
         this.extraNonce1 = crypto.randomBytes(extraNonce1Size).toString('hex');
         this.socket = socket;
         this.remoteAddress = socket.remoteAddress;
@@ -156,6 +158,10 @@ export default class StratumClient extends Event {
                 return;
         }
 
+    }
+
+    changeExtraNonce1() {
+        this.extraNonce1 = crypto.randomBytes(this.extraNonce1Size).toString('hex');
     }
 
     close() {

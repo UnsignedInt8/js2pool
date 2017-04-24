@@ -10,6 +10,7 @@ export type Task = {
     taskId: string,
     previousBlockHash: string,
     merkleLink: Buffer[],
+    height: number,
 };
 
 export class TaskConstructor {
@@ -60,7 +61,7 @@ export class TaskConstructor {
             true, // Force to start new task
         ];
 
-        return { coinbaseTx, stratumParams, taskId, merkleLink, previousBlockHash: template.previousblockhash };
+        return { coinbaseTx, stratumParams, taskId, merkleLink, previousBlockHash: template.previousblockhash, height: template.height };
     }
 
     debugTxTime: number;

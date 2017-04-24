@@ -11,6 +11,7 @@ import { TaskConstructor, Task } from "../core/TaskConstructor";
 import SharesManager from "../core/SharesManager";
 import StratumClient from "../core/StratumClient";
 import MerkleTree from "../core/MerkleTree";
+import TaskPusher from "./TaskPusher";
 
 kinq.enable();
 
@@ -95,4 +96,18 @@ export default class Pool {
     }
 }
 
-new Pool().startStratumServer();
+// new Pool().startStratumServer();
+
+let pusher = new TaskPusher({
+    zookeeper: {
+        address: 'localhost',
+        port: 2181,
+    },
+    address: 'mpBjJJtJK5mFuuvFxdPHFp1wgdVMiXsaHW',
+    daemon: {
+        host: 'localhost',
+        port: 19001,
+        password: '123',
+        username: 'admin1',
+    },
+});

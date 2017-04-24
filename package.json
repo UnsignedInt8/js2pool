@@ -4,7 +4,7 @@
   "description": "A mining pool",
   "main": "index.js",
   "scripts": {
-    "test": "node_modules/.bin/mocha ./dist/**/*.js --no-timeouts"
+    "test": "node_modules/.bin/mocha ./dist/test/*.js --no-timeouts"
   },
   "repository": {
     "type": "git",
