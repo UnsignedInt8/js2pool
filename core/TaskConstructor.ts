@@ -70,10 +70,10 @@ export class TaskConstructor {
             Buffer.from(template.coinbaseaux.flags, 'hex'),
             Utils.serializeScriptSigNumber(this.debugTxTime || Date.now() / 1000 | 0),
             Utils.packUInt8(Math.min(this.extraNonceSize, 255)),// extra nonce size
-            Buffer.from('fabe6d6d', 'hex'),
-            Utils.reverseBuffer(auxMerkleRoot),
-            Utils.packUInt32LE(auxMerkleSize),
-            Utils.packUInt32LE(0),
+            Buffer.from('fabe6d6d', 'hex'), // aux magic
+            Utils.reverseBuffer(auxMerkleRoot), // aux block hash 
+            Utils.packUInt32LE(auxMerkleSize), // aux count
+            Utils.packUInt32LE(0), // aux id
         ]);
 
         let coinbaseScriptSig2 = Utils.serializeString('Mined by Rice');

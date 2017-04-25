@@ -37,7 +37,7 @@ describe('Block Constructor Test', () => {
         assert.equal(task.coinbaseTx.part2.toString('hex'), cbTx2);
 
         let sm = new SharesManager('sha256d');
-        sm.updateTemplate(template);
+        sm.updateGbt(template);
         let share = sm.buildShare(task, nonce, extranonce1, extranonce2, nTime);
 
         assert.equal(share.merkleRoot, merkleRoot);
@@ -72,7 +72,7 @@ describe('Block Constructor Test', () => {
         assert.deepEqual(task.merkleLink.map(l => l.toString('hex')), ['3da509fe91f03015b3d5e9685a08d81a6fb85f5d4740228ab31fcca73297da37', '9fa1076e2a135713fa069d32b8d8f4e9789a1c10b89b43221362309d1d3e24bb']);
 
         let sm = new SharesManager('sha256d');
-        sm.updateTemplate(template);
+        sm.updateGbt(template);
         let share = sm.buildShare(task, nonce, extranonce1, extranonce2, nTime);
 
 

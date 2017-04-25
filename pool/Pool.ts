@@ -37,7 +37,7 @@ export default class Pool {
 
     handleBlockTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
         console.info('new block height: ', template.height);
-        this.sharesManager.updateTemplate(template);
+        this.sharesManager.updateGbt(template);
 
         let auxTree = MerkleTree.buildMerkleTree(template.auxes || []);
         let taskTemplate = this.taskConstructor.buildTask(template, auxTree.root, auxTree.data.length);
@@ -100,16 +100,4 @@ export default class Pool {
 
 new Pool().startStratumServer();
 
-// let pusher = new TaskPusher({
-//     zookeeper: {
-//         address: 'localhost',
-//         port: 2181,
-//     },
-//     address: 'mpBjJJtJK5mFuuvFxdPHFp1wgdVMiXsaHW',
-//     daemon: {
-//         host: 'localhost',
-//         port: 19001,
-//         password: '123',
-//         username: 'admin1',
-//     },
-// });
+

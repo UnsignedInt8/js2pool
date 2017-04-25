@@ -33,3 +33,4 @@ consumer.on('error', () => {
 consumer2.on('error', () => {
     console.log('consumer2 error');
 });
+

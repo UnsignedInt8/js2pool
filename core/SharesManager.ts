@@ -25,7 +25,7 @@ export default class SharesManager {
         this.headerHasher = Algos[algorithm].hash(configs)
     }
 
-    updateTemplate(template: GetBlockTemplate) {
+    updateGbt(template: GetBlockTemplate) {
         if (this.template && template.previousblockhash == this.template.previousblockhash) return;
         this.template = template;
         this.blockTarget = template.target ? new BigNum(template.target, 16).toNumber() : bitsToTarget(Number.parseInt(template.bits, 16));
