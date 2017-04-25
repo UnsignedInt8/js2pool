@@ -6,3 +6,5 @@ export const ExtraNonce1Size = 4;
 export const Topics = {
     Task: 'Task',
 }
+
+Object.freeze(Topics);

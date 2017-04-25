@@ -93,5 +93,3 @@ export default class TaskPusher extends Event {
         super.register(TaskPusher.Events.Error, callback);
     }
 }
-
-Object.freeze(Topics);
