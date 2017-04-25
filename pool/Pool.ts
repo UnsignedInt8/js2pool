@@ -26,7 +26,7 @@ export default class Pool {
 
     constructor() {
         this.watcher = new DaemonWatcher({ host: 'localhost', port: 19001, username: 'admin1', password: '123' });
-        this.taskConstructor = new TaskConstructor('mpBjJJtJK5mFuuvFxdPHFp1wgdVMiXsaHW');
+        this.taskConstructor = new TaskConstructor('mpBjJJtJK5mFuuvFxdPHFp1wgdVMiXsaHW', [{ address: 'n2wQ1Ge7zJVZTzGCyxGjdg1CVmmXYREcUC', percent: 10 }]);
         this.taskConstructor.extraNonceSize = ExtraNonceSize;
         this.sharesManager = new SharesManager('sha256d');
         this.watcher.beginWatching();
