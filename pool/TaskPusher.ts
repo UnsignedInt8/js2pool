@@ -65,7 +65,8 @@ export default class TaskPusher extends Event {
     }
 
     private onTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
-        console.log('pusher template updating broadcast: ', template.height);
+        console.info('blockchain updated, template updating broadcast: ', template.height);
+
         let me = this;
         let auxTree = MerkleTree.buildMerkleTree(template.auxes || []);
         let task = this.taskConstructor.buildTask(template, auxTree.root, auxTree.data.length);

@@ -65,7 +65,7 @@ export class StratumServer extends Event {
 
     private onMessage(msg: { topic: string, value: any, offset: number, partition: number }) {
         let taskMessage = JSON.parse(msg.value) as TaskSerialization;
-        console.log('stratum server, template updating: ', taskMessage.height);
+        console.info('new template received: ', taskMessage.height);
 
         let task = {
             taskId: taskMessage.taskId,
