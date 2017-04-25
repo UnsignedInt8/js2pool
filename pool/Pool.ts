@@ -72,8 +72,8 @@ export default class Pool {
             });
             client.onTaskTimeout(sender => {
                 console.log('task timeout, resend task');
-                if (!this.currentTask) return;
-                sender.sendTask(this.currentTask.stratumParams);
+                // if (!this.currentTask) return;
+                // sender.sendTask(this.currentTask.stratumParams);
             });
             client.onSubmit((sender, result, msg) => {
                 let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
