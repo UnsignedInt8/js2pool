@@ -63,9 +63,11 @@ export class StratumServer extends Event {
         this.miners = miners;
     }
 
-    private onMessage(msg: string) {
-        let taskMessage = JSON.parse(msg) as TaskSerialization;
-        this.currentTask = {
+    private onMessage(msg: { topic: string, value: any, offset: number, partition: number }) {
+        let taskMessage = JSON.parse(msg.value) as TaskSerialization;
+        console.log('stratum server, template updating: ', taskMessage.height);
+
+        let task = {
             taskId: taskMessage.taskId,
             merkleLink: taskMessage.merkleLink.map(s => Buffer.from(s, 'hex')),
             previousBlockHash: taskMessage.previousBlockHash,
@@ -77,7 +79,12 @@ export class StratumServer extends Event {
             },
         };
 
+        this.currentTask = task;
+
+        if (!taskMessage.template) return;
         this.sharesManager.updateGbt(taskMessage.template);
+
+        this.clients.forEach(c => c.sendTask(task.stratumParams));
     }
 
     private onError(error) {
@@ -133,13 +140,15 @@ export class StratumServer extends Event {
                 return;
             }
 
+            let shareMessage = { miner: result.miner, hash: share.shareHash, diff: share.shareDiff, timestamp: share.timestamp };
+            
             if (share.shareHex) {
                 me.fastSubmitter.submitBlockAsync(share.shareHex);
-                me.broadcastBlock({ miner: result.miner, blockHash: share.shareHash, timestamp: share.timestamp });
+                me.broadcastBlock(shareMessage);
             }
 
             client.sendSubmissionResult(message.id, true, null);
-            me.broadcastShare({miner: result.miner, hash: share.shareHash, diff: share.shareDiff, timestamp: share.timestamp });
+            me.broadcastShare(shareMessage);
         });
 
         me.clients.set(client.extraNonce1, client);

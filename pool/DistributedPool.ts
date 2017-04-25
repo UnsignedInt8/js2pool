@@ -1,6 +1,8 @@
 import TaskPusher from "./TaskPusher";
 import { StratumServer } from "./StratumServer";
 import { StratumMiners } from "./StratumMiners";
+import * as kinq from 'kinq';
+kinq.enable();
 
 let pusher = new TaskPusher({
     zookeeper: {

@@ -8,7 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch A Special Test Program",
-            "program": "${workspaceRoot}/pool/Pool.ts",
+            "program": "${workspaceRoot}/pool/DistributedPool.ts",
             "outFiles": [
                 "${workspaceRoot}/dist/**/*.js"
             ]
