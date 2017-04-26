@@ -257,8 +257,8 @@ export default class StratumClient extends Event {
         this.sendJson({ id: null, method: "mining.set_difficulty", params: [difficulty] });
     }
 
-    sendTask(task: (string | boolean | string[])[]) {
-        this.sendJson({ id: null, method: "mining.notify", params: task });
+    sendTask(params: (string | boolean | string[])[]) {
+        this.sendJson({ id: null, method: "mining.notify", params: params });
         this.resetTaskTimeoutTimer();
     }
 

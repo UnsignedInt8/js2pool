@@ -2,13 +2,16 @@ import TaskPusher from "./TaskPusher";
 import { StratumServer } from "./StratumServer";
 import { StratumMiners } from "./StratumMiners";
 import * as kinq from 'kinq';
+import { ShareProcessor } from "./ShareProcessor";
 kinq.enable();
 
+let zookeeper = {
+    address: 'localhost',
+    port: 2181,
+};
+
 let pusher = new TaskPusher({
-    zookeeper: {
-        address: 'localhost',
-        port: 2181,
-    },
+    zookeeper,
     address: 'mnpbqSLQ3r293VHSjN82Ht63zf3PD8gBmm',
     daemon: {
         host: 'localhost',
@@ -19,10 +22,7 @@ let pusher = new TaskPusher({
 });
 
 let server = new StratumServer({
-    zookeeper: {
-        address: 'localhost',
-        port: 2181,
-    },
+    zookeeper,
     groupId: 'server1',
     port: 3333,
     daemon: {
@@ -37,3 +37,8 @@ let server = new StratumServer({
 }, new StratumMiners());
 
 server.onReady(sender => sender.start());
+
+let shareProcessor = new ShareProcessor({
+    zookeeper,
+    groupId: 'share-1',
+});
