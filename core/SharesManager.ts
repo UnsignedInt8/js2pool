@@ -63,8 +63,8 @@ export default class SharesManager {
         let shareDiff = BaseDiff / shareTarget * this.mutliplier;
 
         let shareHex: string;
-        console.info('share target: ', shareTarget);
         if (this.blockTarget > shareTarget) {
+            console.info('found block target: ', shareTarget);
             shareHex = Buffer.concat([
                 header,
                 Utils.varIntBuffer(this.template.transactions.length + 1),
