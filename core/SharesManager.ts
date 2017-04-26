@@ -31,8 +31,7 @@ export default class SharesManager {
         this.template = template;
         this.blockTarget = template.target ? new BigNum(template.target, 16).toNumber() : bitsToTarget(Number.parseInt(template.bits, 16));
         this.targetDiff = targetToDifficulty(this.blockTarget)
-        console.log('block diff: ', this.targetDiff);
-
+        console.info('block target: ', this.blockTarget);
         this.shares.clear();
     }
 
@@ -64,8 +63,8 @@ export default class SharesManager {
         let shareDiff = BaseDiff / shareTarget * this.mutliplier;
 
         let shareHex: string;
-        // if (this.blockTarget > shareTarget) {
-        if (this.targetDiff < shareDiff) {
+        if (this.blockTarget > shareTarget) {
+            console.info('share target: ', shareTarget);
             shareHex = Buffer.concat([
                 header,
                 Utils.varIntBuffer(this.template.transactions.length + 1),
