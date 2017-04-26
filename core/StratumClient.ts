@@ -187,8 +187,11 @@ export default class StratumClient extends Event {
     }
 
     close() {
-        this.socket.end();
-        this.socket.removeAllListeners();
+        try {
+            this.socket.end();
+            this.socket.removeAllListeners();
+        } catch (error) { }
+
         super.trigger(Events.end, this);
         super.removeAllEvents();
         if (this.keepAliveTimer) clearInterval(this.keepAliveTimer);
@@ -234,6 +237,11 @@ export default class StratumClient extends Event {
     }
 
     private sendJson(msg: TypeStratumMessage, ...args) {
+        if (!this.socket.writable) {
+            this.close();
+            return;
+        }
+
         let response = '';
         for (let i = 0; i < arguments.length; i++) {
             response += JSON.stringify(arguments[i]) + '\n';
@@ -242,7 +250,6 @@ export default class StratumClient extends Event {
         try {
             this.socket.write(response);
         } catch (error) {
-            console.error(error);
             this.close();
         }
     }

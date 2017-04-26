@@ -17,6 +17,10 @@ require('../nodejs/Number');
 
 kinq.enable();
 
+process.on('error', (error) => {
+    console.error('unhandled exception', error);
+});
+
 export default class Pool {
     watcher: DaemonWatcher;
     taskConstructor: TaskConstructor;
@@ -71,7 +75,6 @@ export default class Pool {
                 me.clients.delete(sender);
             });
             client.onKeepingAliveTimeout(sender => {
-                console.log('send ping as keeping alive')
                 sender.sendPing();
             });
             client.onTaskTimeout(sender => {
