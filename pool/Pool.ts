@@ -29,7 +29,7 @@ export default class Pool {
         // this.watcher = new DaemonWatcher({ host: 'localhost', port: 19001, username: 'admin1', password: '123' });
         // this.taskConstructor = new TaskConstructor('mpBjJJtJK5mFuuvFxdPHFp1wgdVMiXsaHW', [{ address: 'n2wQ1Ge7zJVZTzGCyxGjdg1CVmmXYREcUC', percent: 10 }]);
         // this.sharesManager = new SharesManager('sha256d');
-        this.watcher = new DaemonWatcher({ host: 'localhost', port: 9332, username: 'testuser', password: 'testpass' });
+        this.watcher = new DaemonWatcher({ host: 'localhost', port: 19334, username: 'testuser', password: 'testpass' });
         this.taskConstructor = new TaskConstructor('mmj3JS6fWYxb7u3bq8HAp7ce9Rd4dCsafK');
         this.sharesManager = new SharesManager('scrypt');
         this.taskConstructor.extraNonceSize = ExtraNonceSize;
@@ -92,14 +92,7 @@ export default class Pool {
                 if (share.shareHex) {
                     this.watcher.submitBlockAsync(share.shareHex);
                     console.info('new block found!!!!!!');
-                    console.info('new block found!!!!!!');
-                    console.info('new block found!!!!!!');
-                    console.info('new block found!!!!!!');
                     console.info('hash: ', share.shareHash);
-                    console.info('hash: ', share.shareHash);
-                    console.info('hash: ', share.shareHash);
-                    console.info('new block found!!!!!!');
-                    console.info('new block found!!!!!!');
                     console.info('new block found!!!!!!');
                 }
                 let isExceptionDiff = share.shareDiff < sender.difficulty;
