@@ -147,7 +147,7 @@ export class StratumServer extends Event {
                 return;
             }
 
-            let shareMessage = { miner: result.miner, hash: share.shareHash, diff: share.shareDiff, timestamp: share.timestamp };
+            let shareMessage = { miner: result.miner, hash: share.shareHash, diff: share.shareDiff, expectedDiff: sender.difficulty, timestamp: share.timestamp };
 
             if (share.shareHex) {
                 me.fastSubmitter.submitBlockAsync(share.shareHex);
