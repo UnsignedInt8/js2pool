@@ -85,7 +85,7 @@ export default class Pool {
                 if (!share) {
                     client.sendSubmissionResult(msg.id, false, null);
                     console.log(msg.id, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime, result.taskId, me.currentTask.taskId);
-                    client.touchAsIllegal();
+                    client.touchBad();
                     return;
                 }
 
@@ -98,7 +98,7 @@ export default class Pool {
                 let validity = share.shareDiff > sender.difficulty;
                 client.sendSubmissionResult(msg.id, validity, null);
 
-                if (!validity) client.touchAsIllegal();
+                if (!validity) client.touchBad();
 
                 // console.log(msg.id, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime, result.taskId, me.currentTask.taskId);
                 // console.log('share diff', share ? share.shareDiff : 0);

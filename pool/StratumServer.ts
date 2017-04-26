@@ -144,7 +144,7 @@ export class StratumServer extends Event {
                 let msg = { miner: result.miner, taskId: result.taskId, };
                 me.broadcastInvalidShare(msg);
                 client.sendSubmissionResult(message.id, false, null);
-                client.touchAsIllegal();
+                client.touchBad();
                 return;
             }
 

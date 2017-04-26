@@ -167,7 +167,7 @@ export default class StratumClient extends Event {
         this.extraNonce1 = crypto.randomBytes(this.extraNonce1Size).toString('hex');
     }
 
-    touchAsIllegal() {
+    touchBad() {
         if (this.illegalTimes === 0) this.illegalTime = Date.now();
         this.illegalTimes++;
 
@@ -182,7 +182,7 @@ export default class StratumClient extends Event {
     }
 
     ban() {
-        console.info('bad client, ban it', this.socket.remoteAddress);        
+        console.info('bad client, ban it', this.socket.remoteAddress);
         this.close();
     }
 
@@ -238,7 +238,13 @@ export default class StratumClient extends Event {
         for (let i = 0; i < arguments.length; i++) {
             response += JSON.stringify(arguments[i]) + '\n';
         }
-        this.socket.write(response);
+
+        try {
+            this.socket.write(response);
+        } catch (error) {
+            console.error(error);
+            this.close();
+        }
     }
 
     sendPong() {
