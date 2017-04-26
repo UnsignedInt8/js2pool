@@ -6,7 +6,7 @@
 import * as Utils from '../misc/Utils';
 import { GetBlockTemplate } from "./DaemonWatcher";
 import { Task } from "./TaskConstructor";
-import { Algos, BaseDiff, bitsToTarget } from "./Algos";
+import { Algos, BaseDiff, bitsToTarget, targetToDifficulty } from "./Algos";
 import * as BigNum from 'bignum';
 
 export default class SharesManager {
@@ -15,6 +15,7 @@ export default class SharesManager {
     private mutliplier = 1;
     private template: GetBlockTemplate;
     private blockTarget: number;
+    private blockDiff: number;
     private shares = new Set<string>(); // share fingerprint -> timestamp
 
     proof: 'POW' | 'POS' = 'POW';
@@ -29,6 +30,9 @@ export default class SharesManager {
         if (this.template && template.previousblockhash == this.template.previousblockhash) return;
         this.template = template;
         this.blockTarget = template.target ? new BigNum(template.target, 16).toNumber() : bitsToTarget(Number.parseInt(template.bits, 16));
+        this.blockDiff = targetToDifficulty(this.blockTarget)
+        console.log('block diff: ', this.blockDiff);
+
         this.shares.clear();
     }
 
@@ -60,7 +64,8 @@ export default class SharesManager {
         let shareDiff = BaseDiff / shareTarget * this.mutliplier;
 
         let shareHex: string;
-        if (this.blockTarget > shareTarget) {
+        // if (this.blockTarget > shareTarget) {
+        if (this.blockDiff < shareDiff) {
             shareHex = Buffer.concat([
                 header,
                 Utils.varIntBuffer(this.template.transactions.length + 1),

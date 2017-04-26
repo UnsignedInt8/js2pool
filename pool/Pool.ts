@@ -26,12 +26,12 @@ export default class Pool {
     clients = new Set<StratumClient>();
 
     constructor() {
-        this.watcher = new DaemonWatcher({ host: 'localhost', port: 19001, username: 'admin1', password: '123' });
-        this.taskConstructor = new TaskConstructor('mpBjJJtJK5mFuuvFxdPHFp1wgdVMiXsaHW', [{ address: 'n2wQ1Ge7zJVZTzGCyxGjdg1CVmmXYREcUC', percent: 10 }]);
-        this.sharesManager = new SharesManager('sha256d');
-        // this.watcher = new DaemonWatcher({ host: 'localhost', port: 19344, username: 'testuser', password: 'testpass' });
-        // this.taskConstructor = new TaskConstructor('mmj3JS6fWYxb7u3bq8HAp7ce9Rd4dCsafK');
-        // this.sharesManager = new SharesManager('scrypt');
+        // this.watcher = new DaemonWatcher({ host: 'localhost', port: 19001, username: 'admin1', password: '123' });
+        // this.taskConstructor = new TaskConstructor('mpBjJJtJK5mFuuvFxdPHFp1wgdVMiXsaHW', [{ address: 'n2wQ1Ge7zJVZTzGCyxGjdg1CVmmXYREcUC', percent: 10 }]);
+        // this.sharesManager = new SharesManager('sha256d');
+        this.watcher = new DaemonWatcher({ host: 'localhost', port: 19344, username: 'testuser', password: 'testpass' });
+        this.taskConstructor = new TaskConstructor('mmj3JS6fWYxb7u3bq8HAp7ce9Rd4dCsafK');
+        this.sharesManager = new SharesManager('scrypt');
         this.taskConstructor.extraNonceSize = ExtraNonceSize;
         this.watcher.beginWatching();
         this.watcher.onBlockTemplateUpdated(this.handleBlockTemplateUpdated.bind(this));
@@ -85,7 +85,7 @@ export default class Pool {
                 if (!share) {
                     client.sendSubmissionResult(msg.id, false, null);
                     console.log(msg.id, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime, result.taskId, me.currentTask.taskId);
-                    console.log('share diff', share ? share.shareDiff : 0);
+                    console.log('invalid share diff', share ? share.shareDiff : 0);
                     return;
                 }
 
