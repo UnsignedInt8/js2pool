@@ -100,7 +100,7 @@ export default class Pool {
                     console.info('hash: ', share.shareHash);
                     console.info('new block found!!!!!!');
                     console.info('new block found!!!!!!');
-                    console.info('new block found!!!!!!');                    
+                    console.info('new block found!!!!!!');
                 }
                 let isExceptionDiff = share.shareDiff < sender.difficulty;
                 client.sendSubmissionResult(msg.id, !isExceptionDiff, null);
