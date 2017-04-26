@@ -46,6 +46,7 @@ export class DaemonWatcher extends Event {
             if (result.error || result.result === 'reject') return false;
             return true;
         } catch (error) {
+            console.error('submit block error: ', error);
             return false;
         }
     }
