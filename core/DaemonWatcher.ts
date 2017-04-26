@@ -51,8 +51,13 @@ export class DaemonWatcher extends Event {
     }
 
     private async refreshBlockTemplateAsync() {
-        let value: GetBlockTemplate = await this.client.command('getblocktemplate');
-        super.trigger(DaemonWatcher.Events.blockTemplateUpdate, this, value);
+        try {
+            let values: GetBlockTemplate[] = await this.client.command([{ method: 'getblocktemplate', parameters: [{ rules: ['segwit'] }] }]);
+            super.trigger(DaemonWatcher.Events.blockTemplateUpdate, this, values.first());
+        } catch (error) {
+            console.error(error);
+        }
+
     }
 
     onBlockTemplateUpdated(callback: (sender: DaemonWatcher, template: GetBlockTemplate) => void) {

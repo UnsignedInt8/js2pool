@@ -27,8 +27,11 @@ export default class Pool {
     constructor() {
         this.watcher = new DaemonWatcher({ host: 'localhost', port: 19001, username: 'admin1', password: '123' });
         this.taskConstructor = new TaskConstructor('mpBjJJtJK5mFuuvFxdPHFp1wgdVMiXsaHW', [{ address: 'n2wQ1Ge7zJVZTzGCyxGjdg1CVmmXYREcUC', percent: 10 }]);
-        this.taskConstructor.extraNonceSize = ExtraNonceSize;
         this.sharesManager = new SharesManager('sha256d');
+        // this.watcher = new DaemonWatcher({ host: 'localhost', port: 19344, username: 'testuser', password: 'testpass' });
+        // this.taskConstructor = new TaskConstructor('mmj3JS6fWYxb7u3bq8HAp7ce9Rd4dCsafK');
+        // this.sharesManager = new SharesManager('scrypt');
+        this.taskConstructor.extraNonceSize = ExtraNonceSize;
         this.watcher.beginWatching();
         this.watcher.onBlockTemplateUpdated(this.handleBlockTemplateUpdated.bind(this));
     }
@@ -58,7 +61,7 @@ export default class Pool {
             client.onSubscribe((sender, msg) => { sender.sendSubscription(msg.id, ExtraNonce2Size); });
             client.onAuthorize((sender, name, pass, msg) => {
                 sender.sendAuthorization(msg.id, true);
-                sender.sendDifficulty(0.0002502);
+                sender.sendDifficulty(0.02502);
                 if (!me.currentTask) return;
                 sender.sendTask(me.currentTask.stratumParams);
             });
@@ -90,7 +93,7 @@ export default class Pool {
                 client.sendSubmissionResult(msg.id, !isExceptionDiff, null);
 
                 console.log(msg.id, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime, result.taskId, me.currentTask.taskId);
-                console.log('share diff', share ? share.shareDiff | 0 : 0);
+                console.log('share diff', share ? share.shareDiff : 0);
             });
         }).listen(3333);
 
