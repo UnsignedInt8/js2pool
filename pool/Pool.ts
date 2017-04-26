@@ -105,8 +105,8 @@ export default class Pool {
                 let isExceptionDiff = share.shareDiff < sender.difficulty;
                 client.sendSubmissionResult(msg.id, !isExceptionDiff, null);
 
-                console.log(msg.id, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime, result.taskId, me.currentTask.taskId);
-                console.log('share diff', share ? share.shareDiff : 0);
+                // console.log(msg.id, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime, result.taskId, me.currentTask.taskId);
+                // console.log('share diff', share ? share.shareDiff : 0);
             });
         }).listen(3333);
 

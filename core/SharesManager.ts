@@ -15,7 +15,7 @@ export default class SharesManager {
     private mutliplier = 1;
     private template: GetBlockTemplate;
     private blockTarget: number;
-    private blockDiff: number;
+    private targetDiff: number;
     private shares = new Set<string>(); // share fingerprint -> timestamp
 
     proof: 'POW' | 'POS' = 'POW';
@@ -30,8 +30,8 @@ export default class SharesManager {
         if (this.template && template.previousblockhash == this.template.previousblockhash) return;
         this.template = template;
         this.blockTarget = template.target ? new BigNum(template.target, 16).toNumber() : bitsToTarget(Number.parseInt(template.bits, 16));
-        this.blockDiff = targetToDifficulty(this.blockTarget)
-        console.log('block diff: ', this.blockDiff);
+        this.targetDiff = targetToDifficulty(this.blockTarget)
+        console.log('block diff: ', this.targetDiff);
 
         this.shares.clear();
     }
@@ -65,7 +65,7 @@ export default class SharesManager {
 
         let shareHex: string;
         // if (this.blockTarget > shareTarget) {
-        if (this.blockDiff < shareDiff) {
+        if (this.targetDiff < shareDiff) {
             shareHex = Buffer.concat([
                 header,
                 Utils.varIntBuffer(this.template.transactions.length + 1),

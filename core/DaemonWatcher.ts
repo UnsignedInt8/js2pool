@@ -40,6 +40,7 @@ export class DaemonWatcher extends Event {
     async submitBlockAsync(blockHex: string) {
         try {
             let results: any[] = await this.client.command([{ method: 'submitblock', parameters: [blockHex] }]);
+            console.log(results);
             let result = results.first();
             if (result == null) return true;
             if (typeof (result) === 'string') return false;
