@@ -13,6 +13,7 @@ import StratumClient from "../core/StratumClient";
 import MerkleTree from "../core/MerkleTree";
 import TaskPusher from "./TaskPusher";
 import { ExtraNonceSize, ExtraNonce1Size, ExtraNonce2Size } from "./Constant";
+require('../nodejs/Number');
 
 kinq.enable();
 
@@ -88,7 +89,19 @@ export default class Pool {
                     return;
                 }
 
-                if (share.shareHex) this.watcher.submitBlockAsync(share.shareHex);
+                if (share.shareHex) {
+                    this.watcher.submitBlockAsync(share.shareHex);
+                    console.info('new block found!!!!!!');
+                    console.info('new block found!!!!!!');
+                    console.info('new block found!!!!!!');
+                    console.info('new block found!!!!!!');
+                    console.info('hash: ', share.shareHash);
+                    console.info('hash: ', share.shareHash);
+                    console.info('hash: ', share.shareHash);
+                    console.info('new block found!!!!!!');
+                    console.info('new block found!!!!!!');
+                    console.info('new block found!!!!!!');                    
+                }
                 let isExceptionDiff = share.shareDiff < sender.difficulty;
                 client.sendSubmissionResult(msg.id, !isExceptionDiff, null);
 
