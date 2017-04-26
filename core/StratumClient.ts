@@ -43,10 +43,13 @@ export default class StratumClient extends Event {
     taskTimeout = 125;
     extraNonce1Size: number;
     extraNonce1: string;
+    banThreshold = 20;
 
     private socket: Socket;
     private keepAliveTimer: NodeJS.Timer;
     private taskTimeoutTimer: NodeJS.Timer;
+    private illegalTimes = 0;
+    private illegalTime = 0;
 
     constructor(socket: Socket, extraNonce1Size: number) {
         super();
@@ -164,6 +167,25 @@ export default class StratumClient extends Event {
         this.extraNonce1 = crypto.randomBytes(this.extraNonce1Size).toString('hex');
     }
 
+    touchAsIllegal() {
+        if (this.illegalTimes === 0) this.illegalTime = Date.now();
+        this.illegalTimes++;
+
+        if (this.illegalTimes < this.banThreshold) return;
+
+        if (Date.now() - this.illegalTime > 3 * 1000) {
+            this.illegalTimes = 0;
+            return;
+        }
+
+        this.ban();
+    }
+
+    ban() {
+        console.info('bad client, ban it', this.socket.remoteAddress);        
+        this.close();
+    }
+
     close() {
         this.socket.end();
         this.socket.removeAllListeners();
@@ -265,6 +287,8 @@ export default class StratumClient extends Event {
     sendSubmissionResult(id: number, validity: boolean, error?: any) {
         this.sendJson({ id: id, result: validity, error: error });
     }
+
+    // ---------------- Timer Callbacks -----------------
 
     private startKeepingAliveTimer() {
         let me = this;

@@ -27,11 +27,13 @@ export default class SharesManager {
     }
 
     updateGbt(template: GetBlockTemplate) {
-        if (this.template && template.previousblockhash == this.template.previousblockhash) return;
+        if (this.template && template.height < this.template.height) return;
+
         this.template = template;
         this.blockTarget = template.target ? new BigNum(template.target, 16).toNumber() : bitsToTarget(Number.parseInt(template.bits, 16));
         this.targetDiff = targetToDifficulty(this.blockTarget)
         console.info('block target: ', this.blockTarget);
+        
         this.shares.clear();
     }
 
