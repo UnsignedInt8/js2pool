@@ -132,6 +132,13 @@ export class StratumServer extends Event {
         });
 
         client.onSubmit((sender, result, message) => {
+            if (result.taskId != me.currentTask.taskId) {
+                let msg = { miner: result.miner, taskId: result.taskId };
+                me.broadcastInvalidShare(msg);
+                client.sendSubmissionResult(message.id, false, null);
+                return;
+            }
+
             let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
             if (!share || share.shareDiff < sender.difficulty) {
                 let msg = { miner: result.miner, taskId: result.taskId, };
