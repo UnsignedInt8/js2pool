@@ -128,6 +128,13 @@ export default class StratumClient extends Event {
                 let username = message.params[0];
                 let password = message.params[1];
                 this.miner = username;
+
+                if (!username) {
+                    this.sendError();
+                    this.trigger(Events.malformedMessage);
+                    return;
+                }
+
                 this.trigger(Events.authorize, this, username, password, message);
                 break;
             case 'mining.get_multiplier':

@@ -18,6 +18,10 @@ require('../nodejs/Number');
 kinq.enable();
 
 process.on('error', (error) => {
+    console.error('unhandled error', error);
+});
+
+process.on('uncaughtException', (error) => {
     console.error('unhandled exception', error);
 });
 
