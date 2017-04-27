@@ -108,7 +108,7 @@ export default class Pool {
             });
         }).listen(3333);
 
-
+        this.stratumServer.on('error', (err) => console.log('stratum server error: ', err));
     }
 }
 
