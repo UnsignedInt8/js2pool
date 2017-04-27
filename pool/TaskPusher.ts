@@ -15,7 +15,7 @@ export type TaskPusherOptions = {
     zookeeper: ZookeeperOptions,
     
     address: string, // coinbase reward address
-    recipients?: [{ address: string, percent: number }],
+    fees?: [{ address: string, percent: number }],
 }
 
 export type TaskSerialization = {
@@ -43,7 +43,7 @@ export default class TaskPusher extends Event {
 
     constructor(opts: TaskPusherOptions, daemonWatcher: DaemonWatcher) {
         super();
-        this.taskConstructor = new TaskConstructor(opts.address, opts.recipients)
+        this.taskConstructor = new TaskConstructor(opts.address, opts.fees)
         this.taskConstructor.extraNonceSize = ExtraNonceSize;
 
         this.daemonWatcher = daemonWatcher;

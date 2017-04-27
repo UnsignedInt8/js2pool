@@ -15,21 +15,21 @@ export type Task = {
 
 export class TaskConstructor {
     private poolPubkeyScript: Buffer;
-    private recipients = new Array<{ pubkeyScript: Buffer, percent: number }>();
+    private fees = new Array<{ pubkeyScript: Buffer, percent: number }>();
 
     extraNonceSize = 8;
     txMessageRequired = false;
     proof: 'POW' | 'POS' = 'POW';
 
-    constructor(poolAddr: string, recipients?: { address: string, percent: number }[], proof: 'POW' | 'POS' = 'POW') {
+    constructor(poolAddr: string, fees?: { address: string, percent: number }[], proof: 'POW' | 'POS' = 'POW') {
         const me = this;
         const addrToScript = proof === 'POW' ? Utils.addressToScript : Utils.pubkeyToScript;
 
         me.proof = proof;
         me.poolPubkeyScript = addrToScript(poolAddr);
-        if (!recipients) return;
+        if (!fees) return;
 
-        this.recipients = recipients.map(recipient => {
+        this.fees = fees.map(recipient => {
             return {
                 percent: recipient.percent / 100,
                 pubkeyScript: recipient.address.length === 40 ? Utils.hash160ToScript(recipient.address) : Utils.addressToScript(recipient.address)
@@ -174,14 +174,14 @@ export class TaskConstructor {
             ]));
         }
 
-        for (let i = 0; i < this.recipients.length; i++) {
-            let recipientReward = Math.floor(this.recipients[i].percent * total);
+        for (let i = 0; i < this.fees.length; i++) {
+            let recipientReward = Math.floor(this.fees[i].percent * total);
             rewardToPool -= recipientReward;
 
             txOutputsPubkeyScripts.push(Buffer.concat([
                 Utils.packInt64LE(recipientReward),
-                Utils.varIntBuffer(this.recipients[i].pubkeyScript.length),
-                this.recipients[i].pubkeyScript
+                Utils.varIntBuffer(this.fees[i].pubkeyScript.length),
+                this.fees[i].pubkeyScript
             ]));
         }
 

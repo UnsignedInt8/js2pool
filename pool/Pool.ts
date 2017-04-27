@@ -13,6 +13,7 @@ import StratumClient from "../core/StratumClient";
 import MerkleTree from "../core/MerkleTree";
 import TaskPusher from "./TaskPusher";
 import { ExtraNonceSize, ExtraNonce1Size, ExtraNonce2Size } from "./Constant";
+require('../nodejs/AsyncSocket');
 require('../nodejs/Number');
 
 kinq.enable();
@@ -38,7 +39,7 @@ export default class Pool {
         // this.taskConstructor = new TaskConstructor('mpBjJJtJK5mFuuvFxdPHFp1wgdVMiXsaHW', [{ address: 'n2wQ1Ge7zJVZTzGCyxGjdg1CVmmXYREcUC', percent: 10 }]);
         // this.sharesManager = new SharesManager('sha256d');
         this.watcher = new DaemonWatcher({ host: 'localhost', port: 19334, username: 'testuser', password: 'testpass' });
-        this.taskConstructor = new TaskConstructor('mmj3JS6fWYxb7u3bq8HAp7ce9Rd4dCsafK');
+        this.taskConstructor = new TaskConstructor('mpyAvAewJDJZfDYSRNaegoPZ2BTcTPe3Cc', [{ address: 'myQ7AV6LfpJwGLrzPBHy7WLFdDJ1Lp81Lc', percent: 50 }]);
         this.sharesManager = new SharesManager('scrypt');
         this.taskConstructor.extraNonceSize = ExtraNonceSize;
         this.watcher.beginWatching();
@@ -119,7 +120,8 @@ export default class Pool {
 new Pool().startStratumServer();
 
 
-net.createServer(s=>{
-    console.log('litecoind blocknotifiy');
-    s.end();
-}).listen(9999);
+// net.createServer(async s => {
+//     let data = await s.readAsync();
+//     console.log(data.toString('utf8'));
+//     s.once('end', () => s.end());
+// }).listen(9999);
