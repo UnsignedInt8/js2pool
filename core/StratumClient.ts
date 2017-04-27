@@ -9,6 +9,7 @@ const Events = {
     end: 'End',
     keepAliveTimeout: 'KeepAliveTimeout',
     taskTimeout: 'TaskTimeout',
+    ban: 'Ban',
 
     subscribe: 'Subscribe',
     authorize: 'Authorize',
@@ -182,7 +183,7 @@ export default class StratumClient extends Event {
     }
 
     ban() {
-        console.info('bad client, ban it', this.socket.remoteAddress);
+        super.trigger(Events.ban, this);
         this.close();
     }
 
@@ -234,6 +235,10 @@ export default class StratumClient extends Event {
 
     onTaskTimeout(callback: (sender: StratumClient) => void) {
         super.register(Events.taskTimeout, callback);
+    }
+
+    onBanned(callback: (sender: StratumClient)=>void){
+        super.register(Events.ban, callback);
     }
 
     private sendJson(msg: TypeStratumMessage, ...args) {
