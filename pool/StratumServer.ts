@@ -22,7 +22,7 @@ type StratumServerOptions = {
     }
 }
 
-export interface IStratumMiners {
+export interface IMinerManager {
     authorize(username: string, password: string): { authorized: boolean, initDiff: number };
 }
 
@@ -38,13 +38,13 @@ export class StratumServer extends Event {
     private fastSubmitter: DaemonWatcher;
     private currentTask: Task;
 
-    miners: IStratumMiners;
+    minersManager: IMinerManager;
 
     private static Events = {
         Ready: 'Ready',
     };
 
-    constructor(opts: StratumServerOptions, miners: IStratumMiners) {
+    constructor(opts: StratumServerOptions, miners: IMinerManager) {
         super();
 
         this.zookeeper = new Client(`${opts.zookeeper.address}:${opts.zookeeper.port}`, crypto.randomBytes(4).toString('hex'));
@@ -60,7 +60,7 @@ export class StratumServer extends Event {
         this.port = opts.port;
         this.sharesManager = new SharesManager(opts.coin.algorithm, opts.coin);
         this.fastSubmitter = new DaemonWatcher(opts.daemon);
-        this.miners = miners;
+        this.minersManager = miners;
     }
 
     private onMessage(msg: { topic: string, value: any, offset: number, partition: number }) {
@@ -124,7 +124,7 @@ export class StratumServer extends Event {
         client.onTaskTimeout(sender => { });
 
         client.onAuthorize((sender, username, password, raw) => {
-            let { authorized, initDiff } = me.miners.authorize(username, password);
+            let { authorized, initDiff } = me.minersManager.authorize(username, password);
             sender.sendAuthorization(raw.id, authorized);
             if (!authorized) return;
             sender.sendDifficulty(initDiff);

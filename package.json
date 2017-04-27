@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "A mining pool",
   "main": "index.js",
+  "bin": {
+    "rice-blocknotifier": "./dist/bin/BlockNotifier.js"
+  },
   "scripts": {
     "test": "node_modules/.bin/mocha ./dist/test/*.js --no-timeouts"
   },
@@ -25,6 +28,7 @@
     "bignum": "*",
     "bitcoin-core": "^1.2.0",
     "bitcoinjs-lib": "^2.3.0",
+    "commander": "^2.9.0",
     "kafka-node": "^1.6.0",
     "kinq": "UnsignedInt8/Kinq",
     "node-multi-hashing": "unsignedInt8/node-multi-hashing"

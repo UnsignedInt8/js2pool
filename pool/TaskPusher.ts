@@ -13,8 +13,7 @@ export type ZookeeperOptions = {
 
 export type TaskPusherOptions = {
     zookeeper: ZookeeperOptions,
-    daemon: DaemonOptions,
-
+    
     address: string, // coinbase reward address
     recipients?: [{ address: string, percent: number }],
 }
@@ -37,16 +36,17 @@ export default class TaskPusher extends Event {
     private taskConstructor: TaskConstructor;
 
     private static Events = {
-        Error: 'Error',
-        TemplatePushed: 'TemplatePushed',
+        error: 'Error',
+        templatePushed: 'TemplatePushed',
+        ready: 'Ready',
     };
 
-    constructor(opts: TaskPusherOptions) {
+    constructor(opts: TaskPusherOptions, daemonWatcher: DaemonWatcher) {
         super();
         this.taskConstructor = new TaskConstructor(opts.address, opts.recipients)
         this.taskConstructor.extraNonceSize = ExtraNonceSize;
 
-        this.daemonWatcher = new DaemonWatcher(opts.daemon);
+        this.daemonWatcher = daemonWatcher;
         this.daemonWatcher.onBlockTemplateUpdated(this.onTemplateUpdated.bind(this));
 
         this.zookeeper = new Client(`${opts.zookeeper.address}:${opts.zookeeper.port}`, crypto.randomBytes(4).toString('hex'));
@@ -57,11 +57,11 @@ export default class TaskPusher extends Event {
 
     private onProducerReady() {
         this.taskProducer.createTopics([Topics.Task], true, error => { if (error) console.error(error); });
-        this.daemonWatcher.beginWatching();
+        super.trigger(TaskPusher.Events.ready, this);
     }
 
     private onProducerError(error) {
-        this.trigger(TaskPusher.Events.Error, this, error);
+        this.trigger(TaskPusher.Events.error, this, error);
     }
 
     private onTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
@@ -84,14 +84,18 @@ export default class TaskPusher extends Event {
             topic: Topics.Task,
             messages: JSON.stringify(taskMessage),
             attributes: 0, // no compress
-        }], (error, data) => me.trigger(TaskPusher.Events.TemplatePushed, this, error));
+        }], (error, data) => me.trigger(TaskPusher.Events.templatePushed, this, error));
     }
 
     onTemplatePushed(callback: (sender: TaskPusher, error) => void) {
-        super.register(TaskPusher.Events.TemplatePushed, callback);
+        super.register(TaskPusher.Events.templatePushed, callback);
     }
 
     onError(callback: (sender: TaskPusher, error: string) => void) {
-        super.register(TaskPusher.Events.Error, callback);
+        super.register(TaskPusher.Events.error, callback);
+    }
+
+    onReady(callback: (sender: TaskPusher) => void) {
+        super.register(TaskPusher.Events.ready, callback);
     }
 }

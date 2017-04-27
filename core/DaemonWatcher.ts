@@ -26,15 +26,16 @@ export class DaemonWatcher extends Event {
     beginWatching() {
         let me = this;
         if (me.timerId) clearTimeout(me.timerId);
+        me.timerId = setInterval(async () => me.refreshMiningInfoAsync(), 250);
+    }
 
-        me.timerId = setInterval(async () => {
-            try {
-                let value: GetMiningInfo = await me.client.command('getmininginfo');
-                if (value.blocks <= me.blockHeight) return;
-                this.blockHeight = value.blocks;
-                await me.refreshBlockTemplateAsync();
-            } catch (error) { console.log(error); }
-        }, 250);
+    async refreshMiningInfoAsync() {
+        try {
+            let value: GetMiningInfo = await this.client.command('getmininginfo');
+            if (value.blocks <= this.blockHeight) return;
+            this.blockHeight = value.blocks;
+            await this.refreshBlockTemplateAsync();
+        } catch (error) { console.log(error); }
     }
 
     async submitBlockAsync(blockHex: string) {
@@ -59,7 +60,6 @@ export class DaemonWatcher extends Event {
         } catch (error) {
             console.error(error);
         }
-
     }
 
     onBlockTemplateUpdated(callback: (sender: DaemonWatcher, template: GetBlockTemplate) => void) {

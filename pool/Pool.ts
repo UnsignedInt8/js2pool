@@ -119,3 +119,7 @@ export default class Pool {
 new Pool().startStratumServer();
 
 
+net.createServer(s=>{
+    console.log('litecoind blocknotifiy');
+    s.end();
+}).listen(9999);
