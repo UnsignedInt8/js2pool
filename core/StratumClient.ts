@@ -107,7 +107,7 @@ export default class StratumClient extends Event {
         });
 
         me.socket.on('error', err => {
-            console.error(err);
+            console.error('socket error: ', me.miner);
             me.close();
         });
 
