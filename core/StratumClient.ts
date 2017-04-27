@@ -190,6 +190,7 @@ export default class StratumClient extends Event {
     close() {
         try {
             this.socket.end();
+            this.socket.destroy();
             this.socket.removeAllListeners();
         } catch (error) { }
 
