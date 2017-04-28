@@ -5,17 +5,7 @@ import { DaemonWatcher, DaemonOptions, GetBlockTemplate, } from '../../core/Daem
 import { TaskConstructor, Task } from '../../core/TaskConstructor';
 import MerkleTree from '../../core/MerkleTree';
 import { Topics } from '../Constant';
-import { ZookeeperOptions } from './index';
-
-export type TaskSerialization = {
-    taskId: string,
-    coinbaseTx: string[],
-    stratumParams: (string | boolean | string[])[],
-    previousBlockHash: string,
-    merkleLink: string[],
-    height: number,
-    template: GetBlockTemplate,
-}
+import { ZookeeperOptions, TaskSerialization } from './index';
 
 export default class TaskPusher extends Event {
 

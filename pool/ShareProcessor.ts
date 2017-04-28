@@ -1,5 +1,5 @@
 import { Client, Consumer } from 'kafka-node';
-import { ZookeeperOptions } from "./TaskPusher";
+import { ZookeeperOptions } from "./task";
 import * as crypto from 'crypto';
 import { Topics } from "./Constant";
 

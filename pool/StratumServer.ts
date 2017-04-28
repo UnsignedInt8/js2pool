@@ -1,7 +1,7 @@
 
 import { Event } from "../nodejs/Event";
 import { Client, Consumer, Producer, HighLevelProducer } from 'kafka-node';
-import { ZookeeperOptions, TaskSerialization } from "./TaskPusher";
+import { ZookeeperOptions, TaskSerialization } from "./task";
 import * as crypto from 'crypto';
 import { Server, Socket } from "net";
 import * as net from 'net';
