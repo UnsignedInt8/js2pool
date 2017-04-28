@@ -9,17 +9,7 @@ import { TaskConstructor, Task } from "../../core/TaskConstructor";
 import { DaemonOptions, DaemonWatcher } from "../../core/DaemonWatcher";
 import { ExtraNonce1Size, ExtraNonce2Size, Topics } from "../Constant";
 import { Client, Consumer, Producer, HighLevelProducer } from 'kafka-node';
-
-type StratumServerOptions = {
-    zookeeper: ZookeeperOptions,
-    groupId: string,
-    port: number, // stratum server port
-    daemon: DaemonOptions,
-    coin: {
-        algorithm: string,
-        normalHash?: boolean,
-    }
-}
+import { StratumServerOptions } from "./index";
 
 export interface IMinerManager {
     authorize(username: string, password: string): { authorized: boolean, initDiff: number };
@@ -37,13 +27,13 @@ export class StratumServer extends Event {
     private fastSubmitter: DaemonWatcher;
     private currentTask: Task;
 
-    minersManager: IMinerManager;
+    private readonly minersManager: IMinerManager;
 
     private static Events = {
         Ready: 'Ready',
     };
 
-    constructor(opts: StratumServerOptions, miners: IMinerManager) {
+    constructor(opts: StratumServerOptions, minersManager: IMinerManager) {
         super();
 
         this.zookeeper = new Client(`${opts.zookeeper.address}:${opts.zookeeper.port}`, crypto.randomBytes(4).toString('hex'));
@@ -59,7 +49,7 @@ export class StratumServer extends Event {
         this.port = opts.port;
         this.sharesManager = new SharesManager(opts.coin.algorithm, opts.coin);
         this.fastSubmitter = new DaemonWatcher(opts.daemon);
-        this.minersManager = miners;
+        this.minersManager = minersManager;
     }
 
     private onMessage(msg: { topic: string, value: any, offset: number, partition: number }) {
