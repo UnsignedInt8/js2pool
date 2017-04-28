@@ -11,7 +11,6 @@ import { TaskConstructor, Task } from "../core/TaskConstructor";
 import SharesManager from "../core/SharesManager";
 import StratumClient from "../core/StratumClient";
 import MerkleTree from "../core/MerkleTree";
-import TaskPusher from "./TaskPusher";
 import { ExtraNonceSize, ExtraNonce1Size, ExtraNonce2Size } from "./Constant";
 require('../nodejs/AsyncSocket');
 require('../nodejs/Number');

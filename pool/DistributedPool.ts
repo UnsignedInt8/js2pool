@@ -1,9 +1,10 @@
-import TaskPusher from "./TaskPusher";
+import TaskPusher from "./task/TaskPusher";
 import { StratumServer } from "./StratumServer";
 import { MinersManager } from "./MinerManager";
 import * as kinq from 'kinq';
 import { ShareProcessor } from "./ShareProcessor";
 import { DaemonWatcher } from "../core/DaemonWatcher";
+import { TaskServer } from "./task/TaskServer";
 kinq.enable();
 
 let zookeeper = {
@@ -11,19 +12,22 @@ let zookeeper = {
     port: 2181,
 };
 
-let daemonWatcher = new DaemonWatcher({
-    host: 'localhost',
-    port: 19001,
-    password: '123',
-    username: 'admin1',
-});
 
-let pusher = new TaskPusher({
+let taskServer = new TaskServer({
     zookeeper,
     address: 'mnpbqSLQ3r293VHSjN82Ht63zf3PD8gBmm',
-}, daemonWatcher);
+    daemon: {
+        host: 'localhost',
+        port: 19001,
+        password: '123',
+        username: 'admin1',
+    },
+    blocknotify: {
+        enabled: true,
+        port: 11111,
+    },
+});
 
-pusher.onReady(sender => daemonWatcher.beginWatching());
 
 let server = new StratumServer({
     zookeeper,
