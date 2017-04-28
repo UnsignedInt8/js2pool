@@ -17,7 +17,7 @@ export type TaskSerialization = {
 
 export type TaskServerOptions = {
     zookeeper: ZookeeperOptions,
-    daemon: DaemonOptions,
+    daemons: DaemonOptions[],
     address: string, // coinbase reward address
     fees?: [{ address: string, percent: number }],
     blocknotifylistener?: {

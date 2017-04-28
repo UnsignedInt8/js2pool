@@ -32,10 +32,11 @@ export class DaemonWatcher extends Event {
     async refreshMiningInfoAsync() {
         try {
             let value: GetMiningInfo = await this.client.command('getmininginfo');
-            if (value.blocks <= this.blockHeight) return;
+            if (value.blocks <= this.blockHeight) return true;
             this.blockHeight = value.blocks;
             await this.refreshBlockTemplateAsync();
-        } catch (error) { console.log(error); }
+            return true;
+        } catch (error) { console.log(error); return false; }
     }
 
     async submitBlockAsync(blockHex: string) {

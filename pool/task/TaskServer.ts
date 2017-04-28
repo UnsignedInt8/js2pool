@@ -11,22 +11,26 @@ import * as net from 'net';
 import { ZookeeperOptions, TaskServerOptions } from "./index";
 
 export class TaskServer {
-    private daemonWatcher: DaemonWatcher;
+    private daemonWatchers: DaemonWatcher[] = [];
     private taskConstructor: TaskConstructor;
     private taskPusher: TaskPusher;
     private blockNotificationServer: Server;
     private lastNotifiedHash: string;
 
     constructor(opts: TaskServerOptions) {
-        this.daemonWatcher = new DaemonWatcher(opts.daemon);
-        this.daemonWatcher.onBlockTemplateUpdated(this.onTemplateUpdated.bind(this));
         this.taskConstructor = new TaskConstructor(opts.address, opts.fees)
         this.taskConstructor.extraNonceSize = ExtraNonceSize;
         this.taskPusher = new TaskPusher(opts.zookeeper);
         this.taskPusher.onReady(this.onPusherReady.bind(this));
 
+        for (let daemonOpts of opts.daemons) {
+            let daemonWatcher = new DaemonWatcher(daemonOpts);
+            daemonWatcher.onBlockTemplateUpdated(this.onTemplateUpdated.bind(this));
+            this.daemonWatchers.push(daemonWatcher);
+        }
+
         if (!opts.blocknotifylistener || !opts.blocknotifylistener.enabled) {
-            this.daemonWatcher.beginWatching();
+            this.daemonWatchers.first().beginWatching();
             return;
         }
 
@@ -35,8 +39,10 @@ export class TaskServer {
         }
     }
 
-    private onPusherReady() {
-        this.daemonWatcher.refreshMiningInfoAsync();
+    private async onPusherReady() {
+        for (let watcher of this.daemonWatchers) {
+            if (await watcher.refreshMiningInfoAsync()) return;
+        }
     }
 
     private async onBlockNotifyingSocketConnected(s: Socket) {
@@ -46,7 +52,10 @@ export class TaskServer {
         if (!hash) return;
         if (this.lastNotifiedHash === hash) return;
 
-        await this.daemonWatcher.refreshMiningInfoAsync();
+        for (let watcher of this.daemonWatchers) {
+            if (await watcher.refreshMiningInfoAsync()) break;
+        }
+
         console.info('new block notified: ', hash);
     }
 

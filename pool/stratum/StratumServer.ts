@@ -1,15 +1,14 @@
-
-import { Event } from "../nodejs/Event";
-import { Client, Consumer, Producer, HighLevelProducer } from 'kafka-node';
-import { ZookeeperOptions, TaskSerialization } from "./task";
+import * as net from 'net';
 import * as crypto from 'crypto';
 import { Server, Socket } from "net";
-import * as net from 'net';
-import StratumClient from "../core/StratumClient";
-import SharesManager from "../core/SharesManager";
-import { DaemonOptions, DaemonWatcher } from "../core/DaemonWatcher";
-import { ExtraNonce1Size, ExtraNonce2Size, Topics } from "./Constant";
-import { TaskConstructor, Task } from "../core/TaskConstructor";
+import { Event } from "../../nodejs/Event";
+import StratumClient from "../../core/StratumClient";
+import SharesManager from "../../core/SharesManager";
+import { ZookeeperOptions, TaskSerialization } from "../task";
+import { TaskConstructor, Task } from "../../core/TaskConstructor";
+import { DaemonOptions, DaemonWatcher } from "../../core/DaemonWatcher";
+import { ExtraNonce1Size, ExtraNonce2Size, Topics } from "../Constant";
+import { Client, Consumer, Producer, HighLevelProducer } from 'kafka-node';
 
 type StratumServerOptions = {
     zookeeper: ZookeeperOptions,
