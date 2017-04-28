@@ -1,6 +1,11 @@
 import * as fs from 'fs';
 import * as commander from 'commander';
-import packageInfo from './PackageInfo';
+
+type PackageInfo = {
+    version: string,
+};
+
+let packageInfo = JSON.parse(fs.readFileSync('../../package.json').toString('utf8')) as PackageInfo;
 
 let cmd = <any>commander.version(packageInfo.version)
     .option('-c, --config', 'Configruation File Path')

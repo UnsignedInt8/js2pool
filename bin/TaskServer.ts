@@ -3,8 +3,8 @@
 import * as fs from 'fs';
 import * as net from 'net';
 import * as commander from 'commander';
-import { TaskServerOptions, TaskServer } from "../pool/task/index";
-import cmd from './CommandParser';
+import { TaskServerOptions, TaskServer } from '../pool/task/';
+import cmd from './ArgsParser';
 
 let opts = JSON.parse(fs.readFileSync(cmd.config).toString()) as TaskServerOptions;
 
