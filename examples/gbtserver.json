@@ -1,0 +1,26 @@
+{
+    "zookeeper": {
+        "address": "localhost",
+        "port": 2181
+    },
+    "daemons": [
+        {
+            "host": "localhost",
+            "port": 8332,
+            "username": "testuser",
+            "password": "testpass"
+        }
+    ],
+    "address": "16RU1AQCmWEgHjiAKpsvNm232mFTFNBK3H",
+    "fees": [
+        {
+            "address": "1Agqtk6bdUsz9Ae7xi4PdNwb4SzKqbHjKB",
+            "percent": 1
+        }
+    ],
+    "blocknotifylistener": {
+        "enabled": true,
+        "port": 11111,
+        "host": "localhost"
+    }
+}

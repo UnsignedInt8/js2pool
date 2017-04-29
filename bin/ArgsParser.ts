@@ -1,5 +1,10 @@
 import * as fs from 'fs';
 import * as commander from 'commander';
+import * as kinq from 'kinq';
+
+require('../nodejs/AsyncSocket');
+
+kinq.enable();
 
 type PackageInfo = {
     version: string,

@@ -8,10 +8,12 @@ export { DefaultMinersManager } from './DefaultMinersManager';
 export type StratumServerOptions = {
     zookeeper: ZookeeperOptions,
     groupId: string,
-    port: number, // stratum server port
+    stratumPort: number, // stratum server port
     daemon: DaemonOptions,
     coin: {
         algorithm: string,
         normalHash?: boolean,
-    }
+        symbol: string,
+    },
+    initDiff: number
 }

@@ -1,0 +1,20 @@
+{
+    "zookeeper": {
+        "address": "localhost",
+        "port": 2181
+    },
+    "groupId": "stratum-group-1",
+    "port": 3333,
+    "daemon": {
+        "host": "localhost",
+        "port": 8332,
+        "username": "testuser",
+        "password": "testpass"
+    },
+    "coin": {
+        "algorithm": "sha256",
+        "normalHash": true,
+        "symbol": "BTC"
+    },
+    "initDiff": 4096
+}

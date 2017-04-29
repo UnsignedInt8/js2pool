@@ -34,7 +34,7 @@ let taskServer = new TaskServer({
 let server = new StratumServer({
     zookeeper,
     groupId: 'server1',
-    port: 3333,
+    stratumPort: 3333,
     daemon: {
         host: 'localhost',
         port: 19011,
@@ -42,8 +42,10 @@ let server = new StratumServer({
         username: 'admin2',
     },
     coin: {
-        algorithm: 'sha256d',
-    }
+        algorithm: 'sha256',
+        symbol: 'BTC',
+    },
+    initDiff: 0.025
 }, new DefaultMinersManager());
 
 server.onReady(sender => sender.start());

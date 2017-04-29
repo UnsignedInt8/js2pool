@@ -1,6 +1,4 @@
 
-require('../../nodejs/AsyncSocket');
-
 import { DaemonWatcher, GetBlockTemplate } from '../../core/DaemonWatcher';
 import { TaskConstructor } from '../../core/TaskConstructor';
 import { default as TaskPusher } from './TaskPusher';

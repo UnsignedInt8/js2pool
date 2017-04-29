@@ -46,7 +46,7 @@ export class StratumServer extends Event {
         this.taskConsumer.on('error', this.onError.bind(this));
         this.taskConsumer.on('offsetOutOfRange', this.onOffsetOutOfRange.bind(this));
 
-        this.port = opts.port;
+        this.port = opts.stratumPort;
         this.sharesManager = new SharesManager(opts.coin.algorithm, opts.coin);
         this.fastSubmitter = new DaemonWatcher(opts.daemon);
         this.minersManager = minersManager;
@@ -54,6 +54,8 @@ export class StratumServer extends Event {
 
     private onMessage(msg: { topic: string, value: any, offset: number, partition: number }) {
         let taskMessage = JSON.parse(msg.value) as TaskSerialization;
+        if (taskMessage.height <= this.currentTask.height) return;
+        
         console.info('new template received: ', taskMessage.height);
 
         let task = {
