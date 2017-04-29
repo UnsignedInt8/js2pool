@@ -7,7 +7,7 @@ import { TaskServer } from './task/TaskServer';
 kinq.enable();
 
 let zookeeper = {
-    address: 'localhost',
+    host: 'localhost',
     port: 2181,
 };
 

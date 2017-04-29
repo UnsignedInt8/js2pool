@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 import * as commander from 'commander';
 import * as kinq from 'kinq';
+import * as path from 'path';
 
 require('../nodejs/AsyncSocket');
-
 kinq.enable();
 
 type PackageInfo = {
@@ -13,7 +13,7 @@ type PackageInfo = {
 let packageInfo = JSON.parse(fs.readFileSync('../../package.json').toString('utf8')) as PackageInfo;
 
 let cmd = <any>commander.version(packageInfo.version)
-    .option('-c, --config', 'Configruation File Path')
+    .option('-c, --config <path>', 'Configruation File Path', String)
     .parse(process.argv);
 
 if (!cmd.config) {

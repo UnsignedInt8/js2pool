@@ -36,7 +36,7 @@ export class StratumServer extends Event {
     constructor(opts: StratumServerOptions, minersManager: IMinerManager) {
         super();
 
-        this.zookeeper = new Client(`${opts.zookeeper.address}:${opts.zookeeper.port}`, crypto.randomBytes(4).toString('hex'));
+        this.zookeeper = new Client(`${opts.zookeeper.host}:${opts.zookeeper.port}`, crypto.randomBytes(4).toString('hex'));
         this.sharesProducer = new HighLevelProducer(this.zookeeper);
         this.sharesProducer.on('ready', this.onProducerReady.bind(this));
         this.sharesProducer.on('error', this.onError.bind(this));
@@ -55,7 +55,7 @@ export class StratumServer extends Event {
     private onMessage(msg: { topic: string, value: any, offset: number, partition: number }) {
         let taskMessage = JSON.parse(msg.value) as TaskSerialization;
         if (taskMessage.height <= this.currentTask.height) return;
-        
+
         console.info('new template received: ', taskMessage.height);
 
         let task = {

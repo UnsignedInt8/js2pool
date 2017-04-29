@@ -20,7 +20,7 @@ export default class TaskPusher extends Event {
 
     constructor(opts: ZookeeperOptions) {
         super();
-        this.zookeeper = new Client(`${opts.address}:${opts.port}`, crypto.randomBytes(4).toString('hex'));
+        this.zookeeper = new Client(`${opts.host}:${opts.port}`, crypto.randomBytes(4).toString('hex'));
         this.taskProducer = new HighLevelProducer(this.zookeeper);
         this.taskProducer.on('ready', this.onProducerReady.bind(this));
         this.taskProducer.on('error', this.onProducerError.bind(this));

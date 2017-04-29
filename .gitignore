@@ -51,4 +51,4 @@ dist/**/*.*
 typings/
 
 # temporary ignore
-p2p/
+# p2p/

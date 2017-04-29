@@ -20,7 +20,7 @@ export class ShareProcessor {
     constructor(opts: ShareProcesserOptions) {
         this.interval = opts.refreshInterval || 30;
 
-        let zookeeper = new Client(`${opts.zookeeper.address}:${opts.zookeeper.port}`, crypto.randomBytes(4).toString('hex'));
+        let zookeeper = new Client(`${opts.zookeeper.host}:${opts.zookeeper.port}`, crypto.randomBytes(4).toString('hex'));
         this.sharesConsumer = new Consumer(zookeeper, [{ topic: Topics.Shares }], { autoCommit: true, groupId: opts.groupId });
         this.sharesConsumer.on('message', this.onMessage.bind(this));
         this.refreshTimer = setInterval(this.onUpdatingHashrate.bind(this), this.interval * 1000);

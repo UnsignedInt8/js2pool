@@ -1,6 +1,6 @@
 {
     "zookeeper": {
-        "address": "localhost",
+        "host": "localhost",
         "port": 2181
     },
     "daemons": [

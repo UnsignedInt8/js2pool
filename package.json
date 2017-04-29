@@ -5,7 +5,8 @@
   "main": "index.js",
   "bin": {
     "rice-blocknotifier": "./dist/bin/BlockNotifier.js",
-    "rice-gbtserver": "./dist/bin/TaskServer.js"
+    "rice-gbtserver": "./dist/bin/TaskServer.js",
+    "rice-stratumserver": "./dist/bin/StratumServer.js"
   },
   "scripts": {
     "test": "node_modules/.bin/mocha ./dist/test/*.js --no-timeouts"

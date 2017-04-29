@@ -1,7 +1,7 @@
 import { GetBlockTemplate, DaemonOptions } from "../../core/DaemonWatcher";
 
 export type ZookeeperOptions = {
-    address: string,
+    host: string,
     port: number,
 }
 
