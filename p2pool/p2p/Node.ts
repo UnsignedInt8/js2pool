@@ -39,6 +39,7 @@ export default class Node extends Event {
         bestBlock: 'BestBlock',
         shares: 'Shares',
         shareReq: 'ShareReq',
+        shareReply: 'ShareReply',
     }
 
     private static readonly Messages = {
@@ -55,6 +56,7 @@ export default class Node extends Event {
         bestblock: 'bestblock',
         shares: 'shares',
         sharereq: 'sharereq',
+        sharereply: 'sharereply',
     }
 
     protected msgHandlers = new Map<string, (payload: Buffer) => void>();
@@ -79,11 +81,12 @@ export default class Node extends Event {
         this.msgHandlers.set(Node.Messages.getaddrs, this.handleGetaddrs.bind(me));
         this.msgHandlers.set(Node.Messages.have_tx, this.handleHave_tx.bind(me));
         this.msgHandlers.set(Node.Messages.losing_tx, this.handleLosing_tx.bind(me));
-        this.msgHandlers.set(Node.Messages.forget_tx, this.handleForgetTx.bind(me));
+        this.msgHandlers.set(Node.Messages.forget_tx, this.handleForget_tx.bind(me));
         this.msgHandlers.set(Node.Messages.remember_tx, this.handleRemember_tx.bind(me));
         this.msgHandlers.set(Node.Messages.bestblock, this.handleBestBlock.bind(me));
         this.msgHandlers.set(Node.Messages.shares, this.handleShares.bind(me));
         this.msgHandlers.set(Node.Messages.sharereq, this.handleSharereq.bind(me));
+        this.msgHandlers.set(Node.Messages.sharereply, this.handleSharereply.bind(me));
 
         if (!peerAddress || peerAddress.length === 0) return;
 
@@ -258,7 +261,7 @@ export default class Node extends Event {
         losingTx.txHashes.forEach(h => me.remoteTxHashs.delete(h));
     }
 
-    private handleForgetTx(payload: Buffer) {
+    private handleForget_tx(payload: Buffer) {
         this.trigger(Node.Events.forgetTx, this, Forgettx.fromBuffer(payload).txHashes);
     }
 
@@ -283,6 +286,11 @@ export default class Node extends Event {
     private handleSharereq(payload: Buffer) {
         let request = Sharereq.fromBuffer(payload);
         this.trigger(Node.Events.shareReq, this, request);
+    }
+
+    private handleSharereply(payload: Buffer) {
+        let reply = Sharereply.fromBuffer(payload);
+        this.trigger(Node.Events.shareReply, this, reply);
     }
 
     /// -------------------- sendXXXAsync -------------------------
@@ -380,7 +388,7 @@ export default class Node extends Event {
         return this;
     }
 
-    onAddrMe(callback: (sender: Node, ip: string, port: number) => void) {
+    onAddrme(callback: (sender: Node, ip: string, port: number) => void) {
         super.register(Node.Events.addrMe, callback);
         return this;
     }
@@ -390,27 +398,27 @@ export default class Node extends Event {
         return this;
     }
 
-    onGetAddrs(callback: (sender: Node, count: number) => void) {
+    onGetaddrs(callback: (sender: Node, count: number) => void) {
         super.register(Node.Events.getAddrs, callback);
         return this;
     }
 
-    onHaveTx(callback: (sender: Node, txHashes: string[]) => void) {
+    onHave_tx(callback: (sender: Node, txHashes: string[]) => void) {
         super.register(Node.Events.haveTx, callback);
         return this;
     }
 
-    onLosingTx(callback: (sender: Node, txHashes: string[]) => void) {
+    onLosing_tx(callback: (sender: Node, txHashes: string[]) => void) {
         super.register(Node.Events.losingTx, callback);
         return this;
     }
 
-    onForgetTx(callback: (sender: Node, txHashes: string[]) => void) {
+    onForget_tx(callback: (sender: Node, txHashes: string[]) => void) {
         super.register(Node.Events.forgetTx, callback);
         return this;
     }
 
-    onRememberTx(callback: (sender: Node, txHashes: string[], txs: Transaction[]) => void) {
+    onRemember_tx(callback: (sender: Node, txHashes: string[], txs: Transaction[]) => void) {
         super.register(Node.Events.rememberTx, callback);
         return this;
     }
@@ -425,8 +433,13 @@ export default class Node extends Event {
         return this;
     }
 
-    onShareReq(callback: (sender: Node, TypeSharereq) => void) {
+    onSharereq(callback: (sender: Node, TypeSharereq) => void) {
         super.register(Node.Events.shareReq, callback);
+        return this;
+    }
+
+    onSharereply(callback: (sender: Node, TypeSharereply) => void) {
+        super.register(Node.Events.shareReply, callback);
         return this;
     }
 }
