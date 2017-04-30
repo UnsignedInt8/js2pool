@@ -105,10 +105,7 @@ export class StratumServer extends Event {
     private onSocketConnected(socket: Socket) {
         let me = this;
         let client = new StratumClient(socket, ExtraNonce1Size);
-        while (this.clients.has(client.extraNonce1)) {
-            client.changeExtraNonce1();
-        }
-
+        
         client.onSubscribe((sender, msg) => sender.sendSubscription(msg.id, ExtraNonce2Size));
         client.onEnd(sender => me.clients.delete(sender.extraNonce1));
         client.onKeepingAliveTimeout(sender => sender.sendPing());

@@ -50,7 +50,7 @@ export default class StratumClient extends Event {
     private keepAliveTimer: NodeJS.Timer;
     private taskTimeoutTimer: NodeJS.Timer;
     private illegalTimes = 0;
-    private illegalTime = 0;
+    private illegalTimestamp = 0;
 
     constructor(socket: Socket, extraNonce1Size: number) {
         super();
@@ -176,12 +176,12 @@ export default class StratumClient extends Event {
     }
 
     touchBad() {
-        if (this.illegalTimes === 0) this.illegalTime = Date.now();
+        if (this.illegalTimes === 0) this.illegalTimestamp = Date.now();
         this.illegalTimes++;
 
         if (this.illegalTimes < this.banThreshold) return;
 
-        if (Date.now() - this.illegalTime > 3 * 1000) {
+        if (Date.now() - this.illegalTimestamp > 3 * 1000) {
             this.illegalTimes = 0;
             return;
         }
