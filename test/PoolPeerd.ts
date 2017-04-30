@@ -14,7 +14,7 @@ async function test() {
         assert.equal(sender, peer);
         assert.equal(version.subVersion.startsWith('15.0'), true);
         console.log(version);
-        await peer.sendGetAddrsAsync(10);
+        await peer.sendGetaddrsAsync(10);
 
     });
     peer.onAddrs((sender, addrs) => {

@@ -4,20 +4,20 @@ import { Socket } from "net";
 import * as crypto from 'crypto';
 
 const Events = {
-    flood: 'Flood',
-    malformedMessage: 'MalformedMessage',
     end: 'End',
-    keepAliveTimeout: 'KeepAliveTimeout',
-    taskTimeout: 'TaskTimeout',
     ban: 'Ban',
+    flood: 'Flood',
+    taskTimeout: 'TaskTimeout',
+    malformedMessage: 'MalformedMessage',
+    keepAliveTimeout: 'KeepAliveTimeout',
 
+    submit: 'Submit',
     subscribe: 'Subscribe',
     authorize: 'Authorize',
     getMultiplier: 'GetMultiplier',
-    submit: 'Submit',
 }
 
-type TypeStratumMessage = {
+type StratumMessage = {
     id?: number,
     method?: string,
     params?: any[],
@@ -25,7 +25,7 @@ type TypeStratumMessage = {
     error?: boolean | any,
 };
 
-type TypeSubmitResult = {
+type StratumSubmission = {
     miner: string,
     taskId: string,
     extraNonce2: string,
@@ -85,7 +85,7 @@ export default class StratumClient extends Event {
             messages.forEach(message => {
                 if (message === '') return;
 
-                let messageJson: TypeStratumMessage;
+                let messageJson: StratumMessage;
                 try {
                     messageJson = JSON.parse(message);
                 } catch (e) {
@@ -113,7 +113,7 @@ export default class StratumClient extends Event {
 
     }
 
-    private handleMessage(message: TypeStratumMessage) {
+    private handleMessage(message: StratumMessage) {
         switch (message.method) {
             case 'mining.subscribe':
                 this.trigger(Events.subscribe, this, message);
@@ -221,19 +221,19 @@ export default class StratumClient extends Event {
         super.register(Events.end, callback);
     }
 
-    onSubscribe(callback: (sender: StratumClient, message: TypeStratumMessage) => void) {
+    onSubscribe(callback: (sender: StratumClient, message: StratumMessage) => void) {
         super.register(Events.subscribe, callback);
     }
 
-    onAuthorize(callback: (sender: StratumClient, username: string, password: string, message: TypeStratumMessage) => void) {
+    onAuthorize(callback: (sender: StratumClient, username: string, password: string, message: StratumMessage) => void) {
         super.register(Events.authorize, callback);
     }
 
-    onGetMultiplier(callback: (sender: StratumClient, message: TypeStratumMessage) => void) {
+    onGetMultiplier(callback: (sender: StratumClient, message: StratumMessage) => void) {
         super.register(Events.getMultiplier, callback);
     }
 
-    onSubmit(callback: (sender: StratumClient, result: TypeSubmitResult, message: TypeStratumMessage) => void) {
+    onSubmit(callback: (sender: StratumClient, result: StratumSubmission, message: StratumMessage) => void) {
         super.register(Events.submit, callback);
     }
 
@@ -249,7 +249,7 @@ export default class StratumClient extends Event {
         super.register(Events.ban, callback);
     }
 
-    private sendJson(msg: TypeStratumMessage, ...args) {
+    private sendJson(msg: StratumMessage, ...args) {
         if (!this.socket.writable) {
             this.close();
             return;

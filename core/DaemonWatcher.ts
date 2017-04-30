@@ -26,7 +26,7 @@ export class DaemonWatcher extends Event {
     beginWatching() {
         let me = this;
         if (me.timerId) clearTimeout(me.timerId);
-        me.timerId = setInterval(async () => me.refreshMiningInfoAsync(), 250);
+        me.timerId = setInterval(async () => await me.refreshMiningInfoAsync(), 250);
     }
 
     async refreshMiningInfoAsync() {

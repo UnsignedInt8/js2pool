@@ -2,7 +2,7 @@ import * as bignum from 'bignum';
 import * as multiHashing from 'node-multi-hashing';
 import * as util from '../misc/Utils';
 
-export const BaseDiff = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
+export const BaseTarget = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
 
 export function bitsToTarget(bits: number) {
     return (bits & 0x00ffffff) * Math.pow(2, 8 * ((bits >> 24) - 3));

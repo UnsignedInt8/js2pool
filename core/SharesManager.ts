@@ -6,7 +6,7 @@
 import * as Utils from '../misc/Utils';
 import { GetBlockTemplate } from "./DaemonWatcher";
 import { Task } from "./TaskConstructor";
-import { Algos, BaseDiff, bitsToTarget, targetToDifficulty } from "./Algos";
+import { Algos, BaseTarget, bitsToTarget, targetToDifficulty } from "./Algos";
 import * as BigNum from 'bignum';
 
 export default class SharesManager {
@@ -62,7 +62,7 @@ export default class SharesManager {
         let shareHash = Utils.reverseBuffer(headerHashBuf).toString('hex');
 
         let shareTarget = BigNum.fromBuffer(headerHashBuf, { endian: 'little', size: 32 }).toNumber();
-        let shareDiff = BaseDiff / shareTarget * this.mutliplier;
+        let shareDiff = BaseTarget / shareTarget * this.mutliplier;
 
         let shareHex: string;
         if (this.blockTarget > shareTarget) {

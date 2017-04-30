@@ -17,7 +17,7 @@ import Remember_tx from "./Messages/Remember_tx";
 import * as fs from 'fs';
 import { Block, Transaction } from "bitcoinjs-lib";
 import Shares from "./Messages/Shares";
-import { Share, NewShare, BaseShare } from "./Shares/index";
+import { Share, NewShare, BaseShare } from "./Shares";
 import { TypeSharereq, default as Sharereq } from "./Messages/Sharereq";
 import { TypeSharereply, default as Sharereply } from "./Messages/Sharereply";
 
@@ -75,15 +75,15 @@ export default class Node extends Event {
         this.msgHandlers.set(Node.Messages.ping, this.handlePing.bind(me));
         this.msgHandlers.set(Node.Messages.pong, this.handlePong.bind(me));
         this.msgHandlers.set(Node.Messages.addrs, this.handleAddrs.bind(me));
-        this.msgHandlers.set(Node.Messages.addrme, this.handleAddrMe.bind(me));
-        this.msgHandlers.set(Node.Messages.getaddrs, this.handleGetAddrs.bind(me));
-        this.msgHandlers.set(Node.Messages.have_tx, this.handleHaveTx.bind(me));
-        this.msgHandlers.set(Node.Messages.losing_tx, this.handleLosingTx.bind(me));
+        this.msgHandlers.set(Node.Messages.addrme, this.handleAddrme.bind(me));
+        this.msgHandlers.set(Node.Messages.getaddrs, this.handleGetaddrs.bind(me));
+        this.msgHandlers.set(Node.Messages.have_tx, this.handleHave_tx.bind(me));
+        this.msgHandlers.set(Node.Messages.losing_tx, this.handleLosing_tx.bind(me));
         this.msgHandlers.set(Node.Messages.forget_tx, this.handleForgetTx.bind(me));
-        this.msgHandlers.set(Node.Messages.remember_tx, this.handleRememberTx.bind(me));
+        this.msgHandlers.set(Node.Messages.remember_tx, this.handleRemember_tx.bind(me));
         this.msgHandlers.set(Node.Messages.bestblock, this.handleBestBlock.bind(me));
         this.msgHandlers.set(Node.Messages.shares, this.handleShares.bind(me));
-        this.msgHandlers.set(Node.Messages.sharereq, this.handleShareReq.bind(me));
+        this.msgHandlers.set(Node.Messages.sharereq, this.handleSharereq.bind(me));
 
         if (!peerAddress || peerAddress.length === 0) return;
 
@@ -114,9 +114,7 @@ export default class Node extends Event {
         if (!socket) throw new Error('You should install the socket first');
 
         try {
-            if (!await socket.connectAsync(this.peerPort, this.peerAddress)) {
-                return false;
-            }
+            if (!await socket.connectAsync(this.peerPort, this.peerAddress)) return false;
 
             this.beginReceivingMessagesAsync();
             return true;
@@ -223,7 +221,7 @@ export default class Node extends Event {
         this.trigger(Node.Events.addrs, this, addrs);
     }
 
-    private handleAddrMe(payload: Buffer) {
+    private handleAddrme(payload: Buffer) {
         let addrme = Addrme.fromBuffer(payload);
 
         if (addrme.port !== this.peerPort) {
@@ -234,12 +232,12 @@ export default class Node extends Event {
         this.trigger(Node.Events.addrMe, this, this.peerAddress, addrme.port);
     }
 
-    private handleGetAddrs(payload: Buffer) {
+    private handleGetaddrs(payload: Buffer) {
         let getaddrs = Getaddrs.fromBuffer(payload);
         this.trigger(Node.Events.getAddrs, this, getaddrs.count);
     }
 
-    private handleHaveTx(payload: Buffer) {
+    private handleHave_tx(payload: Buffer) {
         let me = this;
         let tx = Have_tx.fromBuffer(payload);
         this.trigger(Node.Events.haveTx, this, tx.txHashes);
@@ -252,7 +250,7 @@ export default class Node extends Event {
         tx.txHashes.forEach(h => me.remoteTxHashs.add(h));
     }
 
-    private handleLosingTx(payload: Buffer) {
+    private handleLosing_tx(payload: Buffer) {
         let me = this;
         let losingTx = Losingtx.fromBuffer(payload);
         this.trigger(Node.Events.losingTx, this, losingTx.txHashes);
@@ -264,7 +262,7 @@ export default class Node extends Event {
         this.trigger(Node.Events.forgetTx, this, Forgettx.fromBuffer(payload).txHashes);
     }
 
-    private handleRememberTx(payload: Buffer) {
+    private handleRemember_tx(payload: Buffer) {
         let rtx = Remember_tx.fromBuffer(payload);
         this.trigger(Node.Events.rememberTx, this, rtx.txHashes, rtx.txs);
     }
@@ -282,7 +280,7 @@ export default class Node extends Event {
         this.trigger(Node.Events.shares, this, sharesWrapper.shares);
     }
 
-    private handleShareReq(payload: Buffer) {
+    private handleSharereq(payload: Buffer) {
         let request = Sharereq.fromBuffer(payload);
         this.trigger(Node.Events.shareReq, this, request);
     }
@@ -328,12 +326,12 @@ export default class Node extends Event {
      * You should check the externalAddress equals the socket.localAddress
      * @param port 
      */
-    async sendAddrMeAsync(port: number) {
+    async sendAddrmeAsync(port: number) {
         let msg = Message.fromObject({ command: 'addrme', payload: { port: port } });
         return await this.socket.writeAsync(msg.toBuffer());
     }
 
-    async sendGetAddrsAsync(count: number) {
+    async sendGetaddrsAsync(count: number) {
         let msg = Message.fromObject({ command: 'getaddrs', payload: { count: count } });
         return await this.socket.writeAsync(msg.toBuffer());
     }
@@ -343,12 +341,12 @@ export default class Node extends Event {
         return await this.socket.writeAsync(data);
     }
 
-    async sendShareReqAsync(sharereq: TypeSharereq) {
+    async sendSharereqAsync(sharereq: TypeSharereq) {
         let data = Sharereq.fromObject(sharereq);
         return await this.socket.writeAsync(data.toBuffer());
     }
 
-    async sendShareReplyAsync(reply: TypeSharereply) {
+    async sendSharereplyAsync(reply: TypeSharereply) {
         let r = Sharereply.fromObject(reply);
         return await this.socket.writeAsync(r.toBuffer());
     }
