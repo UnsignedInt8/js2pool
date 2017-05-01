@@ -1,4 +1,6 @@
 
+import { Server, Socket } from "net";
+import * as net from 'net';
 import Node from "./Node";
 import { Transaction } from "bitcoinjs-lib";
 import { BaseShare } from "./shares";
@@ -6,21 +8,30 @@ import { DaemonWatcher, DaemonOptions, GetBlockTemplate, TransactionTemplate } f
 import Property from "../../nodejs/Property";
 
 export type PeerOptions = {
-
+    port: number,
+    maxConn?: number;
 }
 
 export class Peer {
+    private server: Server;
 
-    readonly peers = new Array<Node>();
-    readonly knownTxs = Property.init(new Map<string, TransactionTemplate>());
-    readonly miningTxs = Property.init(new Map<string, TransactionTemplate>());
+    peers = new Map<string, Node>();
+    knownTxs = Property.init(new Map<string, TransactionTemplate>());
+    miningTxs = Property.init(new Map<string, TransactionTemplate>());
+
     bestShare: BaseShare;
     desired: any[];
 
-
     constructor(opts: PeerOptions) {
-
         this.knownTxs.onPropertyChanged(this.onKnownTxsChanged.bind(this));
+        this.server = net.createServer(this.onSocketConnected.bind(this));
+    }
+
+    private onSocketConnected(s: Socket) {
+        let node = new Node();
+        node.initSocket(s);
+
+        this.peers.set(node.tag, node);
     }
 
     private onKnownTxsChanged(oldValue: Map<string, TransactionTemplate>, newValue: Map<string, TransactionTemplate>) {

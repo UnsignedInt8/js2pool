@@ -67,10 +67,11 @@ export default class Node extends Event {
     isJs2PoolPeer = false;
     peerAddress: string;
     peerPort: number;
+    tag: string;
     externalAddress?: string; // IP address from peer's view
     externalPort?: number; // the port from peer's view
 
-    constructor(peerAddress: string = null, peerPort: number = 9333) {
+    constructor() {
         super();
         let me = this;
 
@@ -88,21 +89,17 @@ export default class Node extends Event {
         this.msgHandlers.set(Node.Messages.shares, this.handleShares.bind(me));
         this.msgHandlers.set(Node.Messages.sharereq, this.handleSharereq.bind(me));
         this.msgHandlers.set(Node.Messages.sharereply, this.handleSharereply.bind(me));
-
-        if (!peerAddress || peerAddress.length === 0) return;
-
-        this.peerAddress = peerAddress;
-        this.peerPort = peerPort;
-
-        this.initSocket(new Socket());
     }
 
     /// ---------------------- sockets ----------------------------
 
-    protected initSocket(socket: Socket) {
+    initSocket(socket: Socket) {
         this.socket = socket;
-        let me = this;
+        this.peerAddress = socket.remoteAddress;
+        this.peerPort = socket.remotePort;
+        this.tag = `${socket.remoteAddress}:${socket.remotePort}`;
 
+        let me = this;
         socket.setTimeout(10 * 1000, () => me.trigger(Node.Events.timeout, me));
         socket.once('end', () => me.close());
         socket.once('error', err => {
@@ -112,14 +109,14 @@ export default class Node extends Event {
         });
     }
 
-    async connectAsync() {
-        let socket = this.socket;
-
-        if (!socket) throw new Error('You should install the socket first');
+    async connectAsync(peerAddress: string, peerPort: number = 9333) {
+        if (this.socket) throw Error('Socket has been initialized');
+        let socket = new Socket();
+        this.socket = socket;
 
         try {
-            if (!await socket.connectAsync(this.peerPort, this.peerAddress)) return false;
-
+            if (!await socket.connectAsync(peerPort, peerAddress)) return false;
+            this.initSocket(socket);
             this.beginReceivingMessagesAsync();
             return true;
         } catch (error) {
@@ -127,11 +124,6 @@ export default class Node extends Event {
             socket.removeAllListeners();
             return false;
         }
-    }
-
-    installSocket(socket: Socket) {
-        this.close();
-        this.initSocket(socket);
     }
 
     close() {

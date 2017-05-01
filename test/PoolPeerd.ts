@@ -9,7 +9,7 @@ kinq.enable();
 
 async function test() {
 
-    let peer = new Node('123.163.48.115', 9333);
+    let peer = new Node();
     peer.onVersionVerified(async (sender, version) => {
         assert.equal(sender, peer);
         assert.equal(version.subVersion.startsWith('15.0'), true);
@@ -20,7 +20,7 @@ async function test() {
     peer.onAddrs((sender, addrs) => {
         console.log(addrs);
     })
-    await peer.connectAsync();
+    await peer.connectAsync('123.163.48.115', 9333);
     await peer.sendVersionAsync();
 
 }

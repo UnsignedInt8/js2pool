@@ -4,7 +4,7 @@ import Node from "../p2pool/p2p/Node";
 
 describe('Test PoolPeer', () => {
     it('should get the version message', async () => {
-        let peer = new Node('123.163.48.115', 9333);
+        let peer = new Node();
 
         let returnPromise = new Promise((resolve, reject) => {
             peer.onVersionVerified((sender, version) => {
@@ -14,7 +14,7 @@ describe('Test PoolPeer', () => {
             });
         });
 
-        if (!await peer.connectAsync()) {
+        if (!await peer.connectAsync('123.163.48.115', 9333)) {
             throw new Error('cannot connect');
         }
 
