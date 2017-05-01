@@ -1,7 +1,7 @@
 
 
 import * as assert from 'assert';
-import Version from "../p2pool/p2p/Messages/Version";
+import { Version } from "../p2pool/p2p/Messages/Version";
 
 describe('Test Pool Protocol Messages', () => {
     it('can be deserialized', () => {

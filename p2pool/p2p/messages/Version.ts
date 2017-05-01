@@ -27,7 +27,7 @@ export type TypeVersion = {
     bestShareHash?: string;
 }
 
-export default class Version extends Payload {
+export class Version extends Payload {
 
     version = PROTOCOL_VERSION; // 4 bytes
     networkServices = Buffer.from('0000000000000000', 'hex'); // 8 bytes

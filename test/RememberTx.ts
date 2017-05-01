@@ -4,7 +4,7 @@
  */
 
 import * as assert from 'assert';
-import Remember_tx from "../p2pool/p2p/Messages/Remember_tx";
+import { Remember_tx } from "../p2pool/p2p/Messages/Remember_tx";
 
 describe('RememberTx Test', () => {
     it('should contain 23 txs', () => {

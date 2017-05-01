@@ -8,12 +8,12 @@ import * as assert from 'assert';
 import * as utils from '../../misc/Utils';
 import { Event } from "../../nodejs/Event";
 import { Message, PROTOCOL_HEAD_LENGTH } from "./Message";
-import Version, { TypeVersion } from "./Messages/Version";
+import { Version, TypeVersion } from "./Messages/Version";
 import Addrs, { TypeAddrs } from "./Messages/Addrs";
 import Addrme from "./Messages/AddrMe";
 import Getaddrs from "./Messages/GetAddrs";
 import { Have_tx, Losing_tx, Forget_tx } from "./Messages/Have_tx";
-import Remember_tx from "./Messages/Remember_tx";
+import { Remember_tx, TypeRemember_tx } from "./Messages/Remember_tx";
 import * as fs from 'fs';
 import { Block, Transaction } from "bitcoinjs-lib";
 import Shares from "./Messages/Shares";
@@ -64,6 +64,8 @@ export default class Node extends Event {
     protected socket: Socket;
 
     remoteTxHashs = new Set<string>();
+    remoteMiningTxs = new Map<string, Transaction>();
+    remoteRememberedTxsSize = 0;
     isJs2PoolPeer = false;
     peerAddress: string;
     peerPort: number;
@@ -238,7 +240,7 @@ export default class Node extends Event {
         let tx = Have_tx.fromBuffer(payload);
         this.trigger(Node.Events.haveTx, this, tx.txHashes);
 
-        while (me.remoteTxHashs.size > 10) {
+        while (me.remoteTxHashs.size > 10000) {
             let { value } = me.remoteTxHashs.keys().next();
             me.remoteTxHashs.delete(value);
         }
@@ -346,32 +348,37 @@ export default class Node extends Event {
     }
 
     async sendAddrsAsync(addrs: TypeAddrs[]) {
-        let data = Addrs.fromObjects(addrs);
-        return await this.sendAsync(data);
+        let data = Message.fromObject({ command: 'addrs', payload: addrs });
+        return await this.sendAsync(data.toBuffer());
     }
 
     async sendSharereqAsync(sharereq: TypeSharereq) {
-        let data = Sharereq.fromObject(sharereq);
+        let data = Message.fromObject({ command: 'sharereq', payload: sharereq });
         return await this.sendAsync(data.toBuffer());
     }
 
     async sendSharereplyAsync(reply: TypeSharereply) {
-        let r = Sharereply.fromObject(reply);
-        return await this.sendAsync(r.toBuffer());
+        let msg = Message.fromObject({ command: 'sharereply', payload: reply });
+        return await this.sendAsync(msg.toBuffer());
     }
 
     async sendHave_txAsync(txHashes: string[]) {
-        let msg = Have_tx.fromObject({ txHashes });
+        let msg = Message.fromObject({ command: 'have_tx', payload: { txHashes } });
         return await this.sendAsync(msg.toBuffer());
     }
 
     async sendLosing_txAsync(txHashes: string[]) {
-        let msg = Losing_tx.fromObject({ txHashes });
+        let msg = Message.fromObject({ command: 'losing_tx', payload: { txHashes } });
         return await this.sendAsync(msg.toBuffer());
     }
 
     async sendForget_txAsync(txHashes: string[]) {
-        let msg = Forget_tx.fromObject({ txHashes });
+        let msg = Message.fromObject({ command: 'forget_tx', payload: { txHashes } });
+        return await this.sendAsync(msg.toBuffer());
+    }
+
+    async sendRemember_txAsync(rememberTx: TypeRemember_tx) {
+        let msg = Message.fromObject({ command: 'remember_tx', payload: rememberTx });
         return await this.sendAsync(msg.toBuffer());
     }
 

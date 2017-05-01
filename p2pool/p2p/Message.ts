@@ -4,15 +4,20 @@
 
 import { Payloads } from './Messages';
 import { TypePing } from "./Messages/Ping";
-import Version, { TypeVersion } from "./Messages/Version";
+import { Version, TypeVersion } from "./Messages/Version";
 import * as utils from '../../misc/Utils';
 import { Payload } from "./Messages/Payload";
 import { TypeAddrme } from "./Messages/Addrme";
 import { TypeGetaddrs } from "./Messages/Getaddrs";
+import { TypeAddrs } from "./Messages/Addrs";
+import { TypeSharereq } from "./Messages/Sharereq";
+import { TypeSharereply } from "./Messages/Sharereply";
+import { TypeHave_tx } from "./Messages/Have_tx";
+import { TypeRemember_tx } from "./Messages/Remember_tx";
 
 type TypeMessage = {
-    command: 'version' | 'ping' | 'pong' | 'addrme' | 'getaddrs',
-    payload: TypeVersion | TypePing | TypeAddrme | TypeGetaddrs,
+    command: 'version' | 'ping' | 'pong' | 'addrme' | 'getaddrs' | 'addrs' | 'sharereq' | 'sharereply' | 'have_tx' | 'losing_tx' | 'remember_tx' | 'forget_tx',
+    payload: TypeVersion | TypePing | TypeAddrme | TypeGetaddrs | TypeAddrs[] | TypeSharereq | TypeSharereply | TypeHave_tx | TypeRemember_tx,
 }
 
 export const PROTOCOL_HEAD_LENGTH = 28; // magic(8), command(12), length(4), checksum(4)

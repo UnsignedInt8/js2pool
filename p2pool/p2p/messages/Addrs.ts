@@ -21,6 +21,19 @@ export type TypeAddrs = {
 const ipv4 = /^(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})(.(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})){3}$/;
 const ipv6 = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$|^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$|^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$/;
 
+export class MutliAddrs extends Payload {
+    buffers: Buffer[];
+
+    constructor(buffers: Buffer[]) {
+        super();
+        this.buffers = buffers;
+    }
+
+    toBuffer() {
+        return Buffer.concat(this.buffers);
+    }
+} 
+
 export default class Addrs extends Payload {
     timestamp: number; // 8 bytes, seconds 
     services: number; // 8 bytes, all zero
@@ -81,7 +94,7 @@ export default class Addrs extends Payload {
         };
     }
 
-    static fromObject(obj: TypeAddrs): Addrs {
+    static fromSingleObject(obj: TypeAddrs): Addrs {
         let addrs = new Addrs();
         addrs.timestamp = obj.timestamp || parseInt((Date.now() / 1000).toFixed(0));
         addrs.ip = obj.ip;
@@ -90,15 +103,18 @@ export default class Addrs extends Payload {
         return addrs;
     }
 
-    static fromObjects(objs: TypeAddrs[]): Buffer {
+    static fromObject(objs: TypeAddrs[]): MutliAddrs {
         if (objs.length >= 0xfe) throw new Error('Arguments exceed the amount of maximum, 255.');
-        let buffers = objs.map(o => Addrs.fromObject(o)).map(a => a.toBuffer());
+        let buffers = objs.map(o => Addrs.fromSingleObject(o)).map(a => a.toBuffer());
 
         let countBuf = Buffer.alloc(1);
         countBuf.writeUInt8(buffers.length, 0);
         buffers.unshift(utils.varIntBuffer(buffers.length));
+        return new MutliAddrs(buffers);
+    }
 
-        return Buffer.concat(buffers);
+    static fromObjects(objs: TypeAddrs[]): Buffer {
+        return Addrs.fromObject(objs).toBuffer();
     }
 
     static fromBuffer(data: Buffer): Addrs[] {

@@ -7,13 +7,17 @@ import { Payload } from "./Payload";
 import * as utils from '../../../misc/Utils';
 import * as bitcoinjs from 'bitcoinjs-lib';
 import { Transaction } from "bitcoinjs-lib";
+import { TransactionTemplate } from "../../../core/DaemonWatcher";
 
-type TypeRemember_tx = {
+export type TypeRemember_tx = {
     hashes: string[],
-    txs: Transaction[],
+    txs: TransactionTemplate[],
 }
 
-export default class Remember_tx extends Payload {
+/**
+ * Remember mining txs
+ */
+export class Remember_tx extends Payload {
     txHashes: string[];
     txs: Transaction[];
 
@@ -29,7 +33,7 @@ export default class Remember_tx extends Payload {
     static fromObject(obj: TypeRemember_tx) {
         let rtx = new Remember_tx();
         rtx.txHashes = obj.hashes;
-        rtx.txs = obj.txs;
+        rtx.txs = obj.txs.map(txHex => Transaction.fromHex(txHex.data));
         return rtx;
     }
 
