@@ -64,7 +64,7 @@ export default class Node extends Event {
     protected socket: Socket;
 
     remoteTxHashs = new Set<string>();
-    remoteMiningTxs = new Map<string, Transaction>();
+    rememberedTxs = new Map<string, Transaction>();
     remoteRememberedTxsSize = 0;
     isJs2PoolPeer = false;
     peerAddress: string;
@@ -257,12 +257,30 @@ export default class Node extends Event {
     }
 
     private handleForget_tx(payload: Buffer) {
-        this.trigger(Node.Events.forgetTx, this, Forget_tx.fromBuffer(payload).txHashes);
+        let hashes = Forget_tx.fromBuffer(payload).txHashes;
+        for (let hash of hashes) {
+            this.rememberedTxs.delete(hash);
+        }
+
+        this.trigger(Node.Events.forgetTx, this, hashes);
     }
 
     private handleRemember_tx(payload: Buffer) {
-        let rtx = Remember_tx.fromBuffer(payload);
-        this.trigger(Node.Events.rememberTx, this, rtx.txHashes, rtx.txs);
+        let { txHashes, txs } = Remember_tx.fromBuffer(payload);
+        for (let hash of txHashes) {
+            if (this.rememberedTxs.has(hash)) {
+                console.error('Peer referenced transaction twice, disconnecting');
+                this.close();
+                return;
+            }
+
+
+        }
+
+        for (let tx of txs) {
+
+        }
+        this.trigger(Node.Events.rememberTx, this, txHashes, txs);
     }
 
     private handleBestBlock(payload: Buffer) {
@@ -372,17 +390,21 @@ export default class Node extends Event {
         return await this.sendAsync(msg.toBuffer());
     }
 
-    async sendForget_txAsync(txHashes: string[]) {
+    async sendForget_txAsync(txHashes: string[], totalSize: number) {
+        this.remoteRememberedTxsSize -= totalSize;
+
         let msg = Message.fromObject({ command: 'forget_tx', payload: { txHashes } });
         return await this.sendAsync(msg.toBuffer());
     }
 
-    async sendRemember_txAsync(rememberTx: TypeRemember_tx) {
+    async sendRemember_txAsync(rememberTx: TypeRemember_tx, totalSize: number) {
+        this.remoteRememberedTxsSize += totalSize;
+
         let msg = Message.fromObject({ command: 'remember_tx', payload: rememberTx });
         return await this.sendAsync(msg.toBuffer());
     }
 
-    isAvailable = () => this.socket.readable && this.socket.writable;
+    isAvailable = () => this.socket && this.socket.readable && this.socket.writable;
 
     /// -------------------- onXXXEvents --------------------------
 
