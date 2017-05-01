@@ -12,7 +12,7 @@ import Version, { TypeVersion } from "./Messages/Version";
 import Addrs, { TypeAddrs } from "./Messages/Addrs";
 import Addrme from "./Messages/AddrMe";
 import Getaddrs from "./Messages/GetAddrs";
-import { Have_tx, Losingtx, Forgettx } from "./Messages/Have_tx";
+import { Have_tx, Losing_tx, Forget_tx } from "./Messages/Have_tx";
 import Remember_tx from "./Messages/Remember_tx";
 import * as fs from 'fs';
 import { Block, Transaction } from "bitcoinjs-lib";
@@ -24,6 +24,7 @@ import { TypeSharereply, default as Sharereply } from "./Messages/Sharereply";
 export default class Node extends Event {
 
     protected static readonly Events = {
+        error: 'Error',
         badPeer: 'BadPeer',
         timeout: 'Timeout', // Socket timeout
         unknownCommand: 'UnknownCommand',
@@ -255,14 +256,14 @@ export default class Node extends Event {
 
     private handleLosing_tx(payload: Buffer) {
         let me = this;
-        let losingTx = Losingtx.fromBuffer(payload);
+        let losingTx = Losing_tx.fromBuffer(payload);
         this.trigger(Node.Events.losingTx, this, losingTx.txHashes);
 
         losingTx.txHashes.forEach(h => me.remoteTxHashs.delete(h));
     }
 
     private handleForget_tx(payload: Buffer) {
-        this.trigger(Node.Events.forgetTx, this, Forgettx.fromBuffer(payload).txHashes);
+        this.trigger(Node.Events.forgetTx, this, Forget_tx.fromBuffer(payload).txHashes);
     }
 
     private handleRemember_tx(payload: Buffer) {
@@ -295,6 +296,14 @@ export default class Node extends Event {
 
     /// -------------------- sendXXXAsync -------------------------
 
+    private async sendAsync(data: Buffer) {
+        try {
+            return await this.socket.writeAsync(data);
+        } catch (error) {
+            this.trigger(Node.Events.error, this, error);
+        }
+    }
+
     async sendVersionAsync() {
         let addrTo = {
             services: 0,
@@ -316,17 +325,17 @@ export default class Node extends Event {
             }
         });
 
-        return await this.socket.writeAsync(msg.toBuffer());
+        return await this.sendAsync(msg.toBuffer());
     }
 
     async sendPingAsync() {
         let msg = Message.fromObject({ command: 'ping', payload: {} });
-        return await this.socket.writeAsync(msg.toBuffer());
+        return await this.sendAsync(msg.toBuffer());
     }
 
     private async sendPongAsync() {
         let msg = Message.fromObject({ command: 'pong', payload: {} });
-        return await this.socket.writeAsync(msg.toBuffer());
+        return await this.sendAsync(msg.toBuffer());
     }
 
     /**
@@ -336,32 +345,52 @@ export default class Node extends Event {
      */
     async sendAddrmeAsync(port: number) {
         let msg = Message.fromObject({ command: 'addrme', payload: { port: port } });
-        return await this.socket.writeAsync(msg.toBuffer());
+        return await this.sendAsync(msg.toBuffer());
     }
 
     async sendGetaddrsAsync(count: number) {
         let msg = Message.fromObject({ command: 'getaddrs', payload: { count: count } });
-        return await this.socket.writeAsync(msg.toBuffer());
+        return await this.sendAsync(msg.toBuffer());
     }
 
     async sendAddrsAsync(addrs: TypeAddrs[]) {
         let data = Addrs.fromObjects(addrs);
-        return await this.socket.writeAsync(data);
+        return await this.sendAsync(data);
     }
 
     async sendSharereqAsync(sharereq: TypeSharereq) {
         let data = Sharereq.fromObject(sharereq);
-        return await this.socket.writeAsync(data.toBuffer());
+        return await this.sendAsync(data.toBuffer());
     }
 
     async sendSharereplyAsync(reply: TypeSharereply) {
         let r = Sharereply.fromObject(reply);
-        return await this.socket.writeAsync(r.toBuffer());
+        return await this.sendAsync(r.toBuffer());
+    }
+
+    async sendHave_txAsync(txHashes: string[]) {
+        let msg = Have_tx.fromObject({ txHashes });
+        return await this.sendAsync(msg.toBuffer());
+    }
+
+    async sendLosing_txAsync(txHashes: string[]) {
+        let msg = Losing_tx.fromObject({ txHashes });
+        return await this.sendAsync(msg.toBuffer());
+    }
+
+    async sendForget_txAsync(txHashes: string[]) {
+        let msg = Forget_tx.fromObject({ txHashes });
+        return await this.sendAsync(msg.toBuffer());
     }
 
     isAvailable = () => this.socket.readable && this.socket.writable;
 
     /// -------------------- onXXXEvents --------------------------
+
+    onError(callback: (sender: Node, error) => void) {
+        super.register(Node.Events.error, callback);
+        return this;
+    }
 
     onBadPeer(callback: (sender: Node, message: string) => void) {
         super.register(Node.Events.badPeer, callback);

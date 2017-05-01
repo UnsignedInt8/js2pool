@@ -69,6 +69,16 @@ export class DaemonWatcher extends Event {
 
 }
 
+export type TransactionTemplate = {
+    data: string,
+    txid: string,
+    hash: string,
+    depends?: any[],
+    fee: number,
+    sigops: number,
+    weight: number,
+}
+
 export type GetBlockTemplate = {
     // BTC
     capabilities: string[],
@@ -77,15 +87,7 @@ export type GetBlockTemplate = {
     vbavailable?: { segwit: number },
     vbrequired?: number,
     previousblockhash: string,
-    transactions: [{
-        data: string,
-        txid: string,
-        hash: string,
-        depends?: any[],
-        fee: number,
-        sigops: number,
-        weight: number,
-    }],
+    transactions: TransactionTemplate[],
     coinbaseaux?: {
         flags: string
     },

@@ -43,10 +43,10 @@ export class Have_tx extends Payload {
     }
 }
 
-export class Losingtx extends Have_tx {
+export class Losing_tx extends Have_tx {
 
 }
 
-export class Forgettx extends Have_tx {
+export class Forget_tx extends Have_tx {
 
 }
