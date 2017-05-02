@@ -75,22 +75,21 @@ export default class Node extends Event {
 
     constructor() {
         super();
-        let me = this;
-
-        this.msgHandlers.set(Node.Messages.version, this.handleVersion.bind(me));
-        this.msgHandlers.set(Node.Messages.ping, this.handlePing.bind(me));
-        this.msgHandlers.set(Node.Messages.pong, this.handlePong.bind(me));
-        this.msgHandlers.set(Node.Messages.addrs, this.handleAddrs.bind(me));
-        this.msgHandlers.set(Node.Messages.addrme, this.handleAddrme.bind(me));
-        this.msgHandlers.set(Node.Messages.getaddrs, this.handleGetaddrs.bind(me));
-        this.msgHandlers.set(Node.Messages.have_tx, this.handleHave_tx.bind(me));
-        this.msgHandlers.set(Node.Messages.losing_tx, this.handleLosing_tx.bind(me));
-        this.msgHandlers.set(Node.Messages.forget_tx, this.handleForget_tx.bind(me));
-        this.msgHandlers.set(Node.Messages.remember_tx, this.handleRemember_tx.bind(me));
-        this.msgHandlers.set(Node.Messages.bestblock, this.handleBestBlock.bind(me));
-        this.msgHandlers.set(Node.Messages.shares, this.handleShares.bind(me));
-        this.msgHandlers.set(Node.Messages.sharereq, this.handleSharereq.bind(me));
-        this.msgHandlers.set(Node.Messages.sharereply, this.handleSharereply.bind(me));
+        
+        this.msgHandlers.set(Node.Messages.version, this.handleVersion.bind(this));
+        this.msgHandlers.set(Node.Messages.ping, this.handlePing.bind(this));
+        this.msgHandlers.set(Node.Messages.pong, this.handlePong.bind(this));
+        this.msgHandlers.set(Node.Messages.addrs, this.handleAddrs.bind(this));
+        this.msgHandlers.set(Node.Messages.addrme, this.handleAddrme.bind(this));
+        this.msgHandlers.set(Node.Messages.getaddrs, this.handleGetaddrs.bind(this));
+        this.msgHandlers.set(Node.Messages.have_tx, this.handleHave_tx.bind(this));
+        this.msgHandlers.set(Node.Messages.losing_tx, this.handleLosing_tx.bind(this));
+        this.msgHandlers.set(Node.Messages.forget_tx, this.handleForget_tx.bind(this));
+        this.msgHandlers.set(Node.Messages.remember_tx, this.handleRemember_tx.bind(this));
+        this.msgHandlers.set(Node.Messages.bestblock, this.handleBestBlock.bind(this));
+        this.msgHandlers.set(Node.Messages.shares, this.handleShares.bind(this));
+        this.msgHandlers.set(Node.Messages.sharereq, this.handleSharereq.bind(this));
+        this.msgHandlers.set(Node.Messages.sharereply, this.handleSharereply.bind(this));
     }
 
     /// ---------------------- sockets ----------------------------

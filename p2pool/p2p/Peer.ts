@@ -9,7 +9,8 @@ import Property from "../../nodejs/Property";
 import { Version } from "./Messages/Version";
 
 export type PeerOptions = {
-    maxConn?: number;
+    maxConn?: number,
+    port: number,
 }
 
 export class Peer {
@@ -26,11 +27,8 @@ export class Peer {
     constructor(opts: PeerOptions) {
         this.knownTxs.onPropertyChanged(this.onKnownTxsChanged.bind(this));
         this.miningTxs.onPropertyChanged(this.onMiningTxsChanged.bind(this));
-        this.server = net.createServer(this.onSocketConnected.bind(this));
-    }
+        this.server = net.createServer(this.onSocketConnected.bind(this)).listen(opts.port);
 
-    listen(port: number) {
-        this.server.listen(port);
     }
 
     private onSocketConnected(s: Socket) {
@@ -126,6 +124,15 @@ export class Peer {
         if (removed.any()) {
             let totalSize = removed.sum(item => item.data.length / 2);
             this.peers.forEach(p => p.sendForget_txAsync(removed.select(tx => tx.txid || tx.hash).toArray(), totalSize));
+        }
+    }
+
+    async initPeersAsync(peers: { host: string, port: number }[]) {
+        for (let peer of peers) {
+            let node = new Node();
+            if (!await node.connectAsync(peer.host, peer.port)) continue;
+            node.sendVersionAsync();
+            this.peers.set(node.tag, node);
         }
     }
 
