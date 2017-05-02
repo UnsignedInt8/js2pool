@@ -17,6 +17,7 @@ export class Peer {
     private readonly server: Server;
     private readonly peers = new Map<string, Node>(); // ip:port -> Node
     private readonly knownTxs = Property.init(new Map<string, TransactionTemplate>());
+    private readonly knownTxsCaches = new Array<Map<string, TransactionTemplate>>();
     private readonly miningTxs = Property.init(new Map<string, TransactionTemplate>());
 
     bestShare: BaseShare;
@@ -38,7 +39,8 @@ export class Peer {
         node.sendVersionAsync();
 
         node.onVersionVerified(this.handleNodeVersion.bind(this));
-
+        node.onRemember_tx(this.handleRemember_tx.bind(this));
+        node.onEnd(function (sender: Node) { this.peers.delete(sender.tag) }.bind(this));
 
         this.peers.set(node.tag, node);
     }
@@ -48,6 +50,41 @@ export class Peer {
     private async handleNodeVersion(sender: Node, version: Version) {
         await sender.sendHave_txAsync(this.knownTxs.value.keys().toArray());
         await sender.sendRemember_txAsync({ hashes: [], txs: this.miningTxs.value.values().toArray() }, this.miningTxs.value.values().sum(tx => tx.data.length / 2));
+    }
+
+    private handleRemember_tx(sender: Node, txHashes: string[], txs: Transaction[]) {
+
+        for (let hash of txHashes) {
+            if (txHashes.any(hash => sender.rememberedTxs.has(hash))) {
+                console.error('Peer referenced transaction twice, disconnecting');
+                sender.close();
+                return;
+            }
+
+            let knownTx = this.knownTxs.value.get(hash) || this.knownTxsCaches.where(cache => cache.has(hash)).select(cache => cache.get(hash)).firstOrDefault();
+            if (!knownTx) {
+                console.info('Peer referenced unknown transaction %s, disconnecting', hash);
+                sender.close();
+                return;
+            }
+
+            sender.rememberedTxs.set(hash, Transaction.fromHex(knownTx.data));
+        }
+
+        let knownTxs = new Map(this.knownTxs.value);
+        for (let tx of txs) {
+            let txHash = tx.getHash();
+            if (sender.rememberedTxs.has(txHash)) {
+                console.info('Peer referenced transaction twice, disconnecting');
+                sender.close();
+                return;
+            }
+
+            sender.rememberedTxs.set(txHash, tx);
+            knownTxs.set(txHash, { txid: txHash, hash: txHash, data: tx.toHex() });
+        }
+
+        this.knownTxs.set(knownTxs);
     }
 
     // ----------------- Peer work ---------------------
@@ -70,6 +107,9 @@ export class Peer {
         // key = max(self.known_txs_cache) + 1 if self.known_txs_cache else 0
         // self.known_txs_cache[key] = dict((h, before[h]) for h in removed)
         // reactor.callLater(20, self.known_txs_cache.pop, key)
+
+        this.knownTxsCaches.push(removed.select(hash => { return { hash, tx: oldValue.get(hash) } }).toMap(item => item.hash, item => item.tx));
+        if (this.knownTxsCaches.length > 10) this.knownTxsCaches.shift();
     }
 
     private onMiningTxsChanged(oldValue: Map<string, TransactionTemplate>, newValue: Map<string, TransactionTemplate>) {

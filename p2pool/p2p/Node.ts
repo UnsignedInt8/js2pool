@@ -129,10 +129,16 @@ export default class Node extends Event {
     }
 
     close() {
-        if (!this.socket) return;
-        this.socket.end();
-        this.socket.removeAllListeners();
-        this.trigger(Node.Events.end, this);
+        try {
+            if (!this.socket) return;
+            this.socket.end();
+            this.socket.removeAllListeners();
+        } catch (error) {
+
+        } finally {
+            super.removeAllEvents();
+            this.trigger(Node.Events.end, this);
+        }
     }
 
     private static async readFlowingBytesAsync(stream: Socket, amount: number, preRead: Buffer) {
@@ -236,50 +242,40 @@ export default class Node extends Event {
     }
 
     private handleHave_tx(payload: Buffer) {
-        let me = this;
-        let tx = Have_tx.fromBuffer(payload);
-        this.trigger(Node.Events.haveTx, this, tx.txHashes);
+        let { txHashes } = Have_tx.fromBuffer(payload);
 
-        while (me.remoteTxHashs.size > 10000) {
-            let { value } = me.remoteTxHashs.keys().next();
-            me.remoteTxHashs.delete(value);
+        while (this.remoteTxHashs.size > 10000) {
+            let { value } = this.remoteTxHashs.keys().next();
+            this.remoteTxHashs.delete(value);
         }
 
-        tx.txHashes.forEach(h => me.remoteTxHashs.add(h));
+        for (let h of txHashes) {
+            this.remoteTxHashs.add(h);
+        }
+        
+        this.trigger(Node.Events.haveTx, this, txHashes);
     }
 
     private handleLosing_tx(payload: Buffer) {
-        let me = this;
-        let losingTx = Losing_tx.fromBuffer(payload);
-        this.trigger(Node.Events.losingTx, this, losingTx.txHashes);
+        let { txHashes } = Losing_tx.fromBuffer(payload);
+        for (let h of txHashes) {
+            this.remoteTxHashs.delete(h);
+        }
 
-        losingTx.txHashes.forEach(h => me.remoteTxHashs.delete(h));
+        this.trigger(Node.Events.losingTx, this, txHashes);
     }
 
     private handleForget_tx(payload: Buffer) {
-        let hashes = Forget_tx.fromBuffer(payload).txHashes;
-        for (let hash of hashes) {
+        let { txHashes } = Forget_tx.fromBuffer(payload);
+        for (let hash of txHashes) {
             this.rememberedTxs.delete(hash);
         }
 
-        this.trigger(Node.Events.forgetTx, this, hashes);
+        this.trigger(Node.Events.forgetTx, this, txHashes);
     }
 
     private handleRemember_tx(payload: Buffer) {
         let { txHashes, txs } = Remember_tx.fromBuffer(payload);
-        for (let hash of txHashes) {
-            if (this.rememberedTxs.has(hash)) {
-                console.error('Peer referenced transaction twice, disconnecting');
-                this.close();
-                return;
-            }
-
-
-        }
-
-        for (let tx of txs) {
-
-        }
         this.trigger(Node.Events.rememberTx, this, txHashes, txs);
     }
 

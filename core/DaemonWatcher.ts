@@ -74,9 +74,9 @@ export type TransactionTemplate = {
     txid: string,
     hash: string,
     depends?: any[],
-    fee: number,
-    sigops: number,
-    weight: number,
+    fee?: number,
+    sigops?: number,
+    weight?: number,
 }
 
 export type GetBlockTemplate = {
