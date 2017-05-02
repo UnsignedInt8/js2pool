@@ -1,7 +1,6 @@
 import * as Utils from '../misc/Utils';
 import * as crypto from 'crypto';
 import { GetBlockTemplate } from "./DaemonWatcher";
-import * as merkle from 'merkle-lib';
 import MerkleTree from "./MerkleTree";
 
 export type Task = {

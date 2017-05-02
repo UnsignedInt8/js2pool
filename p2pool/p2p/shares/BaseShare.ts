@@ -53,11 +53,11 @@ export abstract class BaseShare {
         let diff = new BigNum(this.info.bits).toBuffer({ endian: 'little', size: 4 });
         this.newScript = utils.hash160ToScript(this.info.data.pubkeyHash); // script Pub Key
         this.target = this.info.toTarget();
-        this.gentxHash = this.checkHashLink(
-            this.hashLink,
-            Buffer.concat([BaseShare.getRefHash(this.info, this.refMerkleLink), (new BigNum(this.lastTxoutNonce).toBuffer({ endian: 'little', size: 8 }), Buffer.alloc(4, 0))]),
-            gentx_before_refhash
-        )
+        // this.gentxHash = this.checkHashLink(
+        //     this.hashLink,
+        //     Buffer.concat([BaseShare.getRefHash(this.info, this.refMerkleLink), (new BigNum(this.lastTxoutNonce).toBuffer({ endian: 'little', size: 8 }), Buffer.alloc(4, 0))]),
+        //     gentx_before_refhash
+        // )
     }
 
     private checkHashLink(hashLink: HashLink, data: Buffer, constEnding = '') {

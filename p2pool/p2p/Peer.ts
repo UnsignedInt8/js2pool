@@ -36,6 +36,10 @@ export class Peer {
         node.initSocket(s);
         node.sendVersionAsync();
 
+        this.initNode(node);
+    }
+
+    private initNode(node: Node) {
         node.onVersionVerified(this.handleNodeVersion.bind(this));
         node.onRemember_tx(this.handleRemember_tx.bind(this));
         node.onEnd(function (sender: Node) { this.peers.delete(sender.tag) }.bind(this));
@@ -46,12 +50,11 @@ export class Peer {
     // ----------------- Node events -------------------
 
     private async handleNodeVersion(sender: Node, version: Version) {
-        await sender.sendHave_txAsync(this.knownTxs.value.keys().toArray());
-        await sender.sendRemember_txAsync({ hashes: [], txs: this.miningTxs.value.values().toArray() }, this.miningTxs.value.values().sum(tx => tx.data.length / 2));
+        await sender.sendHave_txAsync(Array.from(this.knownTxs.value.keys()));
+        await sender.sendRemember_txAsync({ hashes: [], txs: Array.from(this.miningTxs.value.values()) });
     }
 
     private handleRemember_tx(sender: Node, txHashes: string[], txs: Transaction[]) {
-
         for (let hash of txHashes) {
             if (txHashes.any(hash => sender.rememberedTxs.has(hash))) {
                 console.error('Peer referenced transaction hash twice, disconnecting');
@@ -81,7 +84,7 @@ export class Peer {
             sender.rememberedTxs.set(txHash, tx);
             knownTxs.set(txHash, { txid: txHash, hash: txHash, data: tx.toHex() });
         }
-
+        
         this.knownTxs.set(knownTxs);
     }
 
@@ -108,6 +111,9 @@ export class Peer {
 
         this.knownTxsCaches.push(removed.select(hash => { return { hash, tx: oldValue.get(hash) } }).toMap(item => item.hash, item => item.tx));
         if (this.knownTxsCaches.length > 10) this.knownTxsCaches.shift();
+
+        console.log('known txs changed, added: %d, removed: %d', added.length, removed.length)
+        
     }
 
     private onMiningTxsChanged(oldValue: Map<string, TransactionTemplate>, newValue: Map<string, TransactionTemplate>) {
@@ -117,14 +123,15 @@ export class Peer {
         let removed = oldValue.except(newValue, ([k1, v1], [k2, v2]) => k1 === k2).select(item => item[1]).toArray();
 
         if (added.any()) {
-            let totalSize = added.sum(item => item.data.length / 2); // hex string to bytes
-            this.peers.forEach(p => p.sendRemember_txAsync({ hashes: added.where(tx => p.remoteTxHashs.has(tx.txid || tx.hash)).select(tx => tx.txid || tx.hash).toArray(), txs: added.where(tx => !p.remoteTxHashs.has(tx.txid || tx.hash)).toArray() }, totalSize));
+            this.peers.forEach(p => p.sendRemember_txAsync({ hashes: added.where(tx => p.remoteTxHashs.has(tx.txid || tx.hash)).select(tx => tx.txid || tx.hash).toArray(), txs: added.where(tx => !p.remoteTxHashs.has(tx.txid || tx.hash)).toArray() }));
         }
 
         if (removed.any()) {
             let totalSize = removed.sum(item => item.data.length / 2);
             this.peers.forEach(p => p.sendForget_txAsync(removed.select(tx => tx.txid || tx.hash).toArray(), totalSize));
         }
+
+        console.log('mining txs changed, added: %d, removed: %d', added.length, removed.length)
     }
 
     async initPeersAsync(peers: { host: string, port: number }[]) {
@@ -132,7 +139,7 @@ export class Peer {
             let node = new Node();
             if (!await node.connectAsync(peer.host, peer.port)) continue;
             node.sendVersionAsync();
-            this.peers.set(node.tag, node);
+            this.initNode(node);
         }
     }
 

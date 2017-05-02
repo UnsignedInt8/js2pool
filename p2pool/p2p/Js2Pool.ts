@@ -20,6 +20,7 @@ export class Js2Pool {
         this.daemonWatcher.beginWatching();
 
         this.peer = new Peer(opts.server);
+        this.peer.initPeersAsync(opts.bootstrapPeers);
     }
 
     private onMiningTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {

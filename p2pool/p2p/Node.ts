@@ -60,6 +60,8 @@ export default class Node extends Event {
         sharereply: 'sharereply',
     }
 
+    private peerAliveTimer: NodeJS.Timer;
+    private keepAliveTimer: NodeJS.Timer;
     protected msgHandlers = new Map<string, (payload: Buffer) => void>();
     protected socket: Socket;
 
@@ -75,7 +77,7 @@ export default class Node extends Event {
 
     constructor() {
         super();
-        
+
         this.msgHandlers.set(Node.Messages.version, this.handleVersion.bind(this));
         this.msgHandlers.set(Node.Messages.ping, this.handlePing.bind(this));
         this.msgHandlers.set(Node.Messages.pong, this.handlePong.bind(this));
@@ -126,17 +128,20 @@ export default class Node extends Event {
         }
     }
 
-    close(destroy: boolean) {
+    close(destroy: boolean, info?: string) {
         try {
+            if (info) console.info(info);
             this.rememberedTxs.clear();
             this.remoteTxHashs.clear();
 
             if (!this.socket) return;
-            this.socket.removeAllListeners();
             destroy ? this.socket.destroy() : this.socket.end();
+            this.socket.removeAllListeners();
         } catch (error) {
             console.log(error);
         } finally {
+            if (this.keepAliveTimer) clearInterval(this.keepAliveTimer);
+            if (this.peerAliveTimer) clearTimeout(this.peerAliveTimer);
             super.removeAllEvents();
             this.trigger(Node.Events.end, this);
         }
@@ -183,6 +188,9 @@ export default class Node extends Event {
         }
 
         if (this.msgHandlers.has(command)) {
+            if (this.peerAliveTimer) clearTimeout(this.peerAliveTimer);
+            this.peerAliveTimer = setTimeout(this.close.bind(this, true, '100 seconds exceeded, timeout. close...'), 100 * 1000);
+            // console.log(command);
             this.msgHandlers.get(command)(payload);
         } else {
             console.info(`unknown command: ${command}`);
@@ -201,15 +209,14 @@ export default class Node extends Event {
         this.externalAddress = version.addressTo.ip;
         this.externalPort = version.addressTo.port;
 
+        if (this.keepAliveTimer) clearInterval(this.keepAliveTimer);
+        this.keepAliveTimer = setInterval(this.sendPingAsync.bind(this), 30 * 1000);
+
         this.trigger(Node.Events.version, this, version);
     }
 
     private handlePing(payload: Buffer) {
-        if (!this.isJs2PoolPeer) {
-            this.sendPingAsync();
-            return;
-        }
-
+        if (!this.isJs2PoolPeer) return;
         this.sendPongAsync();
     }
 
@@ -283,9 +290,8 @@ export default class Node extends Event {
     }
 
     private handleShares(payload: Buffer) {
-        console.log('shares: ', payload.length);
-        fs.writeFileSync('/tmp/shares_' + Date.now(), payload.toString('hex'));
-
+        console.log('handleShares', payload.length);
+        fs.writeFileSync(`/tmp/handle_shares_` + Date.now(), payload.toString('hex'));
         let { shares } = Shares.fromBuffer(payload);
         this.trigger(Node.Events.shares, this, shares);
     }
@@ -311,6 +317,9 @@ export default class Node extends Event {
     }
 
     async sendVersionAsync() {
+        if (this.peerAliveTimer) clearTimeout(this.peerAliveTimer);
+        this.peerAliveTimer = setTimeout(this.close.bind(this, true), 10 * 1000);
+
         let addrTo = {
             services: 0,
             ip: this.socket.remoteAddress,
@@ -391,14 +400,14 @@ export default class Node extends Event {
         return await this.sendAsync(msg.toBuffer());
     }
 
-    async sendRemember_txAsync(rememberTx: TypeRemember_tx, totalSize: number) {
-        this.remoteRememberedTxsSize += totalSize;
+    async sendRemember_txAsync(rememberTx: TypeRemember_tx) {
+        this.remoteRememberedTxsSize += rememberTx.txs.sum(tx => tx.data.length / 2);
 
         let msg = Message.fromObject({ command: 'remember_tx', payload: rememberTx });
         return await this.sendAsync(msg.toBuffer());
     }
 
-    isAvailable = () => this.socket && this.socket.readable && this.socket.writable;
+    // isAvailable = () => this.socket && this.socket.readable && this.socket.writable;
 
     /// -------------------- onXXXEvents --------------------------
 
