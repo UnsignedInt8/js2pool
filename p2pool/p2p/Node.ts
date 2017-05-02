@@ -103,11 +103,10 @@ export default class Node extends Event {
 
         let me = this;
         socket.setTimeout(10 * 1000, () => me.trigger(Node.Events.timeout, me));
-        socket.once('end', () => me.close());
+        socket.once('end', () => me.close(false));
         socket.once('error', err => {
             console.info(socket.remoteAddress, err.message);
-            socket.destroy();
-            me.close();
+            me.close(true);
         });
     }
 
@@ -128,13 +127,16 @@ export default class Node extends Event {
         }
     }
 
-    close() {
+    close(destroy: boolean) {
         try {
-            if (!this.socket) return;
-            this.socket.end();
-            this.socket.removeAllListeners();
-        } catch (error) {
+            this.rememberedTxs.clear();
+            this.remoteTxHashs.clear();
 
+            if (!this.socket) return;
+            this.socket.removeAllListeners();
+            destroy ? this.socket.destroy() : this.socket.end();
+        } catch (error) {
+            console.log(error);
         } finally {
             super.removeAllEvents();
             this.trigger(Node.Events.end, this);
@@ -166,8 +168,7 @@ export default class Node extends Event {
         let magic = data.slice(0, 8);
         if (!magic.equals(Message.magic)) {
             this.trigger(Node.Events.badPeer, this, 'Bad magic number');
-            this.close();
-            assert.ok(false);
+            this.close(true);
             return;
         }
 
@@ -178,13 +179,11 @@ export default class Node extends Event {
         let { data: payload, lopped: remain } = await Node.readFlowingBytesAsync(this.socket, length, lopped);
         if (utils.sha256d(payload).readUInt32LE(0) !== checksum) {
             this.trigger(Node.Events.badPeer, this, 'Bad checksum');
-            this.close();
-            assert.ok(false);
+            this.close(true);
             return;
         }
 
         if (this.msgHandlers.has(command)) {
-            console.info(command);
             this.msgHandlers.get(command)(payload);
         } else {
             console.info(`unknown command: ${command}`);
@@ -252,7 +251,7 @@ export default class Node extends Event {
         for (let h of txHashes) {
             this.remoteTxHashs.add(h);
         }
-        
+
         this.trigger(Node.Events.haveTx, this, txHashes);
     }
 
@@ -288,8 +287,8 @@ export default class Node extends Event {
         console.log('shares: ', payload.length);
         fs.writeFileSync('/tmp/shares_' + Date.now(), payload.toString('hex'));
 
-        let sharesWrapper = Shares.fromBuffer(payload);
-        this.trigger(Node.Events.shares, this, sharesWrapper.shares);
+        let { shares } = Shares.fromBuffer(payload);
+        this.trigger(Node.Events.shares, this, shares);
     }
 
     private handleSharereq(payload: Buffer) {
