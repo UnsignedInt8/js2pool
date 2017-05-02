@@ -56,15 +56,15 @@ export class Peer {
 
         for (let hash of txHashes) {
             if (txHashes.any(hash => sender.rememberedTxs.has(hash))) {
-                console.error('Peer referenced transaction twice, disconnecting');
-                sender.close();
+                console.error('Peer referenced transaction hash twice, disconnecting');
+                sender.close(false);
                 return;
             }
 
             let knownTx = this.knownTxs.value.get(hash) || this.knownTxsCaches.where(cache => cache.has(hash)).select(cache => cache.get(hash)).firstOrDefault();
             if (!knownTx) {
                 console.info('Peer referenced unknown transaction %s, disconnecting', hash);
-                sender.close();
+                sender.close(false);
                 return;
             }
 
@@ -76,7 +76,7 @@ export class Peer {
             let txHash = tx.getHash();
             if (sender.rememberedTxs.has(txHash)) {
                 console.info('Peer referenced transaction twice, disconnecting');
-                sender.close();
+                sender.close(false);
                 return;
             }
 
