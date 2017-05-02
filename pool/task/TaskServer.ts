@@ -13,7 +13,6 @@ export class TaskServer {
     private taskConstructor: TaskConstructor;
     private taskPusher: TaskPusher;
     private blockNotificationServer: Server;
-    private lastNotifiedHash: string;
 
     constructor(opts: TaskServerOptions) {
         this.taskConstructor = new TaskConstructor(opts.address, opts.fees)
@@ -27,34 +26,10 @@ export class TaskServer {
             this.daemonWatchers.push(daemonWatcher);
         }
 
-        if (!opts.blocknotifylistener || !opts.blocknotifylistener.enabled) {
-            this.daemonWatchers.first().beginWatching();
-            return;
-        }
-
-        if (opts.blocknotifylistener && opts.blocknotifylistener.enabled) {
-            this.blockNotificationServer = net.createServer(this.onBlockNotifyingSocketConnected.bind(this)).listen(opts.blocknotifylistener.port, opts.blocknotifylistener.host);
-        }
     }
 
     private async onPusherReady() {
-        for (let watcher of this.daemonWatchers) {
-            if (await watcher.refreshMiningInfoAsync()) return;
-        }
-    }
-
-    private async onBlockNotifyingSocketConnected(s: Socket) {
-        s.once('end', () => s.end());
-
-        let hash = (await s.readAsync()).toString('utf8');
-        if (!hash) return;
-        if (this.lastNotifiedHash === hash) return;
-
-        for (let watcher of this.daemonWatchers) {
-            if (await watcher.refreshMiningInfoAsync()) break;
-        }
-
-        console.info('new block notified: ', hash);
+        this.daemonWatchers.forEach(d => d.beginWatching());
     }
 
     private onTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {

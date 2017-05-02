@@ -8,7 +8,12 @@
             "host": "localhost",
             "port": 8332,
             "username": "testuser",
-            "password": "testpass"
+            "password": "testpass",
+            "blocknotifylistener": {
+                "enabled": true,
+                "port": 11111,
+                "host": "localhost"
+            }
         }
     ],
     "address": "16RU1AQCmWEgHjiAKpsvNm232mFTFNBK3H",
@@ -17,10 +22,5 @@
             "address": "1Agqtk6bdUsz9Ae7xi4PdNwb4SzKqbHjKB",
             "percent": 1
         }
-    ],
-    "blocknotifylistener": {
-        "enabled": true,
-        "port": 11111,
-        "host": "localhost"
-    }
+    ]
 }

@@ -1,4 +1,4 @@
-import { GetBlockTemplate, DaemonOptions } from "../../core/DaemonWatcher";
+import { GetBlockTemplate, DaemonOptions, BlockNotifyOptions } from "../../core/DaemonWatcher";
 
 export type ZookeeperOptions = {
     host: string,
@@ -20,11 +20,7 @@ export type TaskServerOptions = {
     daemons: DaemonOptions[],
     address: string, // coinbase reward address
     fees?: [{ address: string, percent: number }],
-    blocknotifylistener?: {
-        enabled: boolean,
-        port: number,
-        host: string,
-    },
+    blockNotifyOpts?: BlockNotifyOptions
 }
 
 export { TaskServer } from './TaskServer';

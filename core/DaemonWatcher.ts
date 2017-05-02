@@ -1,5 +1,7 @@
+import * as net from 'net';
 import Client from 'bitcoin-core';
 import { Event } from "../nodejs/Event";
+import { Socket, Server } from "net";
 const BitcoinClient = require('bitcoin-core');
 
 export type DaemonOptions = {
@@ -7,36 +9,70 @@ export type DaemonOptions = {
     port: number,
     username: string,
     password: string,
+    blocknotifylistener?: BlockNotifyOptions,
+}
+
+export type BlockNotifyOptions = {
+    enabled: boolean,
+    port: number,
+    host: string,
 }
 
 export class DaemonWatcher extends Event {
     private client: Client;
     private blockHeight = 0;
     private timerId: NodeJS.Timer;
+    private lastNotifiedHash: string;
+    private blockNotifyServer: Server;
 
     static Events = {
         blockTemplateUpdate: 'BlockTemplateUpdated',
+        error: 'Error',
     };
 
     constructor(opts: DaemonOptions) {
         super();
         this.client = new BitcoinClient(opts) as Client;
+
+        if (opts.blocknotifylistener && opts.blocknotifylistener.enabled) {
+            this.blockNotifyServer = net.createServer(this.onBlockNotifyingSocketConnected.bind(this)).listen(opts.blocknotifylistener.port, opts.blocknotifylistener.host);
+        }
+    }
+
+    private async onBlockNotifyingSocketConnected(s: Socket) {
+        s.once('end', () => s.end());
+
+        let hash = (await s.readAsync()).toString('utf8');
+        if (!hash) return;
+        if (this.lastNotifiedHash === hash) return;
+
+        await this.refreshBlockTemplateAsync();
+        console.info('new block notified: ', hash);
     }
 
     beginWatching() {
-        let me = this;
-        if (me.timerId) clearTimeout(me.timerId);
-        me.timerId = setInterval(async () => await me.refreshMiningInfoAsync(), 250);
+        try {
+            if (this.blockNotifyServer) return;
+
+            let me = this;
+            if (me.timerId) clearTimeout(me.timerId);
+            me.timerId = setInterval(async () => await me.refreshMiningInfoAsync(), 250);
+        } finally {
+            this.refreshMiningInfoAsync();
+        }
     }
 
     async refreshMiningInfoAsync() {
         try {
             let value: GetMiningInfo = await this.client.command('getmininginfo');
             if (value.blocks <= this.blockHeight) return true;
-            this.blockHeight = value.blocks;
             await this.refreshBlockTemplateAsync();
             return true;
-        } catch (error) { console.log(error); return false; }
+        } catch (error) {
+            console.log(error);
+            this.trigger(DaemonWatcher.Events.error, this, error);
+            return false;
+        }
     }
 
     async submitBlockAsync(blockHex: string) {
@@ -57,9 +93,12 @@ export class DaemonWatcher extends Event {
     private async refreshBlockTemplateAsync() {
         try {
             let values: GetBlockTemplate[] = await this.client.command([{ method: 'getblocktemplate', parameters: [{ rules: ['segwit'] }] }]);
-            super.trigger(DaemonWatcher.Events.blockTemplateUpdate, this, values.first());
+            let template = values.first();
+            this.blockHeight = template.height - 1;
+            super.trigger(DaemonWatcher.Events.blockTemplateUpdate, this, template);
         } catch (error) {
             console.error(error);
+            this.trigger(DaemonWatcher.Events.error, this, error);
         }
     }
 
@@ -67,6 +106,9 @@ export class DaemonWatcher extends Event {
         super.register(DaemonWatcher.Events.blockTemplateUpdate, callback);
     }
 
+    onError(callback: (sender: DaemonWatcher, error) => void) {
+        super.register(DaemonWatcher.Events.error, callback);
+    }
 }
 
 export type TransactionTemplate = {

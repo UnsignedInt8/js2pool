@@ -21,13 +21,13 @@ let taskServer = new TaskServer({
             port: 19001,
             password: '123',
             username: 'admin1',
+            blocknotifylistener: {
+                enabled: true,
+                port: 11111,
+                host: 'localhost',
+            },
         },
     ],
-    blocknotifylistener: {
-        enabled: true,
-        port: 11111,
-        host: 'localhost',
-    },
 });
 
 
