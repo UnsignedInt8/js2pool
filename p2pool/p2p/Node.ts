@@ -273,7 +273,7 @@ export default class Node extends Event {
         for (let hash of txHashes) {
             this.rememberedTxs.delete(hash);
         }
-
+        console.log('forget_tx: %d, remember_tx: ', txHashes.length, this.rememberedTxs.size);
         this.trigger(Node.Events.forgetTx, this, txHashes);
     }
 
@@ -392,17 +392,16 @@ export default class Node extends Event {
 
     async sendForget_txAsync(txHashes: string[], totalSize: number) {
         this.remoteRememberedTxsSize -= totalSize;
-
+        
         let msg = Message.fromObject({ command: 'forget_tx', payload: { txHashes } });
         return await this.sendAsync(msg.toBuffer());
     }
 
     async sendRemember_txAsync(rememberTx: TypeRemember_tx) {
-        let begin = Date.now();
-        this.remoteRememberedTxsSize += rememberTx.txs.sum(tx => tx.data.length / 2);
+        if (rememberTx.hashes.length == 0 && rememberTx.txs.length == 0) return;
 
+        this.remoteRememberedTxsSize += rememberTx.txs.sum(tx => tx.data.length / 2);
         let msg = Message.fromObject({ command: 'remember_tx', payload: rememberTx });
-        console.log('send remember_tx: %dms', Date.now() - begin);
         return await this.sendAsync(msg.toBuffer());
     }
 

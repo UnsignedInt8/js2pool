@@ -34,7 +34,7 @@
     "kafka-node": "^1.6.0",
     "kinq": "UnsignedInt8/Kinq",
     "merkle-lib": "^2.0.10",
-    "node-multi-hashing": "unsignedInt8/node-multi-hashing"
+    "node-multi-hashing": "UnsignedInt8/node-multi-hashing"
   },
   "devDependencies": {
     "mocha": "^3.2.0"

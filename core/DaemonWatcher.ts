@@ -28,6 +28,7 @@ export class DaemonWatcher extends Event {
     static Events = {
         blockTemplateUpdate: 'BlockTemplateUpdated',
         error: 'Error',
+        blockNotified: 'BlockNotified',
     };
 
     constructor(opts: DaemonOptions) {
@@ -47,6 +48,7 @@ export class DaemonWatcher extends Event {
         if (this.lastNotifiedHash === hash) return;
 
         await this.refreshBlockTemplateAsync();
+        super.trigger(DaemonWatcher.Events.blockNotified, this, hash);
         console.info('new block notified: ', hash);
     }
 
@@ -102,12 +104,25 @@ export class DaemonWatcher extends Event {
         }
     }
 
+    async getBlockAsync(hash: string) {
+        try {
+            let blocks: BlockTemplate[] = await this.client.command([{ method: 'getblock', parameters: [hash] }]);
+            return blocks.first();
+        } catch (error) {
+            
+        }
+    }
+
     onBlockTemplateUpdated(callback: (sender: DaemonWatcher, template: GetBlockTemplate) => void) {
         super.register(DaemonWatcher.Events.blockTemplateUpdate, callback);
     }
 
     onError(callback: (sender: DaemonWatcher, error) => void) {
         super.register(DaemonWatcher.Events.error, callback);
+    }
+
+    onBlockNotified(callback: (sender: DaemonWatcher, hash: string) => void) {
+        super.register(DaemonWatcher.Events.blockNotified, callback);
     }
 }
 
@@ -170,4 +185,25 @@ export type GetMiningInfo = {
     networkhashps: number,
     pooledtx: number,
     chain: string
+}
+
+export type BlockTemplate = {
+    hash: string,
+    confirmations: number,
+    strippedsize: number,
+    size: number,
+    weight: number,
+    height: number,
+    version: number,
+    versionHex: string,
+    merkleroot: string,
+    tx: string[],
+    time: number,
+    mediantime: number,
+    nonce: number,
+    bits: string,
+    difficulty: number,
+    chainwork: string,
+    previousblockhash: string,
+    nextblockhash?: string
 }
