@@ -192,7 +192,7 @@ export class TaskConstructor {
 
         // https://bitcointalk.org/index.php?topic=1676471.0;prev_next=prev
         if (template.default_witness_commitment !== undefined) {
-            let witness_commitment = new Buffer(template.default_witness_commitment, 'hex');
+            let witness_commitment = Buffer.from(template.default_witness_commitment, 'hex');
             txOutputsPubkeyScripts.unshift(Buffer.concat([
                 Utils.packInt64LE(0),
                 Utils.varIntBuffer(witness_commitment.length),

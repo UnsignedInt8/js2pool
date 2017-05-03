@@ -14,7 +14,6 @@ import Addrme from "./Messages/AddrMe";
 import Getaddrs from "./Messages/GetAddrs";
 import { Have_tx, Losing_tx, Forget_tx } from "./Messages/Have_tx";
 import { Remember_tx, TypeRemember_tx } from "./Messages/Remember_tx";
-import * as fs from 'fs';
 import { Block, Transaction } from "bitcoinjs-lib";
 import Shares from "./Messages/Shares";
 import { Share, NewShare, BaseShare } from "./Shares";
@@ -149,7 +148,7 @@ export default class Node extends Event {
 
     private static async readFlowingBytesAsync(stream: Socket, amount: number, preRead: Buffer) {
         return new Promise<{ data: Buffer, lopped: Buffer }>(resolve => {
-            let buff = preRead ? preRead : Buffer.from([]);
+            let buff = preRead ? preRead : Buffer.alloc(0);
 
             let readData = (data: Buffer) => {
                 buff = Buffer.concat([buff, data]);
@@ -190,7 +189,6 @@ export default class Node extends Event {
         if (this.msgHandlers.has(command)) {
             if (this.peerAliveTimer) clearTimeout(this.peerAliveTimer);
             this.peerAliveTimer = setTimeout(this.close.bind(this, true, '100 seconds exceeded, timeout. close...'), 100 * 1000);
-            // console.log(command);
             this.msgHandlers.get(command)(payload);
         } else {
             console.info(`unknown command: ${command}`);
@@ -290,9 +288,8 @@ export default class Node extends Event {
     }
 
     private handleShares(payload: Buffer) {
-        console.log('handleShares', payload.length);
-        fs.writeFileSync(`/tmp/handle_shares_` + Date.now(), payload.toString('hex'));
         let { shares } = Shares.fromBuffer(payload);
+        console.info('share: %s', shares.firstOrDefault() ? shares[0].contents.hash : null);
         this.trigger(Node.Events.shares, this, shares);
     }
 
@@ -401,9 +398,11 @@ export default class Node extends Event {
     }
 
     async sendRemember_txAsync(rememberTx: TypeRemember_tx) {
+        let begin = Date.now();
         this.remoteRememberedTxsSize += rememberTx.txs.sum(tx => tx.data.length / 2);
 
         let msg = Message.fromObject({ command: 'remember_tx', payload: rememberTx });
+        console.log('send remember_tx: %dms', Date.now() - begin);
         return await this.sendAsync(msg.toBuffer());
     }
 

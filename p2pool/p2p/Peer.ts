@@ -56,8 +56,8 @@ export class Peer {
 
     private handleRemember_tx(sender: Node, txHashes: string[], txs: Transaction[]) {
         for (let hash of txHashes) {
-            if (txHashes.any(hash => sender.rememberedTxs.has(hash))) {
-                console.error('Peer referenced transaction hash twice, disconnecting');
+            if (sender.rememberedTxs.has(hash)) {
+                console.error('Peer referenced transaction hash twice');
                 sender.close(false);
                 return;
             }
@@ -69,7 +69,7 @@ export class Peer {
                 return;
             }
 
-            sender.rememberedTxs.set(hash, Transaction.fromHex(knownTx.data));
+            sender.rememberedTxs.set(hash, /*Transaction.fromHex(knownTx.data)*/null);
         }
 
         let knownTxs = new Map(this.knownTxs.value);
@@ -82,10 +82,11 @@ export class Peer {
             }
 
             sender.rememberedTxs.set(txHash, tx);
-            knownTxs.set(txHash, { txid: txHash, hash: txHash, data: tx.toHex() });
+            knownTxs.set(txHash, { txid: txHash, hash: txHash, data: /*tx.toHex()*/null });
         }
-        
+
         this.knownTxs.set(knownTxs);
+        console.log('remembered txs: ', sender.rememberedTxs.size);
     }
 
     // ----------------- Peer work ---------------------
@@ -113,25 +114,28 @@ export class Peer {
         if (this.knownTxsCaches.length > 10) this.knownTxsCaches.shift();
 
         console.log('known txs changed, added: %d, removed: %d', added.length, removed.length)
-        
+
     }
 
     private onMiningTxsChanged(oldValue: Map<string, TransactionTemplate>, newValue: Map<string, TransactionTemplate>) {
         // update_remote_view_of_my_mining_txs
+        let begin = Date.now();
 
         let added = newValue.except(oldValue, ([k1, v1], [k2, v2]) => k1 === k2).select(item => item[1]).toArray();
         let removed = oldValue.except(newValue, ([k1, v1], [k2, v2]) => k1 === k2).select(item => item[1]).toArray();
 
+        console.log('mining txs changed, computing elapsed: %dms', Date.now() - begin);
+        
         if (added.any()) {
             this.peers.forEach(p => p.sendRemember_txAsync({ hashes: added.where(tx => p.remoteTxHashs.has(tx.txid || tx.hash)).select(tx => tx.txid || tx.hash).toArray(), txs: added.where(tx => !p.remoteTxHashs.has(tx.txid || tx.hash)).toArray() }));
         }
 
         if (removed.any()) {
             let totalSize = removed.sum(item => item.data.length / 2);
-            this.peers.forEach(p => p.sendForget_txAsync(removed.select(tx => tx.txid || tx.hash).toArray(), totalSize));
+            this.peers.forEach(p => p.sendForget_txAsync(removed.map(tx => tx.txid || tx.hash), totalSize));
         }
 
-        console.log('mining txs changed, added: %d, removed: %d', added.length, removed.length)
+        console.log('mining txs changed, added: %d, removed: %d, %dms', added.length, removed.length, Date.now() - begin);
     }
 
     async initPeersAsync(peers: { host: string, port: number }[]) {
