@@ -7,7 +7,16 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch A Special Test Program",
+            "name": "Launch Share Parsing Program",
+            "program": "${workspaceRoot}/test/Nodejs_Shares.ts",
+            "outFiles": [
+                "${workspaceRoot}/dist/**/*.js"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Js2Pool Test Program",
             "program": "${workspaceRoot}/p2pool/Js2Poold.ts",
             "outFiles": [
                 "${workspaceRoot}/dist/**/*.js"

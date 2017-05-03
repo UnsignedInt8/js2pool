@@ -7,9 +7,11 @@ import BufferWriter from '../../../misc/BufferWriter';
 import * as assert from 'assert';
 import * as fastMerkleRoot from 'merkle-lib/fastRoot';
 import * as BigNum from 'bignum';
+import { bitsToDifficulty } from "../../../core/Algos";
 
 const DONATION_SCRIPT = Buffer.from('4104ffd03de44a6e11b9917f3a29f9443283d9871c9d743ef30d5eddcd37094b64d1b3d8090496b53256786bf5c82932ec23c3b74d9f05a6f95a8b5529352656664bac', 'hex')
-const gentx_before_refhash = Buffer.concat([BufferWriter.writeVarNumber(DONATION_SCRIPT.length), DONATION_SCRIPT, Buffer.alloc(8, 0), BufferWriter.writeVarString('6a28' + '0000000000000000000000000000000000000000000000000000000000000000' + '0000000000000000', 'hex').slice(0, 3)]).toString('hex');
+const gentx_before_refhash = Buffer.concat([BufferWriter.writeVarNumber(DONATION_SCRIPT.length), DONATION_SCRIPT, Buffer.alloc(8, 0), BufferWriter.writeVarString('6a28' + '0000000000000000000000000000000000000000000000000000000000000000' + '0000000000000000', 'hex').slice(0, 3)]);
+assert.equal(gentx_before_refhash.toString('hex'), '434104ffd03de44a6e11b9917f3a29f9443283d9871c9d743ef30d5eddcd37094b64d1b3d8090496b53256786bf5c82932ec23c3b74d9f05a6f95a8b5529352656664bac00000000000000002a6a28');
 
 export abstract class BaseShare {
 
@@ -50,20 +52,23 @@ export abstract class BaseShare {
             n.add(txCount);
         });
         // console.log(n);
-        let diff = new BigNum(this.info.bits).toBuffer({ endian: 'little', size: 4 });
+        assert.equal(n.size, this.info.newTransactionHashes.length);
+
+        let diff = bitsToDifficulty(this.info.bits);
         this.newScript = utils.hash160ToScript(this.info.data.pubkeyHash); // script Pub Key
         this.target = this.info.toTarget();
-        // this.gentxHash = this.checkHashLink(
-        //     this.hashLink,
-        //     Buffer.concat([BaseShare.getRefHash(this.info, this.refMerkleLink), (new BigNum(this.lastTxoutNonce).toBuffer({ endian: 'little', size: 8 }), Buffer.alloc(4, 0))]),
-        //     gentx_before_refhash
-        // )
+        let refHash = BaseShare.getRefHash(this.info, this.refMerkleLink);
+        this.gentxHash = this.checkHashLink(
+            this.hashLink,
+            Buffer.concat([BaseShare.getRefHash(this.info, this.refMerkleLink), new BigNum(this.lastTxoutNonce).toBuffer({ endian: 'little', size: 8 }), Buffer.alloc(4, 0)]),
+            gentx_before_refhash
+        )
     }
 
-    private checkHashLink(hashLink: HashLink, data: Buffer, constEnding = '') {
+    private checkHashLink(hashLink: HashLink, data: Buffer, constEnding: Buffer) {
         let extraLength = hashLink.length % (512 / 8);
-        let extra = constEnding.substr(constEnding.length - extraLength);
-        assert.equal(extra.length, extraLength);
+        let extra = constEnding.slice(constEnding.length - extraLength);
+        // assert.equal(extra.length, extraLength);
 
     }
 
