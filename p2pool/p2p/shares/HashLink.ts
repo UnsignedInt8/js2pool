@@ -30,6 +30,7 @@ export class HashLink {
         let link = new HashLink();
         link.state = reader.read(32);
         link.length = reader.readVarNumber();
+        link.extra = Buffer.alloc(0);
         return link;
     }
 

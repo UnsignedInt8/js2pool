@@ -19,16 +19,41 @@ export default class SmallBlockHeader {
         return bitsToTarget(this.bits);
     }
 
-    toBuffer() {
+    toBufferParts() {
         let verBuf = utils.varIntBuffer(this.version);
-        let hashBuf = utils.uint256BufferFromHash(this.previousBlockHash);
+        let preHashBuf = utils.uint256BufferFromHash(this.previousBlockHash);
         let timeBuf = Buffer.alloc(4);
         timeBuf.writeUInt32LE(this.timestamp, 0);
         let bitsBuf = Buffer.alloc(4);
         bitsBuf.writeUInt32LE(this.bits, 0);
         let nonceBuf = Buffer.alloc(4);
         nonceBuf.writeUInt32LE(this.nonce, 0);
-        return Buffer.concat([verBuf, hashBuf, timeBuf, bitsBuf, nonceBuf]);
+        return [verBuf, preHashBuf, timeBuf, bitsBuf, nonceBuf];
+    }
+
+    toBuffer() {
+        return Buffer.concat(this.toBufferParts());
+    }
+
+    calculateHash(merkleRoot: Buffer) {
+        // let parts = this.toBufferParts();
+        // parts.splice(2, 0, merkleRoot);
+        // return utils.sha256d(Buffer.concat(parts));
+        return utils.sha256d(this.buildHeader(merkleRoot));
+    }
+
+    buildHeader(merkleRoot: Buffer) {
+        let header = Buffer.alloc(80);
+        let position = 0;
+        header.writeUInt32BE(this.nonce, position);
+        header.writeUInt32BE(this.bits, position += 4);
+        header.writeUInt32BE(this.timestamp, position += 4);
+        // header.write(merkleRoot, position += 4, 32, 'hex');
+        merkleRoot.copy(header, position + 4);
+        header.write(this.previousBlockHash, position += 32, 32, 'hex');
+        header.writeUInt32BE(this.version, position + 32);
+        header = utils.reverseBuffer(header);
+        return header;
     }
 
     static fromBuffer(data: Buffer) {
