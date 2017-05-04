@@ -11,46 +11,62 @@ const k = [
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
 ];
 
-function rightrotate(x: number, n: number) {
-    return (x >> n) | (x << 32 - n) % 2 ** 32;
+const bignumK = k.map(i => new BigNum(i));
+
+const INT_MAX = 2 ** 32;
+
+function rightrotate(x, n) {
+    return new BigNum(x).shiftRight(n).or(new BigNum(x).shiftLeft(32 - n).mod(INT_MAX));
 }
 
 function process(state: Buffer, chunk: Buffer) {
 
-    let w = new Array<number>();
+    let w = new Array<BigNum>();
     for (let i = 0; i < chunk.length; i += 4) {
-        w.push(chunk.readUInt32BE(i));
+        w.push(new BigNum(chunk.readUInt32BE(i)));
     }
 
     for (let i = 16; i < 64; i++) {
-        let s0 = rightrotate(w[i - 15], 7) ^ rightrotate(w[i - 15], 18) ^ (w[i - 15] >> 3)
-        let s1 = rightrotate(w[i - 2], 17) ^ rightrotate(w[i - 2], 19) ^ (w[i - 2] >> 10)
-        w.push((w[i - 16] + s0 + w[i - 7] + s1) % 2 ** 32)
+        let s0 = rightrotate(w[i - 15], 7).xor(rightrotate(w[i - 15], 18)).xor(new BigNum(w[i - 15]).shiftRight(3));
+        let s1 = rightrotate(w[i - 2], 17).xor(rightrotate(w[i - 2], 19)).xor(new BigNum(w[i - 2]).shiftRight(10));
+        w.push((w[i - 16].add(s0).add(w[i - 7]).add(s1).mod(INT_MAX)));
     }
 
-    let startState = new Array<number>();
+    let startState = new Array<BigNum>();
     for (let i = 0; i < state.length; i += 4) {
-        startState.push(state.readUInt32BE(i));
+        startState.push(new BigNum(state.readUInt32BE(i)));
     }
+
     let [a, b, c, d, e, f, g, h] = startState;
+    for (let [k_i, w_i] of bignumK.zip<BigNum>(w)) {
 
-    for (let [k_i, w_i] of k.zip<number>(w)) {
-        let t1 = (h + (rightrotate(e, 6) ^ rightrotate(e, 11) ^ rightrotate(e, 25)) + ((e & f) ^ (~e & g)) + k_i + w_i) % 2 ** 32
+        let t1 = (h.add(rightrotate(e, 6).xor(rightrotate(e, 11)).xor(rightrotate(e, 25))).add((e.and(f)).xor(e.mul(-1).sub(1).and(g))).add(k_i).add(w_i)).mod(INT_MAX);
 
-        a = (t1 + (rightrotate(a, 2) ^ rightrotate(a, 13) ^ rightrotate(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) % 2 ** 32;
-        b = a;
-        c = b;
-        d = c;
-        e = (d + t1) % 2 ** 32;
-        f = e;
-        g = f;
-        h = g;
+        let tmp = [
+            (t1.add(rightrotate(a, 2).xor(rightrotate(a, 13)).xor(rightrotate(a, 22))).add((a.and(b)).xor(a.and(c)).xor(b.and(c)))).mod(INT_MAX),
+            a,
+            b,
+            c,
+            d.add(t1).mod(INT_MAX),
+            e,
+            f,
+            g
+        ];
+
+        a = tmp[0];
+        b = tmp[1];
+        c = tmp[2];
+        d = tmp[3];
+        e = tmp[4];
+        f = tmp[5];
+        g = tmp[6];
+        h = tmp[7];
     }
 
-    let result = Buffer.alloc(32);
-    startState.zip<number, number>([a, b, c, d, e, f, g, h], (i1, i2) => (i1 + i2) % 2 ** 32).each((item, index) => result.writeUInt32BE(item, index * 4));
+    let finalState = Buffer.alloc(32);
+    startState.zip<number, number>([a, b, c, d, e, f, g, h], (i1, i2) => i1.add(i2).mod(INT_MAX).toNumber()).each((item, index) => finalState.writeUInt32BE(item, index * 4));
 
-    return result;
+    return finalState;
 }
 
 export default class SHA256 {
@@ -60,7 +76,7 @@ export default class SHA256 {
 
     state = Buffer.from('6a09e667bb67ae853c6ef372a54ff53a510e527f9b05688c1f83d9ab5be0cd19', 'hex');
     buf: Buffer;
-    length = 0;
+    length: number;
 
     constructor(data: Buffer = Buffer.alloc(0), initState: Buffer = null, initData = Buffer.alloc(0), length = 0) {
         this.state = initState || this.state;
@@ -89,6 +105,21 @@ export default class SHA256 {
 
     digest() {
         let state = this.state;
-        let buf = Buffer.concat([this.buf, Buffer.from('0x80', 'hex'), Buffer.alloc((SHA256.blockSize - 9 - this.buf.length) % SHA256.blockSize, 0), new BigNum(this.length).toBuffer({ endian: 'big', size: 8 })])
+        let buf = Buffer.concat([this.buf, Buffer.from('80', 'hex'), Buffer.alloc((SHA256.blockSize - 9 - this.buf.length) % SHA256.blockSize, 0), new BigNum(this.length).toBuffer({ endian: 'big', size: 8 })]);
+
+        let chunks = new Array<Buffer>();
+        for (let i = 0; i < buf.length; i += SHA256.blockSize) {
+            chunks.push(buf.slice(i, i + SHA256.blockSize));
+        }
+
+        for (let chunk of chunks) {
+            state = process(state, chunk);
+        }
+
+        return state;
+    }
+
+    digestHex() {
+        return this.digest().toString('hex');
     }
 }

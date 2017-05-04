@@ -5,6 +5,8 @@ import BufferWriter from "../misc/BufferWriter";
 import Node from "../p2pool/p2p/Node";
 import { BaseShare } from "../p2pool/p2p/shares/index";
 import Shares from "../p2pool/p2p/Messages/Shares";
+import SHA256 from "../core/SHA256";
+import * as crypto from 'crypto';
 kinq.enable();
 
 async function test() {
@@ -34,7 +36,7 @@ var shares = '0110fd6419fe00000020b11d2466e2b26b8fe380d775a625cbdbaf89b461ca78e4
 function testShares() {
     BaseShare.IDENTIFIER = 'fc70035c7a81bc6f';
     let str = BufferWriter.writeVarString('6a28' + '0000000000000000000000000000000000000000000000000000000000000000' + '0000000000000000', 'hex');
-    
+
     let array = str.take(3).toArray();
     let array2 = str.slice(0, 3);
     let s = Shares.fromBuffer(Buffer.from(shares, 'hex'));
@@ -43,4 +45,17 @@ function testShares() {
     console.log(hs == shares);
 }
 
-testShares();
+// testShares();
+
+function testSha256() {
+
+    let cbegin = Date.now();
+    let csha256 = crypto.createHash('sha256').update(Buffer.from('01', 'hex'));
+    console.log('csha256: ', csha256.digest(), Date.now() - cbegin, 'ms');
+
+    let jbegin = Date.now();
+    let sha256 = new SHA256(Buffer.from('01', 'hex'));    
+    console.log('SHA256: ', sha256.digest(), Date.now() - jbegin, 'ms');
+}
+
+testSha256();
