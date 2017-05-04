@@ -48,14 +48,22 @@ function testShares() {
 // testShares();
 
 function testSha256() {
-
+    let data = Buffer.from('dcea17fb9066e1457fbe7e2219e11fe0bcc72b3f8efb00a38027d5ae322ce54299530b70f6544b81fb5c9f3c4ae84dda9e20e43e7125d61a7849a1302bbd9af4d1c12aa3f724f8e5e8ff391768989e11408acbda2462af1d797ab2af6dc2fa3c1c9f3ad8e102fb00845e4117528bd58dca45376f0e634238f2cab5b9ad731e6198ff4ea82702d35349f67e5f063511c1883afd3e58cd66d474b48323803200b6c719b65fd6287e44905a13aa89c4438c58fa8284a78036726202df5f01bca2b54d6bc01eeed70b7f85bb2b30860f412af4af36dfd3e8b048b984018116e927e381e87eb43a1796573946ca56b0637528a43c6e2d92c472f6430730bcd6240850f44e3f9ffcb92425546fb7a5e0b8ccd18e4c028ea1291109be4758243b4d55bc49ea6840b24cb4e9779fd1adc800eb5b9afeb120ff1a7b3c66d3e61d6d8f507fa0f4dffd98a9cbf8b528cbd25b84a74e0343a068858a94174efc97eb779f9a9d588e1f4a09da272b4239c40c8fbb017329b254caa32775556e27400b54809c50d2fc7747c14f45cedfd829024b463f874a38788bd6aefabc595b7436af818230bf48abe4236e18f0909a7559d6351491ad41522922b22dc3977487691746', 'hex'); //crypto.randomBytes(446);
     let cbegin = Date.now();
-    let csha256 = crypto.createHash('sha256').update(Buffer.from('01', 'hex'));
+    let csha256 = crypto.createHash('sha256').update(data);
     console.log('csha256: ', csha256.digest(), Date.now() - cbegin, 'ms');
 
     let jbegin = Date.now();
-    let sha256 = new SHA256(Buffer.from('01', 'hex'));    
+    let sha256 = new SHA256(data);
     console.log('SHA256: ', sha256.digest(), Date.now() - jbegin, 'ms');
+
+    for (let i = 0; i < Math.abs(Math.random() * 1000); i++) {
+        let msg = crypto.randomBytes(Math.abs(Math.random()) * 1000 | 0);
+        let r1 = new SHA256(msg).digestHex();
+        let r2 = crypto.createHash('sha256').update(msg).digest().toString('hex');
+        assert.equal(r1, r2);
+    }
+
 }
 
 testSha256();

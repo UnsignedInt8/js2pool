@@ -69,6 +69,10 @@ function process(state: Buffer, chunk: Buffer) {
     return finalState;
 }
 
+function floorMod(a: number, b: number) {
+    return a - Math.floor(a / b) * b;
+}
+
 export default class SHA256 {
 
     static readonly digestSize = 256 / 8;
@@ -105,7 +109,7 @@ export default class SHA256 {
 
     digest() {
         let state = this.state;
-        let buf = Buffer.concat([this.buf, Buffer.from('80', 'hex'), Buffer.alloc((SHA256.blockSize - 9 - this.buf.length) % SHA256.blockSize, 0), new BigNum(this.length).toBuffer({ endian: 'big', size: 8 })]);
+        let buf = Buffer.concat([this.buf, Buffer.from('80', 'hex'), Buffer.alloc(floorMod(SHA256.blockSize - 9 - this.buf.length, SHA256.blockSize), 0), new BigNum(this.length).toBuffer({ endian: 'big', size: 8 })]);
 
         let chunks = new Array<Buffer>();
         for (let i = 0; i < buf.length; i += SHA256.blockSize) {
