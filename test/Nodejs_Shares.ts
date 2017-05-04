@@ -7,6 +7,8 @@ import { BaseShare } from "../p2pool/p2p/shares/index";
 import Shares from "../p2pool/p2p/Messages/Shares";
 import SHA256 from "../core/SHA256";
 import * as crypto from 'crypto';
+import { HashLink } from "../p2pool/p2p/shares/HashLink";
+import * as Utils from '../misc/Utils';
 kinq.enable();
 
 async function test() {
@@ -66,4 +68,21 @@ function testSha256() {
 
 }
 
-testSha256();
+// testSha256();
+
+function testHashLink() {
+    for (let i = 0; i < 100; i++) {
+        let d = crypto.randomBytes(100);
+        let d2 = crypto.randomBytes(Math.random() * 100 | 0)
+        let hl = HashLink.fromPrefix(d);
+        
+
+        let hlr = HashLink.fromPrefix(d).check(d2).toString('hex');
+        let cr = Utils.sha256d(Buffer.concat([d, d2])).toString('hex');
+        console.log(hlr);
+        assert.equal(hlr, cr);
+    }
+
+}
+
+testHashLink();

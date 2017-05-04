@@ -69,6 +69,7 @@ function process(state: Buffer, chunk: Buffer) {
     return finalState;
 }
 
+// http://www.jianshu.com/p/452c1a5acd31
 function floorMod(a: number, b: number) {
     return a - Math.floor(a / b) * b;
 }
@@ -82,10 +83,10 @@ export default class SHA256 {
     buf: Buffer;
     length: number;
 
-    constructor(data: Buffer = Buffer.alloc(0), initState: Buffer = null, initData = Buffer.alloc(0), length = 0) {
+    constructor(data: Buffer = Buffer.alloc(0), initState: Buffer = null, initData = Buffer.alloc(0), initLength = 0) {
         this.state = initState || this.state;
         this.buf = initData;
-        this.length = length;
+        this.length = initLength;
         this.update(data);
     }
 
