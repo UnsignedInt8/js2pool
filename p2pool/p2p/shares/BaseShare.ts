@@ -106,8 +106,8 @@ export abstract class BaseShare {
         ref.identifier = BaseShare.IDENTIFIER;
         ref.info = shareInfo;
         // let hashes = [utils.sha256d(ref.toBuffer())].concat(refMerkleLink);
-        // return refMerkleLink.aggregate(ref.toBuffer(), (c, n) => utils.sha256d(Buffer.concat([c, n])));
-        return utils.sha256d(ref.toBuffer());
+        return refMerkleLink.aggregate(utils.sha256d(ref.toBuffer()), (c, n) => utils.sha256d(Buffer.concat([c, n])));
+        // return utils.sha256d(ref.toBuffer());
         // return utils.uint256BufferFromHash(fastMerkleRoot(hashes, utils.sha256d));
     }
 }
@@ -141,7 +141,7 @@ class Ref {
 
     toBuffer() {
         return Buffer.concat([
-            BufferWriter.writeFixedString(this.identifier),
+            BufferWriter.writeFixedString(this.identifier, 'hex'),
             this.info.toBuffer(),
         ]);
     }
