@@ -18,6 +18,7 @@ export abstract class BaseShare {
 
     static SEGWIT_ACTIVATION_VERSION = 0 // These two fileds should be initalized when pool starts
     static IDENTIFIER: string;
+    static POWFUNC: (data: Buffer) => Buffer;
 
     VERSION = 0;
     VOTING_VERSION = 0;
@@ -67,10 +68,12 @@ export abstract class BaseShare {
 
         let merkleRoot = (/*segwitActivated ? this.info.segwit.txidMerkleLink : */this.merkleLink).aggregate(this.gentxHash, (c, n) => utils.sha256d(Buffer.concat([c, n])));
         let headerHash = this.minHeader.calculateHash(merkleRoot);
-        console.log(headerHash.toString('hex'));
+        this.hash = utils.hexFromReversedBuffer(headerHash);
+
+        BaseShare.POWFUNC
+
         console.log(BigNum.fromBuffer(utils.reverseBuffer(headerHash)));
-        console.log(BigNum.fromBuffer(Buffer.from(this.minHeader.previousBlockHash, 'hex')));
-        console.log(BigNum.fromBuffer(utils.reverseBuffer(this.gentxHash)));
+        console.log(this.target);
     }
 
     toBuffer(): Buffer {

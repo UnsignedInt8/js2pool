@@ -18,7 +18,7 @@ describe('BaseShare Test', () => {
         assert.equal(share.info.timestamp, 1491977296);
         assert.equal(share.info.newTransactionHashes.includes('178b0ef8db5e5e626c8788ad02ba33d299f5ca1491b91105c4ee74183af8bd4f'), true);
         assert.equal(share.minHeader.previousBlockHash, '000000000000000000e478ca61b489afdbcb25a675d780e38f6bb2e266241db1');
-
+        assert.equal(share.hash, '00000000000000cd04645f76f5bcc20f01c586fb01f6abd06016072ecc468101');
         assert.equal(shares.toBuffer().toString('hex'), raw);
     });
 });

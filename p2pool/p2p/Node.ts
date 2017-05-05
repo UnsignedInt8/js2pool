@@ -289,7 +289,6 @@ export default class Node extends Event {
 
     private handleShares(payload: Buffer) {
         let { shares } = Shares.fromBuffer(payload);
-        console.info('share: %s', shares.firstOrDefault() ? shares[0].contents.hash : null);
         this.trigger(Node.Events.shares, this, shares);
     }
 

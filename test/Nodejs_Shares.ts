@@ -49,7 +49,7 @@ function testShares() {
     // let hs = s.toBuffer().toString('hex');
     // assert.equal(hs, shares);
     // console.log(hs == shares);
-    let shares = Shares.fromBuffer(Buffer.from(raw4, 'hex'));
+    let shares = Shares.fromBuffer(Buffer.from(raw, 'hex'));
 }
 
 testShares();

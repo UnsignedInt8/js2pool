@@ -1,5 +1,4 @@
 
-import * as merkle from 'merkle-lib';
 import { Algos } from '../core/Algos';
 import * as Utils from '../misc/Utils';
 import { Server } from "net";
