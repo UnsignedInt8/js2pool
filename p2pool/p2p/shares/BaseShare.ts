@@ -5,7 +5,6 @@ import BufferReader from '../../../misc/BufferReader';
 import * as utils from '../../../misc/Utils';
 import BufferWriter from '../../../misc/BufferWriter';
 import * as assert from 'assert';
-import * as fastMerkleRoot from 'merkle-lib/fastRoot';
 import * as BigNum from 'bignum';
 import { bitsToDifficulty } from "../../../core/Algos";
 import MerkleTree from "../../../core/MerkleTree";
@@ -60,18 +59,15 @@ export abstract class BaseShare {
         let diff = bitsToDifficulty(this.info.bits);
         this.newScript = utils.hash160ToScript(this.info.data.pubkeyHash); // script Pub Key
         this.target = this.info.toTarget();
-        let refHash = BaseShare.getRefHash(this.info, this.refMerkleLink);
-        this.gentxHash = this.hashLink.check(
-            Buffer.concat([
-                BaseShare.getRefHash(this.info, this.refMerkleLink),
-                new BigNum(this.lastTxoutNonce).toBuffer({ endian: 'little', size: 8 }),
-                Buffer.alloc(4, 0) // lock time, 4 bytes
-            ]),
-            gentx_before_refhash
-        );
+        
+        this.gentxHash = this.hashLink.check(Buffer.concat([
+            BaseShare.getRefHash(this.info, this.refMerkleLink), // the last txout share info which is written in coinbase 
+            new BigNum(this.lastTxoutNonce).toBuffer({ endian: 'little', size: 8 }), // last txout nonce
+            Buffer.alloc(4, 0) // lock time, 4 bytes
+        ]), gentx_before_refhash);
+
         let merkleRoot = (/*segwitActivated ? this.info.segwit.txidMerkleLink : */this.merkleLink).aggregate(this.gentxHash, (c, n) => utils.sha256d(Buffer.concat([c, n])));
         let headerHash = this.minHeader.calculateHash(merkleRoot);
-        fastMerkleRoot();
     }
 
     toBuffer(): Buffer {
@@ -105,10 +101,7 @@ export abstract class BaseShare {
         let ref = new Ref();
         ref.identifier = BaseShare.IDENTIFIER;
         ref.info = shareInfo;
-        // let hashes = [utils.sha256d(ref.toBuffer())].concat(refMerkleLink);
         return refMerkleLink.aggregate(utils.sha256d(ref.toBuffer()), (c, n) => utils.sha256d(Buffer.concat([c, n])));
-        // return utils.sha256d(ref.toBuffer());
-        // return utils.uint256BufferFromHash(fastMerkleRoot(hashes, utils.sha256d));
     }
 }
 
