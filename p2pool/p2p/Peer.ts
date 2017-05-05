@@ -36,14 +36,14 @@ export class Peer {
         node.initSocket(s);
         node.sendVersionAsync();
 
-        this.initNode(node);
+        this.registerNode(node);
     }
 
-    private initNode(node: Node) {
+    private registerNode(node: Node) {
         node.onVersionVerified(this.handleNodeVersion.bind(this));
         node.onRemember_tx(this.handleRemember_tx.bind(this));
         node.onEnd(function (sender: Node) { this.peers.delete(sender.tag) }.bind(this));
-
+        node.onShares((sender, share) => console.log(share.any() ? share.first().contents.hash : null));
         this.peers.set(node.tag, node);
     }
 
@@ -134,7 +134,7 @@ export class Peer {
             let node = new Node();
             if (!await node.connectAsync(peer.host, peer.port)) continue;
             node.sendVersionAsync();
-            this.initNode(node);
+            this.registerNode(node);
         }
     }
 

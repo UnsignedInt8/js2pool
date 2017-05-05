@@ -141,11 +141,5 @@ export class NewShare extends BaseShare {
 class Ref {
     identifier: string; // 8 characters FixedStrType
     info: ShareInfo;
-
-    toBuffer() {
-        return Buffer.concat([
-            BufferWriter.writeFixedString(this.identifier, 'hex'),
-            this.info.toBuffer(),
-        ]);
-    }
+    toBuffer = (): Buffer => Buffer.concat([BufferWriter.writeFixedString(this.identifier, 'hex'), this.info.toBuffer()]);
 }
