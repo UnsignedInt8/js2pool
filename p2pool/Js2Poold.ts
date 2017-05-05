@@ -5,6 +5,7 @@ import * as kinq from 'kinq';
 import { Js2Pool } from "./p2p/Js2Pool";
 import Shares from "./p2p/Messages/Shares";
 import { DaemonWatcher } from "../core/DaemonWatcher";
+import { BaseShare } from "./p2p/shares/index";
 kinq.enable();
 
 const opts = {
@@ -29,7 +30,8 @@ const opts = {
 };
 
 function run() {
-     let js2pool = new Js2Pool(opts);
+    BaseShare.IDENTIFIER = 'fc70035c7a81bc6f';
+    let js2pool = new Js2Pool(opts);
 
     // let daemon = new DaemonWatcher(opts.daemon);
     // daemon.getBlockAsync('000000000000000000020fe5e98fd311039ba3b0953fe6268b5a3a357de83067').then(value => {

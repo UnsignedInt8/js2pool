@@ -194,7 +194,7 @@ export default class Node extends Event {
             console.info(`unknown command: ${command}`);
             this.trigger(Node.Events.unknownCommand, this, command);
         }
-
+        // console.log(command);
         let me = this;
         process.nextTick(async () => await me.beginReceivingMessagesAsync(remain));
     }
@@ -392,7 +392,7 @@ export default class Node extends Event {
 
     async sendForget_txAsync(txHashes: string[], totalSize: number) {
         this.remoteRememberedTxsSize -= totalSize;
-        
+
         let msg = Message.fromObject({ command: 'forget_tx', payload: { txHashes } });
         return await this.sendAsync(msg.toBuffer());
     }

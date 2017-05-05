@@ -56,10 +56,9 @@ export abstract class BaseShare {
         });
         assert.equal(n.size, this.info.newTransactionHashes.length);
 
-        let diff = bitsToDifficulty(this.info.bits);
         this.newScript = utils.hash160ToScript(this.info.data.pubkeyHash); // script Pub Key
         this.target = this.info.toTarget();
-        
+
         this.gentxHash = this.hashLink.check(Buffer.concat([
             BaseShare.getRefHash(this.info, this.refMerkleLink), // the last txout share info which is written in coinbase 
             new BigNum(this.lastTxoutNonce).toBuffer({ endian: 'little', size: 8 }), // last txout nonce
@@ -68,6 +67,10 @@ export abstract class BaseShare {
 
         let merkleRoot = (/*segwitActivated ? this.info.segwit.txidMerkleLink : */this.merkleLink).aggregate(this.gentxHash, (c, n) => utils.sha256d(Buffer.concat([c, n])));
         let headerHash = this.minHeader.calculateHash(merkleRoot);
+        console.log(headerHash.toString('hex'));
+        console.log(BigNum.fromBuffer(utils.reverseBuffer(headerHash)));
+        console.log(BigNum.fromBuffer(Buffer.from(this.minHeader.previousBlockHash, 'hex')));
+        console.log(BigNum.fromBuffer(utils.reverseBuffer(this.gentxHash)));
     }
 
     toBuffer(): Buffer {

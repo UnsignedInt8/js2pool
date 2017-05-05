@@ -18,7 +18,7 @@ type Segwit = {
 };
 
 type ShareData = {
-    previousBlockHash: string, // 256 bytes
+    previousShareHash: string, // 256 bytes
     coinbase: string, // var string
     nonce: number, // 32 bits
     pubkeyHash: string, // 160 bits
@@ -43,7 +43,7 @@ export default class ShareInfo {
 
     toBuffer() {
         let dataBuf = Buffer.concat([
-            BufferWriter.writeReversedFixedString(this.data.previousBlockHash),
+            BufferWriter.writeReversedFixedString(this.data.previousShareHash),
             BufferWriter.writeVarString(this.data.coinbase, 'hex'),
             BufferWriter.writeUInt32LE(this.data.nonce),
             BufferWriter.writeReversedFixedString(this.data.pubkeyHash),
@@ -88,7 +88,7 @@ export default class ShareInfo {
     static fromBufferReader(reader: BufferReader, segwitActivated: boolean) {
         let info = new ShareInfo();
         info.data = {
-            previousBlockHash: reader.readReversedFixedString(32),
+            previousShareHash: reader.readReversedFixedString(32),
             coinbase: reader.readVarString(),
             nonce: reader.readUInt32LE(),
             pubkeyHash: reader.readReversedFixedString(20),
