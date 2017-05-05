@@ -7,6 +7,7 @@ import { Payload } from "./Payload";
 import BufferWriter from "../../../misc/BufferWriter";
 import * as utils from '../../../misc/Utils';
 import BufferReader from "../../../misc/BufferReader";
+import * as BigNum from 'bignum';
 
 export type TypeSharereq = {
     id: number,
@@ -16,14 +17,14 @@ export type TypeSharereq = {
 }
 
 export default class Sharereq extends Payload {
-    id: number; // 256 bits
+    id: BigNum; // 256 bits
     hashes: string[]; // list 256bits
     parents: number; // var int
     stops: string[]; // hash list
 
     toBuffer() {
         return Buffer.concat([
-            BufferWriter.writeNumber(this.id, 32),
+            this.id.toBuffer({ size: 32, endian: 'little' }),
             BufferWriter.writeList(this.hashes.map(h => utils.uint256BufferFromHash(h))),
             BufferWriter.writeVarNumber(this.parents),
             BufferWriter.writeList(this.stops.map(h => utils.uint256BufferFromHash(h)))
@@ -32,7 +33,7 @@ export default class Sharereq extends Payload {
 
     static fromObject(obj: TypeSharereq) {
         let req = new Sharereq();
-        req.id = obj.id;
+        req.id = new BigNum(obj.id);
         req.hashes = obj.hashes;
         req.parents = obj.parents || 0;
         req.stops = obj.stops || [];

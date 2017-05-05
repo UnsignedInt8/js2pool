@@ -6,9 +6,11 @@ import Node from "../p2pool/p2p/Node";
 import { BaseShare } from "../p2pool/p2p/shares/index";
 import Shares from "../p2pool/p2p/Messages/Shares";
 import SHA256 from "../core/SHA256";
+import * as fs from 'fs';
 import * as crypto from 'crypto';
 import { HashLink } from "../p2pool/p2p/shares/HashLink";
 import * as Utils from '../misc/Utils';
+import * as BigNum from 'bignum';
 kinq.enable();
 
 async function test() {
@@ -41,6 +43,8 @@ let raw4 = '0110fd0a18fe020000206752c37d18f26f68713a0be1474ba8ef671de5056bccb401
 // test();
 function testShares() {
     BaseShare.IDENTIFIER = 'fc70035c7a81bc6f';
+    BaseShare.PowFunc = Utils.sha256d;
+    BaseShare.MAX_TARGET = 2 ** 256 / 2 ** 32 - 1;
     // let str = BufferWriter.writeVarString('6a28' + '0000000000000000000000000000000000000000000000000000000000000000' + '0000000000000000', 'hex');
 
     // let array = str.take(3).toArray();
@@ -49,7 +53,13 @@ function testShares() {
     // let hs = s.toBuffer().toString('hex');
     // assert.equal(hs, shares);
     // console.log(hs == shares);
-    let shares = Shares.fromBuffer(Buffer.from(raw, 'hex'));
+    let binary = Buffer.from(raw4, 'hex');
+
+    let shares = Shares.fromBuffer(binary);
+    let share = shares.shares.first().contents;
+
+    console.log(BigNum.fromBuffer(Utils.uint256BufferFromHash(share.hash)));
+    // fs.writeFileSync('/tmp/bad_shares', binary);
 }
 
 testShares();

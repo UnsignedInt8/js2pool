@@ -16,9 +16,11 @@ assert.equal(gentx_before_refhash.toString('hex'), '434104ffd03de44a6e11b9917f3a
 
 export abstract class BaseShare {
 
-    static SEGWIT_ACTIVATION_VERSION = 0 // These two fileds should be initalized when pool starts
+    // These fileds should be initalized when pool starts
+    static SEGWIT_ACTIVATION_VERSION = 0
     static IDENTIFIER: string;
-    static POWFUNC: (data: Buffer) => Buffer;
+    static PowFunc: (data: Buffer) => Buffer;
+    static MAX_TARGET = 0;
 
     VERSION = 0;
     VOTING_VERSION = 0;
@@ -29,14 +31,15 @@ export abstract class BaseShare {
     minHeader: SmallBlockHeader;
     info: ShareInfo;
     refMerkleLink: Buffer[]; // 256 bits list
-    lastTxoutNonce: number; // 64 bits
+    lastTxoutNonce: BigNum; // 64 bits
     hashLink: HashLink;
     merkleLink: Buffer[];
 
     hash: string;
     newScript: Buffer;
     target: number;
-    gentxHash: any;
+    gentxHash: Buffer;
+    validity = false;
 
     constructor(minHeader: SmallBlockHeader = null, info: ShareInfo = null, hashLink: HashLink = null, merkleLink: Buffer[] = null) {
         this.minHeader = minHeader;
@@ -70,10 +73,11 @@ export abstract class BaseShare {
         let headerHash = this.minHeader.calculateHash(merkleRoot);
         this.hash = utils.hexFromReversedBuffer(headerHash);
 
-        BaseShare.POWFUNC
+        if (this.target > BaseShare.MAX_TARGET) return false;
+        if (BigNum.fromBuffer(BaseShare.PowFunc(this.minHeader.buildHeader(merkleRoot)), { endian: 'little', size: 32 }).toNumber() > this.target) return false;
 
-        console.log(BigNum.fromBuffer(utils.reverseBuffer(headerHash)));
-        console.log(this.target);
+        this.validity = true;
+        return true;
     }
 
     toBuffer(): Buffer {
@@ -81,7 +85,7 @@ export abstract class BaseShare {
             this.minHeader.toBuffer(),
             this.info.toBuffer(),
             BufferWriter.writeList(this.refMerkleLink),
-            BufferWriter.writeNumber(this.lastTxoutNonce, 8),
+            this.lastTxoutNonce.toBuffer({ endian: 'little', size: 8 }),
             this.hashLink.toBuffer(),
             BufferWriter.writeList(this.merkleLink)
         ]);

@@ -39,7 +39,7 @@ export default class BufferReader {
     }
 
     readNumber(size: number, endian = 'little') {
-        let num = BigNum.fromBuffer(this.data.slice(this.offset, this.offset + size), { endian, size }).toNumber();
+        let num = BigNum.fromBuffer(this.data.slice(this.offset, this.offset + size), { endian, size });
         this.offset += size;
         return num;
     }
