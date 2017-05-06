@@ -5,7 +5,7 @@ import Node from "./Node";
 import { Transaction } from "bitcoinjs-lib";
 import { BaseShare } from "./shares";
 import { DaemonWatcher, DaemonOptions, GetBlockTemplate, TransactionTemplate } from "../../core/DaemonWatcher";
-import Property from "../../nodejs/Property";
+import ObservableProperty from "../../nodejs/ObservableProperty";
 import { Version } from "./Messages/Version";
 import { TypeShares } from "./Messages/Shares";
 
@@ -18,9 +18,9 @@ export class Peer {
 
     private readonly server: Server;
     private readonly peers = new Map<string, Node>(); // ip:port -> Node
-    private readonly knownTxs = Property.init(new Map<string, TransactionTemplate>());
+    private readonly knownTxs = ObservableProperty.init(new Map<string, TransactionTemplate>());
     private readonly knownTxsCaches = new Array<Map<string, TransactionTemplate>>();
-    private readonly miningTxs = Property.init(new Map<string, TransactionTemplate>());
+    private readonly miningTxs = ObservableProperty.init(new Map<string, TransactionTemplate>());
 
     bestShare: BaseShare;
     desired: any[];

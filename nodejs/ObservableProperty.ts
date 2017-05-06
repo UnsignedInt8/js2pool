@@ -1,7 +1,7 @@
 
 import { Event } from "./Event";
 
-export default class Property<T> extends Event {
+export default class ObservableProperty<T> extends Event {
     value: T;
 
     constructor(value: T) {
@@ -14,16 +14,16 @@ export default class Property<T> extends Event {
     }
 
     onPropertyChanged(callback: (oldValue: T, newValue: T) => void) {
-        super.register(Property.Events.propertyChanged, callback);
+        super.register(ObservableProperty.Events.propertyChanged, callback);
     }
 
     set(value: T) {
         let oldValue = this.value;
         this.value = value;
-        super.trigger(Property.Events.propertyChanged, oldValue, value);
+        super.trigger(ObservableProperty.Events.propertyChanged, oldValue, value);
     }
 
     static init<T>(value: T) {
-        return new Property(value);
+        return new ObservableProperty(value);
     }
 }
