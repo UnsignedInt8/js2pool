@@ -17,7 +17,7 @@ export function bitsToDifficulty(bits: number) {
 }
 
 export const Algos = {
-    sha256d: { hash: function () { } },
+    sha256d: { hash: function () { return function () { return util.sha256.apply(this, arguments); } } },
     sha256: {
         //Uncomment diff if you want to use hardcoded truncated diff
         //diff: '00000000ffff0000000000000000000000000000000000000000000000000000',

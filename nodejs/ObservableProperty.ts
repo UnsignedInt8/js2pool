@@ -15,12 +15,14 @@ export default class ObservableProperty<T> extends Event {
 
     onPropertyChanged(callback: (oldValue: T, newValue: T) => void) {
         super.register(ObservableProperty.Events.propertyChanged, callback);
+        return this;
     }
 
     set(value: T) {
         let oldValue = this.value;
         this.value = value;
         super.trigger(ObservableProperty.Events.propertyChanged, oldValue, value);
+        return this;
     }
 
     static init<T>(value: T) {

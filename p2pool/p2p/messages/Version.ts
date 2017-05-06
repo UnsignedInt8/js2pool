@@ -9,6 +9,7 @@ import * as BigNum from 'bignum';
 import Addrs from "./Addrs";
 
 const PROTOCOL_VERSION = 1700;
+const APP_VERSION = '0.0.1';
 
 type Address = {
     services: number, // 8 bytes all zero
@@ -61,7 +62,7 @@ export class Version extends Payload {
         ver.addressTo = obj.addressTo;
         ver.addressFrom = obj.addressFrom;
         ver.nonce = obj.nonce || parseInt((Math.random() * 10000000000000000).toFixed(0));
-        ver.subVersion = obj.subVersion || '15.0-33-gf6a6ea0';
+        ver.subVersion = obj.subVersion || `js2pool-${APP_VERSION}`;
         ver.bestShareHash = obj.bestShareHash || '00000000000000000000000000000000';
 
         return ver;

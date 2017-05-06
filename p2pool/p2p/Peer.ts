@@ -8,6 +8,7 @@ import { DaemonWatcher, DaemonOptions, GetBlockTemplate, TransactionTemplate } f
 import ObservableProperty from "../../nodejs/ObservableProperty";
 import { Version } from "./Messages/Version";
 import { TypeShares } from "./Messages/Shares";
+import Sharechain from "./shares/Sharechain";
 
 export type PeerOptions = {
     maxConn?: number,
@@ -21,6 +22,7 @@ export class Peer {
     private readonly knownTxs = ObservableProperty.init(new Map<string, TransactionTemplate>());
     private readonly knownTxsCaches = new Array<Map<string, TransactionTemplate>>();
     private readonly miningTxs = ObservableProperty.init(new Map<string, TransactionTemplate>());
+    private sharechain = new Sharechain();
 
     bestShare: BaseShare;
     desired: any[];
@@ -81,13 +83,13 @@ export class Peer {
         this.knownTxs.set(knownTxs);
     }
 
-    private handleShares(sender: Node, shares: TypeShares[]) {
+    handleShares(sender: Node, shares: TypeShares[]) {
         if (shares.length == 0) return;
 
         let result = new Array<{ share: BaseShare, txs: TransactionTemplate[] }>();
 
         for (let share of shares.where(s => s.contents && s.contents.validity).select(s => s.contents)) {
-
+            console.log(share.hash);
             let txs = new Array<TransactionTemplate>();
 
             for (let txHash of share.newTxHashes) {
@@ -96,10 +98,24 @@ export class Peer {
                     continue;
                 }
 
+                if (sender.rememberedTxs.has(txHash)) {
+                    txs.push(sender.rememberedTxs.get(txHash));
+                    continue;
+                }
+
+                if (this.miningTxs.value.has(txHash)) {
+                    txs.push(this.miningTxs.value.get(txHash));
+                    continue;
+                }
+
+                if (sender.remoteTxHashs.has(txHash)) {
+                    continue;
+                }
+
                 let cache = this.knownTxsCaches.firstOrDefault(c => c.has(txHash), null);
                 if (!cache) {
-                    sender.close(true, 'Peer referenced unknown transaction, disconnecting');
-                    return;
+                    console.log/*sender.close*/(true, 'Peer referenced unknown transaction, disconnecting');
+                    continue;
                 }
 
                 txs.push(cache.get(txHash));
@@ -115,16 +131,11 @@ export class Peer {
                 newTxs.set(tx.hash, tx);
             }
 
-            if (share.hash) continue;
-            newShareCount++;
-
-            //
+            if (this.sharechain.add(share)) newShareCount++;
         }
 
         this.knownTxs.set(newTxs);
-        if (!newShareCount) return;
-
-
+        console.log(this.sharechain.size());
     }
 
     // ----------------- Peer work ---------------------

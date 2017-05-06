@@ -49,7 +49,7 @@ export class DaemonWatcher extends Event {
 
         await this.refreshBlockTemplateAsync();
         super.trigger(DaemonWatcher.Events.blockNotified, this, hash);
-        console.info('new block notified: ', hash);
+        console.info('new block notified: \n', hash);
     }
 
     beginWatching() {

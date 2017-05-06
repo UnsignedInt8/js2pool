@@ -12,6 +12,7 @@ import { HashLink } from "../p2pool/p2p/shares/HashLink";
 import * as Utils from '../misc/Utils';
 import * as BigNum from 'bignum';
 import Bitcoin from "../p2pool/p2p/coins/Bitcoin";
+import { Peer } from "../p2pool/p2p/Peer";
 kinq.enable();
 
 async function test() {
@@ -60,6 +61,11 @@ function testShares() {
     let share = shares.shares.first().contents;
 
     console.log(BigNum.fromBuffer(Utils.uint256BufferFromHash(share.hash)));
+
+
+    console.log(BigNum.fromBuffer(Buffer.from('0000000000000079fff9faf2e28f1a87bc8818599acdfc129d5691b75799829f', 'hex')).toNumber());
+    let peer = new Peer({ port: 11223 });
+    peer.handleShares(new Node(), shares.shares);
     // fs.writeFileSync('/tmp/bad_shares', binary);
 }
 
