@@ -9,15 +9,20 @@ import * as utils from '../../../misc/Utils';
 import BufferReader from "../../../misc/BufferReader";
 import BufferWriter from "../../../misc/BufferWriter";
 
+export type TypeShares = {
+    version: number,
+    contents: Share | NewShare,
+}
+
 /**
  * message_shares = pack.ComposedType([
         ('shares', pack.ListType(p2pool_data.share_type)),
     ])
  */
-export default class Shares extends Payload {
+export class Shares extends Payload {
     shares: {
         version: number, // var int
-        contents: Share | NewShare, // var string
+        contents: Share | NewShare, // nullable, check it before using
     }[] = [];
 
     toBuffer() {

@@ -11,8 +11,8 @@ import MerkleTree from "../../../core/MerkleTree";
 import { Block } from "bitcoinjs-lib";
 
 const DONATION_SCRIPT = Buffer.from('4104ffd03de44a6e11b9917f3a29f9443283d9871c9d743ef30d5eddcd37094b64d1b3d8090496b53256786bf5c82932ec23c3b74d9f05a6f95a8b5529352656664bac', 'hex')
-const gentx_before_refhash = Buffer.concat([BufferWriter.writeVarNumber(DONATION_SCRIPT.length), DONATION_SCRIPT, Buffer.alloc(8, 0), BufferWriter.writeVarString('6a28' + '0000000000000000000000000000000000000000000000000000000000000000' + '0000000000000000', 'hex').slice(0, 3)]);
-assert.equal(gentx_before_refhash.toString('hex'), '434104ffd03de44a6e11b9917f3a29f9443283d9871c9d743ef30d5eddcd37094b64d1b3d8090496b53256786bf5c82932ec23c3b74d9f05a6f95a8b5529352656664bac00000000000000002a6a28');
+const GENTX_BEFORE_REFHASH = Buffer.concat([BufferWriter.writeVarNumber(DONATION_SCRIPT.length), DONATION_SCRIPT, Buffer.alloc(8, 0), BufferWriter.writeVarString('6a28' + '0000000000000000000000000000000000000000000000000000000000000000' + '0000000000000000', 'hex').slice(0, 3)]);
+assert.equal(GENTX_BEFORE_REFHASH.toString('hex'), '434104ffd03de44a6e11b9917f3a29f9443283d9871c9d743ef30d5eddcd37094b64d1b3d8090496b53256786bf5c82932ec23c3b74d9f05a6f95a8b5529352656664bac00000000000000002a6a28');
 
 export abstract class BaseShare {
 
@@ -69,7 +69,7 @@ export abstract class BaseShare {
             BaseShare.getRefHash(this.info, this.refMerkleLink), // the last txout share info which is written in coinbase 
             new BigNum(this.lastTxoutNonce).toBuffer({ endian: 'little', size: 8 }), // last txout nonce
             Buffer.alloc(4, 0) // lock time, 4 bytes
-        ]), gentx_before_refhash);
+        ]), GENTX_BEFORE_REFHASH);
 
         let merkleRoot = (segwitActivated && this.info.segwit.txidMerkleLink.branch ? this.info.segwit.txidMerkleLink.branch : this.merkleLink).aggregate(this.gentxHash, (c, n) => utils.sha256d(Buffer.concat([c, n])));
         let headerHash = this.minHeader.calculateHash(merkleRoot);
@@ -93,8 +93,11 @@ export abstract class BaseShare {
         ]);
     }
 
+
     static fromBufferReader(version: number, reader: BufferReader) {
-        let share = version === 16 ? new Share() : new NewShare();
+        let constructor = ShareVersionMapper[version];
+        if (!constructor) return null;
+        let share = new constructor() as BaseShare;
         share.minHeader = SmallBlockHeader.fromBufferReader(reader);
         share.info = ShareInfo.fromBufferReader(reader, BaseShare.isSegwitActivated(share.VERSION));
         share.refMerkleLink = reader.readList(32);
@@ -137,3 +140,7 @@ export class NewShare extends BaseShare {
         super.VERSION = NewShare.VERSION;
     }
 }
+
+const ShareVersionMapper = { 16: Share, 17: NewShare };
+
+

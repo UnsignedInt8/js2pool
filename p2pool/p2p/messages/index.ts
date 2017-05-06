@@ -12,7 +12,7 @@ import Getaddrs from "./GetAddrs";
 import { Have_tx, Losing_tx, Forget_tx } from "./Have_tx";
 import Sharereq from "./Sharereq";
 import Sharereply from "./Sharereply";
-import Shares from './Shares';
+import { Shares } from './Shares';
 import { Remember_tx } from "./Remember_tx";
 
 export const Payloads = {

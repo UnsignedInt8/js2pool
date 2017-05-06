@@ -7,6 +7,7 @@ import { BaseShare } from "./shares";
 import { DaemonWatcher, DaemonOptions, GetBlockTemplate, TransactionTemplate } from "../../core/DaemonWatcher";
 import Property from "../../nodejs/Property";
 import { Version } from "./Messages/Version";
+import { TypeShares } from "./Messages/Shares";
 
 export type PeerOptions = {
     maxConn?: number,
@@ -28,7 +29,7 @@ export class Peer {
         this.knownTxs.onPropertyChanged(this.onKnownTxsChanged.bind(this));
         this.miningTxs.onPropertyChanged(this.onMiningTxsChanged.bind(this));
         this.server = net.createServer(this.onSocketConnected.bind(this)).listen(opts.port);
-
+        this.server.on('error', error => { console.error(error.message); throw error; });
     }
 
     private onSocketConnected(s: Socket) {
@@ -39,15 +40,8 @@ export class Peer {
         this.registerNode(node);
     }
 
-    private registerNode(node: Node) {
-        node.onVersionVerified(this.handleNodeVersion.bind(this));
-        node.onRemember_tx(this.handleRemember_tx.bind(this));
-        node.onEnd(function (sender: Node) { this.peers.delete(sender.tag) }.bind(this));
-        node.onShares((sender, share) => console.log(share.any() ? share.first().contents.hash : null));
-        this.peers.set(node.tag, node);
-    }
 
-    // ----------------- Node events -------------------
+    // ----------------- Node message events -------------------
 
     private async handleNodeVersion(sender: Node, version: Version) {
         await sender.sendHave_txAsync(Array.from(this.knownTxs.value.keys()));
@@ -88,10 +82,50 @@ export class Peer {
         this.knownTxs.set(knownTxs);
     }
 
+    private handleShares(sender: Node, shares: TypeShares[]) {
+        if (shares.length == 0) return;
+
+        let result = new Array<{ share: BaseShare, txs: TransactionTemplate[] }>();
+
+        for (let share of shares.where(s => s.contents && s.contents.validity).select(s => s.contents)) {
+
+            let txs = new Array<TransactionTemplate>();
+
+            for (let txHash of share.newTxHashes) {
+                if (this.knownTxs.value.has(txHash)) {
+                    txs.push(this.knownTxs.value.get(txHash));
+                    continue;
+                }
+
+                let cache = this.knownTxsCaches.firstOrDefault(c => c.has(txHash), null);
+                if (!cache) {
+                    sender.close(true, 'Peer referenced unknown transaction, disconnecting');
+                    return;
+                }
+
+                txs.push(cache.get(txHash));
+            }
+
+            result.push({ share, txs });
+        }
+
+
+    }
+
     // ----------------- Peer work ---------------------
 
+    private registerNode(node: Node) {
+        node.onVersionVerified(this.handleNodeVersion.bind(this));
+        node.onRemember_tx(this.handleRemember_tx.bind(this));
+        node.onShares(this.handleShares.bind(this));
+        node.onEnd(function (sender: Node) { this.peers.delete(sender.tag) }.bind(this));
+        this.peers.set(node.tag, node);
+    }
+
+    /**
+     * update_remote_view_of_my_known_txs
+     */
     private onKnownTxsChanged(oldValue: Map<string, TransactionTemplate>, newValue: Map<string, TransactionTemplate>) {
-        // update_remote_view_of_my_known_txs
 
         let added = newValue.except(oldValue).select(item => item[0]).toArray();
         let removed = oldValue.except(newValue).select(item => item[0]).toArray();;
@@ -111,8 +145,10 @@ export class Peer {
 
     }
 
+    /**
+     * update_remote_view_of_my_mining_txs
+     */
     private onMiningTxsChanged(oldValue: Map<string, TransactionTemplate>, newValue: Map<string, TransactionTemplate>) {
-        // update_remote_view_of_my_mining_txs
 
         let added = newValue.except(oldValue).select(item => item[1]).toArray();
         let removed = oldValue.except(newValue).select(item => item[1]).toArray();

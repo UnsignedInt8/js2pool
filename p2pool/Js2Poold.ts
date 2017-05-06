@@ -3,7 +3,7 @@
 require('../nodejs/AsyncSocket');
 import * as kinq from 'kinq';
 import { Js2Pool } from "./p2p/Js2Pool";
-import Shares from "./p2p/Messages/Shares";
+import { Shares } from "./p2p/Messages/Shares";
 import { DaemonWatcher } from "../core/DaemonWatcher";
 import { BaseShare } from "./p2p/shares/index";
 import Bitcoin from "./p2p/coins/Bitcoin";

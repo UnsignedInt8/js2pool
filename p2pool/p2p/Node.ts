@@ -15,7 +15,7 @@ import Getaddrs from "./Messages/GetAddrs";
 import { Have_tx, Losing_tx, Forget_tx } from "./Messages/Have_tx";
 import { Remember_tx, TypeRemember_tx } from "./Messages/Remember_tx";
 import { Block, Transaction } from "bitcoinjs-lib";
-import Shares from "./Messages/Shares";
+import { Shares } from "./Messages/Shares";
 import { Share, NewShare, BaseShare } from "./Shares";
 import { TypeSharereq, default as Sharereq } from "./Messages/Sharereq";
 import { TypeSharereply, default as Sharereply } from "./Messages/Sharereply";

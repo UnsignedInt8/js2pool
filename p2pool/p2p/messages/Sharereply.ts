@@ -4,7 +4,7 @@
  */
 
 import { Payload } from "./Payload";
-import Shares from "./Shares";
+import { Shares } from "./Shares";
 import BufferReader from "../../../misc/BufferReader";
 import BufferWriter from "../../../misc/BufferWriter";
 

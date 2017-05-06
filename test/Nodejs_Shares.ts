@@ -4,7 +4,7 @@ import * as kinq from 'kinq';
 import BufferWriter from "../misc/BufferWriter";
 import Node from "../p2pool/p2p/Node";
 import { BaseShare } from "../p2pool/p2p/shares/index";
-import Shares from "../p2pool/p2p/Messages/Shares";
+import { Shares } from "../p2pool/p2p/Messages/Shares";
 import SHA256 from "../core/SHA256";
 import * as fs from 'fs';
 import * as crypto from 'crypto';
