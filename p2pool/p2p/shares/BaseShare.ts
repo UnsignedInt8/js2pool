@@ -35,7 +35,8 @@ export abstract class BaseShare {
     hashLink: HashLink;
     merkleLink: Buffer[];
 
-    hash: string;
+    hash: string; // share hash
+    previousHash: string; // previous share hash
     newScript: Buffer;
     target: number;
     gentxHash: Buffer;
@@ -74,7 +75,8 @@ export abstract class BaseShare {
         let merkleRoot = (segwitActivated && this.info.segwit.txidMerkleLink.branch ? this.info.segwit.txidMerkleLink.branch : this.merkleLink).aggregate(this.gentxHash, (c, n) => utils.sha256d(Buffer.concat([c, n])));
         let headerHash = this.minHeader.calculateHash(merkleRoot);
         this.hash = utils.hexFromReversedBuffer(headerHash);
-
+        this.previousHash = this.info.data.previousShareHash;
+        
         if (this.target > BaseShare.MAX_TARGET) return false;
         if (BigNum.fromBuffer(BaseShare.PowFunc(this.minHeader.buildHeader(merkleRoot)), { endian: 'little', size: 32 }).toNumber() > this.target) return false;
 
