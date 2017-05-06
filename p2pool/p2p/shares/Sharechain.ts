@@ -5,7 +5,7 @@
 
 import { BaseShare } from "./index";
 
-export default class Shareschain {
+export default class Sharechain {
     private shares = new Map<string, BaseShare>();
 
     hashes() {

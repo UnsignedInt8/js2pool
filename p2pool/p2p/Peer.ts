@@ -108,6 +108,22 @@ export class Peer {
             result.push({ share, txs });
         }
 
+        let newShareCount = 0;
+        let newTxs = new Map(this.knownTxs.value);
+        for (let { share, txs } of result) {
+            for (let tx of txs) {
+                newTxs.set(tx.hash, tx);
+            }
+
+            if (share.hash) continue;
+            newShareCount++;
+
+            //
+        }
+
+        this.knownTxs.set(newTxs);
+        if (!newShareCount) return;
+
 
     }
 
