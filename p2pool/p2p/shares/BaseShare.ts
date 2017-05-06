@@ -6,7 +6,7 @@ import * as utils from '../../../misc/Utils';
 import BufferWriter from '../../../misc/BufferWriter';
 import * as assert from 'assert';
 import * as BigNum from 'bignum';
-import { bitsToDifficulty } from "../../../core/Algos";
+import { bitsToDifficulty, bitsToTarget } from "../../../core/Algos";
 import MerkleTree from "../../../core/MerkleTree";
 import { Block } from "bitcoinjs-lib";
 
@@ -39,6 +39,7 @@ export abstract class BaseShare {
     newScript: Buffer;
     target: number;
     gentxHash: Buffer;
+    newTxHashes: string[];
     validity = false;
 
     constructor(minHeader: SmallBlockHeader = null, info: ShareInfo = null, hashLink: HashLink = null, merkleLink: Buffer[] = null) {
@@ -58,10 +59,11 @@ export abstract class BaseShare {
             if (shareCount > 0) return;
             n.add(txCount);
         });
-        assert.equal(n.size, this.info.newTransactionHashes.length);
+        if (n.size !== this.info.newTransactionHashes.length) return false;
 
+        this.newTxHashes = this.info.newTransactionHashes;
         this.newScript = utils.hash160ToScript(this.info.data.pubkeyHash); // script Pub Key
-        this.target = this.info.toTarget();
+        this.target = bitsToTarget(this.info.bits);
 
         this.gentxHash = this.hashLink.check(Buffer.concat([
             BaseShare.getRefHash(this.info, this.refMerkleLink), // the last txout share info which is written in coinbase 
@@ -69,7 +71,7 @@ export abstract class BaseShare {
             Buffer.alloc(4, 0) // lock time, 4 bytes
         ]), gentx_before_refhash);
 
-        let merkleRoot = (/*segwitActivated ? this.info.segwit.txidMerkleLink : */this.merkleLink).aggregate(this.gentxHash, (c, n) => utils.sha256d(Buffer.concat([c, n])));
+        let merkleRoot = (segwitActivated && this.info.segwit.txidMerkleLink.branch ? this.info.segwit.txidMerkleLink.branch : this.merkleLink).aggregate(this.gentxHash, (c, n) => utils.sha256d(Buffer.concat([c, n])));
         let headerHash = this.minHeader.calculateHash(merkleRoot);
         this.hash = utils.hexFromReversedBuffer(headerHash);
 

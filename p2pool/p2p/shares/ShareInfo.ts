@@ -11,7 +11,7 @@ import { bitsToTarget } from "../../../core/Algos";
 
 type Segwit = {
     txidMerkleLink: {
-        branch: string[], // hash list
+        branch: Buffer[], // hash list
         index?: number, // 0 bit, always 0
     },
     wtxidMerkleRoot: string,// 'ffffffffffffffffffffffffffffffff', // 256 bytes
@@ -55,8 +55,8 @@ export default class ShareInfo {
 
         let segBuf = Buffer.alloc(0);
         if (this.segwit) {
-            let txidHashes = BufferWriter.writeList(this.segwit.txidMerkleLink.branch.map(h => utils.uint256BufferFromHash(h)));
-            segBuf = Buffer.concat([txidHashes, utils.uint256BufferFromHash(this.segwit.wtxidMerkleRoot)]);
+            let txidMerkleLink = BufferWriter.writeList(this.segwit.txidMerkleLink.branch);
+            segBuf = Buffer.concat([txidMerkleLink, utils.uint256BufferFromHash(this.segwit.wtxidMerkleRoot)]);
         }
 
         return Buffer.concat([
@@ -71,10 +71,6 @@ export default class ShareInfo {
             BufferWriter.writeUInt32LE(this.absheight),
             BufferWriter.writeReversedFixedString(this.abswork),
         ]);
-    }
-
-    toTarget() {
-        return bitsToTarget(this.bits);
     }
 
     extractTransactionHashRefs() {
@@ -101,7 +97,7 @@ export default class ShareInfo {
         if (segwitActivated) {
             info.segwit = {
                 txidMerkleLink: {
-                    branch: reader.readList(32).map(utils.hexFromReversedBuffer),
+                    branch: reader.readList(32),
                     index: 0
                 },
                 wtxidMerkleRoot: reader.readReversedFixedString(32),
