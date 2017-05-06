@@ -6,6 +6,7 @@ import { Js2Pool } from "./p2p/Js2Pool";
 import Shares from "./p2p/Messages/Shares";
 import { DaemonWatcher } from "../core/DaemonWatcher";
 import { BaseShare } from "./p2p/shares/index";
+import Bitcoin from "./p2p/coins/Bitcoin";
 kinq.enable();
 
 const opts = {
@@ -30,7 +31,7 @@ const opts = {
 };
 
 function run() {
-    BaseShare.IDENTIFIER = 'fc70035c7a81bc6f';
+    BaseShare.IDENTIFIER = Bitcoin.IDENTIFIER;
     let js2pool = new Js2Pool(opts);
 
     // let daemon = new DaemonWatcher(opts.daemon);

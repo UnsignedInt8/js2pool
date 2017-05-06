@@ -18,7 +18,7 @@ export abstract class BaseShare {
 
     // These fileds should be initalized when pool starts
     static SEGWIT_ACTIVATION_VERSION = 0
-    static IDENTIFIER: string;
+    static IDENTIFIER: Buffer;
     static PowFunc: (data: Buffer) => Buffer;
     static MAX_TARGET = 0;
 
@@ -110,10 +110,8 @@ export abstract class BaseShare {
     }
 
     static getRefHash(shareInfo: ShareInfo, refMerkleLink: Buffer[]) {
-        let ref = new Ref();
-        ref.identifier = BaseShare.IDENTIFIER;
-        ref.info = shareInfo;
-        return refMerkleLink.aggregate(utils.sha256d(ref.toBuffer()), (c, n) => utils.sha256d(Buffer.concat([c, n])));
+        let ref = Buffer.concat([BaseShare.IDENTIFIER, shareInfo.toBuffer()]);
+        return refMerkleLink.aggregate(utils.sha256d(ref), (c, n) => utils.sha256d(Buffer.concat([c, n])));
     }
 }
 
@@ -138,10 +136,4 @@ export class NewShare extends BaseShare {
         super();
         super.VERSION = NewShare.VERSION;
     }
-}
-
-class Ref {
-    identifier: string; // 8 characters FixedStrType
-    info: ShareInfo;
-    toBuffer = (): Buffer => Buffer.concat([BufferWriter.writeFixedString(this.identifier, 'hex'), this.info.toBuffer()]);
 }
