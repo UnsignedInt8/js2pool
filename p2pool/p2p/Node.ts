@@ -19,6 +19,7 @@ import { Shares } from "./Messages/Shares";
 import { Share, NewShare, BaseShare } from "./Shares";
 import { TypeSharereq, default as Sharereq } from "./Messages/Sharereq";
 import { TypeSharereply, default as Sharereply } from "./Messages/Sharereply";
+import { TransactionTemplate } from "../../core/DaemonWatcher";
 
 export default class Node extends Event {
 
@@ -65,7 +66,7 @@ export default class Node extends Event {
     protected socket: Socket;
 
     remoteTxHashs = new Set<string>();
-    rememberedTxs = new Map<string, Transaction>();
+    rememberedTxs = new Map<string, TransactionTemplate>();
     remoteRememberedTxsSize = 0;
     isJs2PoolPeer = false;
     peerAddress: string;

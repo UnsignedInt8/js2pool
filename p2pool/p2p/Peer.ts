@@ -51,8 +51,7 @@ export class Peer {
     private handleRemember_tx(sender: Node, txHashes: string[], txs: Transaction[]) {
         for (let hash of txHashes) {
             if (sender.rememberedTxs.has(hash)) {
-                console.error('Peer referenced transaction hash twice');
-                sender.close(false);
+                sender.close(false, 'Peer referenced transaction hash twice');
                 return;
             }
 
@@ -63,20 +62,20 @@ export class Peer {
                 return;
             }
 
-            sender.rememberedTxs.set(hash, /*Transaction.fromHex(knownTx.data)*/null);
+            sender.rememberedTxs.set(hash, knownTx);
         }
 
         let knownTxs = new Map(this.knownTxs.value);
         for (let tx of txs) {
             let txHash = tx.getHash();
             if (sender.rememberedTxs.has(txHash)) {
-                console.info('Peer referenced transaction twice, disconnecting');
-                sender.close(false);
+                sender.close(false, 'Peer referenced transaction twice, disconnecting');
                 return;
             }
 
-            sender.rememberedTxs.set(txHash, tx);
-            knownTxs.set(txHash, { txid: txHash, hash: txHash, data: /*tx.toHex()*/null });
+            let txTemplate = { txid: txHash, hash: txHash, data: tx.toHex() }
+            sender.rememberedTxs.set(txHash, txTemplate);
+            knownTxs.set(txHash, txTemplate);
         }
 
         this.knownTxs.set(knownTxs);
