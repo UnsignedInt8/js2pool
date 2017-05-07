@@ -7,6 +7,7 @@ import { BaseShare } from "./index";
 import { Event } from "../../../nodejs/Event";
 import ObservableProperty from "../../../nodejs/ObservableProperty";
 import * as kinq from 'kinq';
+import logger from '../../../misc/Logger';
 
 type ShareNode = {
     next?: string;
@@ -14,30 +15,43 @@ type ShareNode = {
     item: BaseShare;
 }
 
+/**
+ * Sharechain
+ * 
+ * 'x' stands for main chain shares
+ * '-' stands for orphans or deads
+ * 
+ * [x]
+ * [x][-]
+ * [x]
+ * [x]
+ * [x][-][-]
+ * [x][-]
+ * [x]
+ */
+
 export default class Sharechain extends Event {
 
+    static readonly Instance = new Sharechain();
     static readonly CHAIN_LENGTH = 24 * 60 * 60 / 10;
 
     static readonly Events = {
         newestChanged: 'NewestChanged',
         oldestChanged: 'OldestChanged',
         deadArrived: 'DeadArrived',
-        orphanFound: 'OrphanFound',
+        candidateArrived: 'CandidateArrived',
+        orphansFound: 'OrphansFound',
     }
 
-    private noParentShares = new Map<string, BaseShare>();
-    private main = new Map<string, ShareNode>();
-    private divergence: Sharechain;
+    private sharesIndex = new Map<string, number>();
+    private absheightIndex = new Map<number, Array<BaseShare>>();
     private _newest_ = ObservableProperty.init<BaseShare>(null);
-    private _oldest_ = ObservableProperty.init<BaseShare>(null);
     private merging = false;
     newest: BaseShare;
-    oldest: BaseShare;
 
-    constructor() {
+    private constructor() {
         super();
         this._newest_.onPropertyChanged(this.onNewestPropertyChanged.bind(this));
-        this._oldest_.onPropertyChanged(this.onOldestPropertyChanged.bind(this));
     }
 
     private onNewestPropertyChanged(oldValue: BaseShare, newValue: BaseShare) {
@@ -46,10 +60,12 @@ export default class Sharechain extends Event {
         this.trigger(Sharechain.Events.newestChanged, this, newValue);
     }
 
-    private onOldestPropertyChanged(oldValue: BaseShare, newValue: BaseShare) {
-        this.oldest = newValue;
-        if (this.merging) return;
-        this.trigger(Sharechain.Events.oldestChanged, this, newValue);
+    onDeadShareArrived(callback: (sender: Sharechain, deadShare: BaseShare) => void) {
+        super.register(Sharechain.Events.deadArrived, callback);
+    }
+
+    onOrphansFound(callback: (sender: Sharechain, orphans: BaseShare[]) => void) {
+        super.register(Sharechain.Events.orphansFound, callback);
     }
 
     onNewestChanged(callback: (sender: Sharechain, value: BaseShare) => void) {
@@ -60,199 +76,136 @@ export default class Sharechain extends Event {
         super.register(Sharechain.Events.oldestChanged, callback);
     }
 
-    hashes() {
-        return this.main.keys();
+    onCandidateArrived(callback: (sender: Sharechain, value: BaseShare) => void) {
+        super.register(Sharechain.Events.candidateArrived, callback);
     }
 
     has(share: BaseShare) {
-        return this.main.has(share.hash);
+        return this.sharesIndex.has(share.hash);
     }
 
-    add(share: BaseShare): boolean {
-        if (!share.validity) return false;
-        if (this.main.has(share.hash)) return false;
+    add(share: BaseShare) {
+        if (!share.validity) return;
 
-        console.log(share.info.absheight);
-        let parentNode = this.main.get(share.previousShareHash);
-        if (parentNode) {
-            if (parentNode.next) {
-                if (share.info.absheight < this._newest_.value.info.absheight) {
-                    this.trigger(Sharechain.Events.deadArrived, this, share);
-                    return false;
-                }
-
-                console.log('divergent share?');
-                console.log('pn', parentNode.item.info.absheight);
-                console.log('div', share.info.absheight);
-                if (!this.divergence) this.divergence = new Sharechain();
-                return this.divergence.add(share);
-            }
-            else {
-                parentNode.next = share.hash;
-            }
+        let shares = this.absheightIndex.get(share.info.absheight);
+        if (!shares) {
+            shares = new Array<BaseShare>();
+            this.absheightIndex.set(share.info.absheight, shares);
         }
 
-        let node = {
-            next: null,
-            previous: parentNode ? parentNode.item.hash : null,
-            item: share,
-        };
+        if (shares.some(s => s.hash === share.hash)) return;
+        logger.info(`height: ${share.info.absheight}`);
+        shares.push(share);
+        this.sharesIndex.set(share.hash, share.info.absheight);
 
-        if (this.noParentShares.has(share.hash)) {
-            let noParentShare = this.noParentShares.get(share.hash);
-            let childNode = this.main.get(noParentShare.hash);
-            childNode.previous = share.hash;
-            node.next = noParentShare.hash;
-            this.noParentShares.delete(share.hash);
+        if (this._newest_.hasValue() && share.info.absheight > this._newest_.value.info.absheight) {
+            let last = this._newest_.value;
+            this._newest_.set(share);
+
+            // check the previous share array whether has multiple items or not
+            let previousShares = this.absheightIndex.get(last.info.absheight);
+            if (!previousShares) return;
+            if (previousShares.length < 2) return;
+
+            // find orphans
+            let verified = previousShares.single(s => s.hash === share.info.data.previousShareHash);
+            let orphans = previousShares.except([verified], (i1, i2) => i1.hash === i2.hash).toArray();
+            this.trigger(Sharechain.Events.orphansFound, this, orphans);
+            logger.info(`orphans found: ${orphans.length}, at ${last.info.absheight}`);
+
+            // always keep the first element is on the main chain
+            this.absheightIndex.set(last.info.absheight, [verified].concat(orphans));
+            return;
         }
 
-        if (!node.previous) {
-            if (this.divergence && share.info.absheight >= this.height()) {
-                this.divergence.add(share);
-
-                if (this.divergence.size() > 1) {
-                    this.onNewestPropertyChanged(this.newest, this.divergence.newest);
-                }
-
-                return this.merge();
-            }
-
-            if (!this._oldest_.hasValue()) {
-                this._oldest_.set(share);
-            } else {
-                if (share.info.absheight >= this._oldest_.value.info.absheight) return false;
-                this.noParentShares.set(share.previousShareHash, share);
-                this._oldest_.set(share);
-                this.main.set(share.hash, node);
-                console.log('update the oldest share', share.info.absheight);
-                return true;
-            }
+        // as expereince, this share is verified by other nodes
+        if (this._newest_.hasValue() && share.info.absheight === this._newest_.value.info.absheight) {
+            this.trigger(Sharechain.Events.candidateArrived, this, share);
+            return;
         }
 
-        this.main.set(share.hash, node);
-        if (!node.next && share.info.absheight > this.height()) this._newest_.set(share);
+        // an old share or some orphans in here or it is just a dead share
+        if (this._newest_.hasValue() && share.info.absheight < this._newest_.value.info.absheight) {
 
-        return true;
+            // just an old share arrived
+            if (shares.length < 2) return;
+
+            let nextHeight = share.info.absheight + 1;
+            let nextShares = this.absheightIndex.get(nextHeight);
+            if (!nextShares || nextShares.length == 0) return;
+
+            // dead share arrived
+            if (!nextShares.some(s => s.info.data.previousShareHash == share.hash)) {
+                this.trigger(Sharechain.Events.deadArrived, this, share);
+                return;
+            }
+
+            // check orphans. if this happened, means someone is attacking p2pool network, or node's sharechain is stale
+            let orphans = shares.except([share], (i1, i2) => i1.hash === i2.hash).toArray();
+            this.trigger(Sharechain.Events.orphansFound, this, orphans);
+            logger.warn(`old orphans found at ${share.info.absheight}`);
+
+            // keep the first element is on the main chain
+            this.absheightIndex.set(share.info.absheight, [share].concat(orphans));
+            return;
+        }
+
+        if (!this._newest_.hasValue()) this._newest_.set(share);
     }
 
     *subchain(startHash: string, length: number = Number.MAX_SAFE_INTEGER) {
-        let hash = startHash;
+        let absheight = this.sharesIndex.get(startHash);
+        if (!absheight) return;
 
         while (length--) {
-            let item = this.main.get(hash);
-            if (!item) return;
+            let shares = this.absheightIndex.get(absheight);
+            if (!shares || shares.length == 0) return;
 
-            hash = item.next;
-            yield item;
+            let share = shares[0];
+            absheight = share.info.absheight + 1;
+            yield share;
         }
     }
 
-    size() {
+    length() {
         if (!this._newest_.hasValue()) return 0;
 
         let count = 0;
-        let hash = this._newest_.value.hash;
-        while (this.main.has(hash)) {
-            hash = this.main.get(hash).previous;
+        let height = this._newest_.value.info.absheight;
+        while (this.absheightIndex.has(height)) {
             count++;
+            height--;
         }
 
         return count;
     }
 
-    merge() {
-        if (!this.divergence) return false;
-        if (this.divergence.size() < 3) return false;
+    size() {
+        return this.absheightIndex.size;
+    }
 
-        let divergencePoint = this.findAbsHeightNode(this.divergence._oldest_.value.info.absheight);
-        if (!divergencePoint) return false;
+    // check whether has holes
+    verify() {
+        if (!this._newest_.hasValue()) return false;
 
-        console.log('begin mergeing');
-        let mainLength = this.lengthSince(divergencePoint.item.hash);
-        if (mainLength > this.divergence.size()) {
-            console.log('mainchain is longer');
-            this.divergence.clean();
-            this.divergence = null;
-            return false;
+        let count = 0;
+        let hash = this._newest_.value.hash;
+        let absheight = this._newest_.value.info.absheight;
+
+        while (true) {
+            let shares = this.absheightIndex.get(absheight);
+            if (!shares || shares.length == 0) break;
+
+            let share = shares[0];
+            if (hash != share.hash) break;
+
+            count++;
+            absheight = share.info.absheight - 1;
+            hash = share.info.data.previousShareHash;
         }
 
-        console.log('merge divergence to main');
-        let parentNode = this.main.get(divergencePoint.previous);
-        if (!parentNode) {
-            console.log('no common parent? merging failed');
-            return false;
-        }
-
-        this.merging = true;
-
-        // remove stale shares
-        this.removeSubchain(parentNode);
-        this._newest_.set(parentNode.item);
-
-        // add shares from divergence
-        for (let node of this.divergence.subchain(this.divergence._oldest_.value.hash)) {
-            this.add(node.item);
-        }
-
-        this.merging = false;
-        this.onNewestPropertyChanged(divergencePoint.item, this._newest_.value);
-
-        // clean divergence
-        this.divergence.clean();
-        this.divergence = null;
-        return true;
+        logger.info(`verifying ${count}, ${this.length()}`);
+        return count === this.length();
     }
 
-    lengthSince(hash: string) {
-        let point = this.main.get(hash);
-        if (!point) return 0;
-
-        let length = 0;
-        do {
-            length++;
-            point = this.main.get(point.next);
-        } while (point);
-
-        return length;
-    }
-
-    findAbsHeightNode(height: number) {
-        if (this._newest_.hasValue()) {
-            let node = this.main.get(this._newest_.value.hash);
-            do {
-                if (node.item.info.absheight === height) return node;
-                node = this.main.get(node.previous);
-            } while (node);
-        }
-
-        return kinq.toLinqable(this.main.values()).firstOrDefault(v => v.item.info.absheight == height, null);
-    }
-
-    removeSubchain(startNode: ShareNode) {
-        for (let orphan of this.subchain(startNode.next)) {
-            this.trigger(Sharechain.Events.orphanFound, this, orphan.item);
-            this.main.delete(orphan.item.hash);
-        }
-
-        startNode.next = null;
-    }
-
-    height() {
-        return this._newest_.hasValue() ? this._newest_.value.info.absheight : 0;
-    }
-
-    clean() {
-        this.main.clear();
-        this.removeAllEvents();
-        this._newest_.set(null);
-        this._oldest_.set(null);
-    }
-
-    onDeadShareArrived(callback: (sender: Sharechain, deadShare: BaseShare) => void) {
-        super.register(Sharechain.Events.deadArrived, callback);
-    }
-
-    onOrphanFound(callback: (sender: Sharechain, orphan: BaseShare) => void) {
-        super.register(Sharechain.Events.orphanFound, callback);
-    }
 }

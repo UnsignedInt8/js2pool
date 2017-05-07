@@ -22,7 +22,7 @@ export class Peer {
     private readonly knownTxs = ObservableProperty.init(new Map<string, TransactionTemplate>());
     private readonly knownTxsCaches = new Array<Map<string, TransactionTemplate>>();
     private readonly miningTxs = ObservableProperty.init(new Map<string, TransactionTemplate>());
-    private sharechain = new Sharechain();
+    private sharechain = Sharechain.Instance;
 
     bestShare: BaseShare;
     desired: any[];
@@ -134,7 +134,8 @@ export class Peer {
         }
 
         this.knownTxs.set(newTxs);
-        console.log(this.sharechain.size());
+        this.sharechain.verify();
+        console.log('length:', this.sharechain.length());
     }
 
     // ----------------- Peer work ---------------------
@@ -221,5 +222,6 @@ export class Peer {
         }
 
         this.knownTxs.set(knownTxs);
+        this.peers.forEach(node => txs.forEach(tx => node.rememberedTxs.delete(tx)));
     }
 }
