@@ -30,10 +30,12 @@
     "bignum": "*",
     "bitcoin-core": "^1.2.0",
     "bitcoinjs-lib": "^2.3.0",
+    "bunyan": "^1.8.10",
     "commander": "^2.9.0",
     "kafka-node": "^1.6.0",
     "kinq": "UnsignedInt8/Kinq",
-    "node-multi-hashing": "UnsignedInt8/node-multi-hashing"
+    "node-multi-hashing": "UnsignedInt8/node-multi-hashing",
+    "winston": "^2.3.1"
   },
   "devDependencies": {
     "mocha": "^3.2.0"

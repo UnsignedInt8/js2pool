@@ -13,6 +13,15 @@ import * as Utils from '../misc/Utils';
 import * as BigNum from 'bignum';
 import Bitcoin from "../p2pool/p2p/coins/Bitcoin";
 import { Peer } from "../p2pool/p2p/Peer";
+import * as winston from 'winston';
+winston.configure({
+    transports: [new winston.transports.Console({
+        colorize: true,
+        timestamp: () => new Date().toLocaleTimeString(),
+        formatter: (opts) => { return `${opts.timestamp()} ${opts.level.toUpperCase()} ${opts.message || ''}`; },
+    })]
+})
+
 kinq.enable();
 
 async function test() {
@@ -63,7 +72,7 @@ function testShares() {
     console.log(BigNum.fromBuffer(Utils.uint256BufferFromHash(share.hash)));
 
 
-    console.log(BigNum.fromBuffer(Buffer.from('0000000000000079fff9faf2e28f1a87bc8818599acdfc129d5691b75799829f', 'hex')).toNumber());
+    winston.info(BigNum.fromBuffer(Buffer.from('0000000000000079fff9faf2e28f1a87bc8818599acdfc129d5691b75799829f', 'hex')).toNumber().toString());
     let peer = new Peer({ port: 11223 });
     peer.handleShares(new Node(), shares.shares);
     // fs.writeFileSync('/tmp/bad_shares', binary);

@@ -25,6 +25,10 @@ export default class ObservableProperty<T> extends Event {
         return this;
     }
 
+    hasValue() {
+        return this.value != undefined && this.value != null ? true : false;
+    }
+
     static init<T>(value: T) {
         return new ObservableProperty(value);
     }
