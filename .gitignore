@@ -48,7 +48,7 @@ build/**/*.d.ts
 build/**/*.js
 build/**/*.js.map
 dist/**/*.*
-typings/
+# typings/
 
 # temporary ignore
 # p2p/

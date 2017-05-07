@@ -1,0 +1,8 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/unsignedint8/bitcoin-core/2cf756315a75179e9902dd69c0a8f666a52aaf5f/bitcoin-core.d.ts",
+    "raw": "github:unsignedint8/bitcoin-core/bitcoin-core.d.ts#2cf756315a75179e9902dd69c0a8f666a52aaf5f",
+    "typings": "https://raw.githubusercontent.com/unsignedint8/bitcoin-core/2cf756315a75179e9902dd69c0a8f666a52aaf5f/bitcoin-core.d.ts"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/unsignedint8/node-multi-hashing/ed581998395c82984efdec3f723e6d947926c796/node-multi-hashing.d.ts",
+    "raw": "github:unsignedint8/node-multi-hashing/node-multi-hashing.d.ts#ed581998395c82984efdec3f723e6d947926c796",
+    "typings": "https://raw.githubusercontent.com/unsignedint8/node-multi-hashing/ed581998395c82984efdec3f723e6d947926c796/node-multi-hashing.d.ts"
+  }
+}

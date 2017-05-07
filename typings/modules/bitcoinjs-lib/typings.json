@@ -1,0 +1,8 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/de1d13bd54cc3a7fb65c04651a68c71bd2968882/bitcoinjs-lib/index.d.ts",
+    "raw": "registry:dt/bitcoinjs-lib#2.3.0+20161229203420",
+    "typings": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/de1d13bd54cc3a7fb65c04651a68c71bd2968882/bitcoinjs-lib/index.d.ts"
+  }
+}

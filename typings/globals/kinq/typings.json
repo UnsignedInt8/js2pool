@@ -1,0 +1,8 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/unsignedint8/kinq/c8ca992043fbf299495445c855d140f096b44516/kinq.d.ts",
+    "raw": "github:unsignedint8/kinq/kinq.d.ts#c8ca992043fbf299495445c855d140f096b44516",
+    "typings": "https://raw.githubusercontent.com/unsignedint8/kinq/c8ca992043fbf299495445c855d140f096b44516/kinq.d.ts"
+  }
+}
