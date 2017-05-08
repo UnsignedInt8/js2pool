@@ -37,6 +37,12 @@ export class Shares extends Payload {
         }));
     }
 
+    static fromObject(obj: TypeShares[]) {
+        let shares = new Shares();
+        shares.shares = obj;
+        return shares;
+    }
+
     static fromBuffer(data: Buffer) {
         let reader = new BufferReader(data);
         let lsCount = reader.readVarNumber();

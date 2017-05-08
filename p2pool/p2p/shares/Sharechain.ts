@@ -48,7 +48,8 @@ export default class Sharechain extends Event {
     private absheightIndexer = new Map<number, Array<BaseShare>>();
     private _newest_ = ObservableProperty.init<BaseShare>(null);
     private merging = false;
-    newest: BaseShare;
+    
+    get newest() { return this._newest_.value; };
 
     private constructor() {
         super();
@@ -56,7 +57,6 @@ export default class Sharechain extends Event {
     }
 
     private onNewestPropertyChanged(oldValue: BaseShare, newValue: BaseShare) {
-        this.newest = newValue;
         if (this.merging) return;
         this.trigger(Sharechain.Events.newestChanged, this, newValue);
     }
@@ -168,7 +168,7 @@ export default class Sharechain extends Event {
         }
     }
 
-    length() {
+    get length() {
         if (!this._newest_.hasValue()) return 0;
 
         let count = 0;
@@ -181,11 +181,11 @@ export default class Sharechain extends Event {
         return count;
     }
 
-    size() {
+    get size() {
         return this.absheightIndexer.size;
     }
 
-    // check it whether has gaps or not
+    // check all first elements are on the main chain
     verify() {
         if (!this._newest_.hasValue()) return false;
 
@@ -205,8 +205,11 @@ export default class Sharechain extends Event {
             hash = share.info.data.previousShareHash;
         }
 
-        logger.info(`verifying ${count}, ${this.length()}`);
-        return count === this.length();
+        logger.info(`verifying ${count}, ${this.length}`);
+        return count === this.length;
     }
 
+    checkGaps() {
+
+    }
 }

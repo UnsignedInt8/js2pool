@@ -92,7 +92,7 @@ export class Peer {
             console.log(share.hash);
             let txs = new Array<TransactionTemplate>();
 
-            for (let txHash of share.newTxHashes) {
+            for (let txHash of share.info.newTransactionHashes) {
                 if (this.knownTxs.value.has(txHash)) {
                     txs.push(this.knownTxs.value.get(txHash));
                     continue;
@@ -135,7 +135,7 @@ export class Peer {
 
         this.knownTxs.set(newTxs);
         this.sharechain.verify();
-        console.log('length:', this.sharechain.length());
+        console.log('length:', this.sharechain.length);
     }
 
     // ----------------- Peer work ---------------------
