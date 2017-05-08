@@ -5,6 +5,7 @@ import Bitcoin from './coins/Bitcoin';
 import { BaseShare } from "./p2p/shares/index";
 import { Algos } from "../core/Algos";
 import logger from '../misc/Logger';
+import Sharechain from "./p2p/shares/Sharechain";
 
 export type Js2PoolOptions = {
     daemon: DaemonOptions,
@@ -37,7 +38,14 @@ export class Js2Pool {
         BaseShare.MAX_TARGET = targetCoin.MAX_TARGET;
         BaseShare.IDENTIFIER = targetCoin.IDENTIFIER;
         BaseShare.SEGWIT_ACTIVATION_VERSION = targetCoin.SEGWIT_ACTIVATION_VERSION;
-        BaseShare.PowFunc =  targetCoin.POWFUNC;
+        BaseShare.PowFunc = targetCoin.POWFUNC;
+
+        Sharechain.Instance.onNewestChanged(this.onNewestShareChanged.bind(this));
+        Sharechain.Instance.onCandidateArrived(this.onNewestShareChanged.bind(this));
+    }
+
+    private onNewestShareChanged(sender: Sharechain, share: BaseShare) {
+        this.daemonWatcher.refreshBlockTemplateAsync();
     }
 
     private onMiningTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {

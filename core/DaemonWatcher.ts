@@ -92,7 +92,7 @@ export class DaemonWatcher extends Event {
         }
     }
 
-    private async refreshBlockTemplateAsync() {
+    async refreshBlockTemplateAsync() {
         try {
             let values: GetBlockTemplate[] = await this.client.command([{ method: 'getblocktemplate', parameters: [{ rules: ['segwit'] }] }]);
             let template = values.first();
@@ -109,7 +109,7 @@ export class DaemonWatcher extends Event {
             let blocks: BlockTemplate[] = await this.client.command([{ method: 'getblock', parameters: [hash] }]);
             return blocks.first();
         } catch (error) {
-            
+
         }
     }
 

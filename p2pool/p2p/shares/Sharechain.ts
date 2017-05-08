@@ -47,14 +47,12 @@ export default class Sharechain extends Event {
 
     private hashIndexer = new Map<string, number>();
     private absheightIndexer = new Map<number, Array<BaseShare>>();
-    private _newest_ = ObservableProperty.init<BaseShare>(null);
     private merging = false;
-
-    get newest() { return this._newest_.value; };
+    newest = ObservableProperty.init<BaseShare>(null);
 
     private constructor() {
         super();
-        this._newest_.onPropertyChanged(this.onNewestPropertyChanged.bind(this));
+        this.newest.onPropertyChanged(this.onNewestPropertyChanged.bind(this));
     }
 
     private onNewestPropertyChanged(oldValue: BaseShare, newValue: BaseShare) {
@@ -82,12 +80,16 @@ export default class Sharechain extends Event {
         super.register(Sharechain.Events.gapsFound, callback);
     }
 
-    has(share: BaseShare) {
-        return this.hashIndexer.has(share.hash);
+    has(hash: string) {
+        return this.hashIndexer.has(hash);
     }
 
+    /**
+     * if returns ture, means it's a new share, it can be broadcasted to other peers
+     * if returns false, means it's an old or invalid share
+     */
     add(share: BaseShare) {
-        if (!share.validity) return;
+        if (!share.validity) return false;
 
         let shares = this.absheightIndexer.get(share.info.absheight);
         if (!shares) {
@@ -95,21 +97,21 @@ export default class Sharechain extends Event {
             this.absheightIndexer.set(share.info.absheight, shares);
         }
 
-        if (shares.some(s => s.hash === share.hash)) return;
+        if (shares.some(s => s.hash === share.hash)) return false;
         shares.push(share);
         this.hashIndexer.set(share.hash, share.info.absheight);
 
-        if (this._newest_.hasValue() && share.info.absheight > this._newest_.value.info.absheight) {
-            let last = this._newest_.value;
-            this._newest_.set(share);
+        if (this.newest.hasValue() && share.info.absheight > this.newest.value.info.absheight) {
+            let last = this.newest.value;
+            this.newest.set(share);
 
             // find gaps
             if (!this.absheightIndexer.has(share.info.absheight - 1)) super.trigger(Sharechain.Events.gapsFound, this, share.hash);
 
             // check the previous share array whether has multiple items or not
             let previousShares = this.absheightIndexer.get(last.info.absheight);
-            if (!previousShares) return;
-            if (previousShares.length < 2) return;
+            if (!previousShares) return true;
+            if (previousShares.length < 2) return true;
 
             // find orphans
             let verified = previousShares.single(s => s.hash === share.info.data.previousShareHash);
@@ -119,20 +121,20 @@ export default class Sharechain extends Event {
             // always keep the first element is on the main chain
             this.absheightIndexer.set(last.info.absheight, [verified].concat(orphans));
 
-            return;
+            return true;
         }
 
         // as expereince, this share is verified by other nodes
-        if (this._newest_.hasValue() && share.info.absheight === this._newest_.value.info.absheight) {
+        if (this.newest.hasValue() && share.info.absheight === this.newest.value.info.absheight) {
             this.trigger(Sharechain.Events.candidateArrived, this, share);
-            return;
+            return true;
         }
 
         // an old share or some orphans in here or it is just a dead share
-        if (this._newest_.hasValue() && share.info.absheight < this._newest_.value.info.absheight) {
+        if (this.newest.hasValue() && share.info.absheight < this.newest.value.info.absheight) {
 
             // just an old share arrived
-            if (shares.length < 2) return;
+            if (shares.length < 2) return false;
 
             let nextHeight = share.info.absheight + 1;
             let nextShares = this.absheightIndexer.get(nextHeight);
@@ -141,7 +143,7 @@ export default class Sharechain extends Event {
             // dead share arrived
             if (!nextShares.some(s => s.info.data.previousShareHash == share.hash)) {
                 this.trigger(Sharechain.Events.deadArrived, this, share);
-                return;
+                return false;
             }
 
             // check orphans. if this happened, means someone is attacking p2pool network, or node's sharechain is stale
@@ -150,10 +152,11 @@ export default class Sharechain extends Event {
 
             // keep the first element is on the main chain
             this.absheightIndexer.set(share.info.absheight, [share].concat(orphans));
-            return;
+            return false;
         }
 
-        if (!this._newest_.hasValue()) this._newest_.set(share);
+        if (!this.newest.hasValue()) this.newest.set(share);
+        return true;
     }
 
     *subchain(startHash: string, length: number = Number.MAX_SAFE_INTEGER) {
@@ -171,10 +174,10 @@ export default class Sharechain extends Event {
     }
 
     get length() {
-        if (!this._newest_.hasValue()) return 0;
+        if (!this.newest.hasValue()) return 0;
 
         let count = 0;
-        let height = this._newest_.value.info.absheight;
+        let height = this.newest.value.info.absheight;
         while (this.absheightIndexer.has(height)) {
             count++;
             height--;
@@ -189,11 +192,11 @@ export default class Sharechain extends Event {
 
     // check all first elements are on the main chain
     verify() {
-        if (!this._newest_.hasValue()) return false;
+        if (!this.newest.hasValue()) return false;
 
         let count = 0;
-        let hash = this._newest_.value.hash;
-        let absheight = this._newest_.value.info.absheight;
+        let hash = this.newest.value.hash;
+        let absheight = this.newest.value.info.absheight;
 
         while (true) {
             let shares = this.absheightIndexer.get(absheight);

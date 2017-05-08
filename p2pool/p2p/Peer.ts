@@ -1,6 +1,7 @@
 
 import { Server, Socket } from "net";
 import * as net from 'net';
+import * as kinq from 'kinq';
 import Node from "./Node";
 import { Transaction } from "bitcoinjs-lib";
 import { BaseShare } from "./shares";
@@ -10,6 +11,8 @@ import { Version } from "./Messages/Version";
 import { TypeShares } from "./Messages/Shares";
 import Sharechain from "./shares/Sharechain";
 import logger from '../../misc/Logger';
+import { TypeSharereq } from "./Messages/Sharereq";
+import { TypeSharereply } from "./Messages/Sharereply";
 
 export type PeerOptions = {
     maxConn?: number,
@@ -44,13 +47,21 @@ export class Peer {
     private onSocketConnected(s: Socket) {
         let node = new Node();
         node.initSocket(s);
-        node.sendVersionAsync();
+        node.sendVersionAsync(this.sharechain.newest.hasValue() ? this.sharechain.newest.value.hash : null);
 
         this.registerNode(node);
     }
 
     private onGapsFound(sender: Sharechain, childShareHash: string) {
         logger.warn(`gaps found, child: ${childShareHash}`);
+        if (!this.peers.size) return;
+
+        let fastNode = kinq.toLinqable(this.peers.values()).min(item => item.connectionTime);
+        fastNode.sendSharereqAsync({
+            id: Math.random() * 100000 | 0,
+            hashes: [childShareHash],
+            parents: 1,
+        });
     }
 
     private onCandidateArrived(sender: Sharechain, share: BaseShare) {
@@ -76,6 +87,11 @@ export class Peer {
     private async handleNodeVersion(sender: Node, version: Version) {
         await sender.sendHave_txAsync(Array.from(this.knownTxs.value.keys()));
         await sender.sendRemember_txAsync({ hashes: [], txs: Array.from(this.miningTxs.value.values()) });
+
+        if (<any>version.bestShareHash == 0) return;
+        if (this.sharechain.has(version.bestShareHash)) return;
+
+        sender.sendSharereqAsync({ id: Math.random() * 100000 | 0, hashes: [version.bestShareHash], parents: 1 });
     }
 
     private handleRemember_tx(sender: Node, txHashes: string[], txs: Transaction[]) {
@@ -166,12 +182,28 @@ export class Peer {
         logger.info('length:' + this.sharechain.length);
     }
 
+    private handleSharereq(sender: Node, request: TypeSharereq) {
+        let parents = Math.min(request.parents, 800 / request.hashes.length);
+
+    }
+
+    private handleSharereply(sender: Node, reply: TypeSharereply) {
+        logger.info(`received share reply, ${reply.id}`);
+        if (reply.result != 0) return;
+
+        for (let share of reply.shares.shares) {
+            this.sharechain.add(share.contents);
+        }
+    }
+
     // ----------------- Peer work ---------------------
 
     private registerNode(node: Node) {
         node.onVersionVerified(this.handleNodeVersion.bind(this));
         node.onRemember_tx(this.handleRemember_tx.bind(this));
         node.onShares(this.handleShares.bind(this));
+        node.onSharereq(this.handleSharereq.bind(this));
+        node.onSharereply(this.handleSharereply.bind(this));
         node.onEnd(function (sender: Node) { this.peers.delete(sender.tag) }.bind(this));
         this.peers.set(node.tag, node);
     }
@@ -225,6 +257,7 @@ export class Peer {
             if (!await node.connectAsync(peer.host, peer.port)) continue;
             node.sendVersionAsync();
             this.registerNode(node);
+            logger.info(`${node.tag} connected ${node.connectionTime}ms`);
         }
     }
 

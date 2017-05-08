@@ -75,6 +75,7 @@ export default class Node extends Event {
     tag: string;
     externalAddress?: string; // IP address from peer's view
     externalPort?: number; // the port from peer's view
+    connectionTime: number;
 
     constructor() {
         super();
@@ -116,11 +117,13 @@ export default class Node extends Event {
         if (this.socket) throw Error('Socket has been initialized');
         let socket = new Socket();
         this.socket = socket;
+        let timestamp = Date.now();
 
         try {
             if (!await socket.connectAsync(peerPort, peerAddress)) return false;
             this.initSocket(socket);
             this.beginReceivingMessagesAsync();
+            this.connectionTime = Date.now() - timestamp;
             return true;
         } catch (error) {
             logger.error(error);
@@ -488,12 +491,12 @@ export default class Node extends Event {
         return this;
     }
 
-    onSharereq(callback: (sender: Node, TypeSharereq) => void) {
+    onSharereq(callback: (sender: Node, req: TypeSharereq) => void) {
         super.register(Node.Events.shareReq, callback);
         return this;
     }
 
-    onSharereply(callback: (sender: Node, TypeSharereply) => void) {
+    onSharereply(callback: (sender: Node, reply: TypeSharereply) => void) {
         super.register(Node.Events.shareReply, callback);
         return this;
     }
