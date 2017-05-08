@@ -20,6 +20,10 @@ export class SharechainHelper {
     private static appDir: string;
     private static dataDir: string;
 
+    static get today() {
+        return Date.now() / 1000 / 60 / 60 / 24 | 0;
+    }
+
     static init(coin: string) {
         let home = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
         let appDir = path.resolve(home, '.js2pool');
@@ -42,10 +46,9 @@ export class SharechainHelper {
         if (shares.length === 0) return;
 
         shares = shares.sort((a, b) => a.info.absheight - b.info.absheight);
-        let filename = `shares_${shares.first().info.absheight}_${shares[shares.length - 1].info.absheight}`;
-        let targetFile = path.resolve(SharechainHelper.dataDir, filename);
-        if (fs.existsSync(targetFile)) return;
-
+        let basename = `shares_${SharechainHelper.today}`;
+        let filename = path.resolve(SharechainHelper.dataDir, basename);
+        
         let seralizableObjs = shares.map(share => {
             let obj = <BaseShare>Object.assign({}, share);
             obj.SUCCESSOR = null;
@@ -69,7 +72,7 @@ export class SharechainHelper {
 
         let data = JSON.stringify(seralizableObjs);
 
-        fs.writeFile(targetFile, data, 'utf8', err => {
+        fs.writeFile(filename, data, 'utf8', err => {
             if (!err) return;
             logger.error(err.message);
         });
