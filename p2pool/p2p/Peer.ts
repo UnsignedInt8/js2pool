@@ -9,7 +9,7 @@ import { DaemonWatcher, DaemonOptions, GetBlockTemplate, TransactionTemplate } f
 import ObservableProperty from "../../nodejs/ObservableProperty";
 import { Version } from "./Messages/Version";
 import { TypeShares } from "./Messages/Shares";
-import Sharechain from "./shares/Sharechain";
+import Sharechain, { Gap } from "./shares/Sharechain";
 import logger from '../../misc/Logger';
 import { TypeSharereq } from "./Messages/Sharereq";
 import { TypeSharereply } from "./Messages/Sharereply";
@@ -52,15 +52,15 @@ export class Peer {
         this.registerNode(node);
     }
 
-    private onGapsFound(sender: Sharechain, childShareHash: string) {
-        logger.warn(`gaps found, child: ${childShareHash}`);
+    private onGapsFound(sender: Sharechain, gaps: Gap[]) {
+        logger.warn(`gaps found, count: ${gaps.length}`);
         if (!this.peers.size) return;
 
         let fastNode = kinq.toLinqable(this.peers.values()).min(item => item.connectionTime);
         fastNode.sendSharereqAsync({
             id: Math.random() * 100000 | 0,
-            hashes: [childShareHash],
-            parents: 1,
+            hashes: gaps.map(i => i.descendent),
+            parents: gaps.max(i => i.length).length,
         });
     }
 
