@@ -166,16 +166,18 @@ export default class Sharechain extends Event {
         return true;
     }
 
-    *subchain(startHash: string, length: number = Number.MAX_SAFE_INTEGER) {
+    *subchain(startHash: string, length: number = Number.MAX_SAFE_INTEGER, direction: 'backward' | 'forward' = 'forward') {
         let absheight = this.hashIndexer.get(startHash);
         if (!absheight) return;
 
+        let step = direction === 'backward' ? -1 : 1;
+        
         while (length--) {
             let shares = this.absheightIndexer.get(absheight);
             if (!shares || shares.length === 0) return;
 
             let share = shares[0];
-            absheight = share.info.absheight + 1;
+            absheight = share.info.absheight + step;
             yield share;
         }
     }
