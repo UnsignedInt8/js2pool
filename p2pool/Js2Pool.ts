@@ -32,16 +32,17 @@ export class Js2Pool {
         this.daemonWatcher.onBlockNotified(this.onBlockNotified.bind(this));
         this.daemonWatcher.beginWatching();
 
-        this.peer = new Peer(opts.server);
-        this.peer.initPeersAsync(opts.bootstrapPeers);
-
         let coins = new Map([['bitcoin', Bitcoin]]);
         let targetCoin = coins.get(opts.coin.name);
-        if (!targetCoin) throw Error('unknown coin name');
+        if (!targetCoin) throw Error(`${opts.coin.name} not be supported`);
+
         BaseShare.MAX_TARGET = targetCoin.MAX_TARGET;
         BaseShare.IDENTIFIER = targetCoin.IDENTIFIER;
         BaseShare.SEGWIT_ACTIVATION_VERSION = targetCoin.SEGWIT_ACTIVATION_VERSION;
         BaseShare.PowFunc = targetCoin.POWFUNC;
+
+        this.peer = new Peer(opts.server);
+        this.peer.initPeersAsync(opts.bootstrapPeers);
     }
 
     private onNewestShareChanged(sender: Sharechain, share: BaseShare) {
@@ -50,11 +51,12 @@ export class Js2Pool {
 
     private onMiningTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
         logger.info('template updating');
-        this.peer.updateGbt(template);
+        this.peer.updateMiningTemplate(template);
     }
 
     private async onBlockNotified(sender: DaemonWatcher, hash: string) {
         if (this.blocks.includes(hash)) return;
+        Sharechain.Instance.checkGaps(); // check gaps when new blocks be found
 
         this.blocks.push(hash);
         if (this.blocks.length < 4) return;

@@ -262,7 +262,7 @@ export class Peer {
         }
     }
 
-    updateGbt(template: GetBlockTemplate) {
+    updateMiningTemplate(template: GetBlockTemplate) {
         let miningTxs = new Map<string, TransactionTemplate>();
         let knownTxs = new Map(this.knownTxs.value);
 

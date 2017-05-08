@@ -17,7 +17,7 @@ type ShareNode = {
 export type Gap = {
     descendent: string,
     descendentHeight: number,
-    length: number,
+    length: number
 }
 
 /**
@@ -228,10 +228,14 @@ export default class Sharechain extends Event {
         let descendentHeight = this.newest.value.info.absheight;
 
         for (let ancestorHeight of Array.from(this.absheightIndexer.keys()).sort((a, b) => b - a).skip(1)) {
-            if (ancestorHeight + 1 === descendentHeight) continue;
+            if (ancestorHeight + 1 === descendentHeight) {
+                descendentHeight = ancestorHeight;
+                continue;
+            }
 
             let length = descendentHeight - ancestorHeight - 1;
             gaps.push({ descendent: this.absheightIndexer.get(descendentHeight)[0].hash, length, descendentHeight });
+            descendentHeight = ancestorHeight;
         }
 
         if (gaps.length > 0) super.trigger(Sharechain.Events.gapsFound, this, gaps);
