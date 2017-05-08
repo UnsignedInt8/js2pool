@@ -3,7 +3,7 @@
  * Github: https://github.com/unsignedint8
  */
 
-import { Algos } from "../../../core/Algos";
+import { Algos } from "../../core/Algos";
 
 export default class Bitcoin {
     static readonly SHARE_PERIOD = 30; //# seconds

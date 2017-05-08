@@ -34,6 +34,7 @@ export default class Sharechain extends Event {
 
     static readonly Instance = new Sharechain();
     static readonly CHAIN_LENGTH = 24 * 60 * 60 / 10;
+    static readonly MAX_CHAIN_LENGTH = Sharechain.CHAIN_LENGTH * 3;
 
     static readonly Events = {
         newestChanged: 'NewestChanged',
@@ -43,8 +44,8 @@ export default class Sharechain extends Event {
         orphansFound: 'OrphansFound',
     }
 
-    private sharesIndex = new Map<string, number>();
-    private absheightIndex = new Map<number, Array<BaseShare>>();
+    private hashIndexer = new Map<string, number>();
+    private absheightIndexer = new Map<number, Array<BaseShare>>();
     private _newest_ = ObservableProperty.init<BaseShare>(null);
     private merging = false;
     newest: BaseShare;
@@ -81,29 +82,29 @@ export default class Sharechain extends Event {
     }
 
     has(share: BaseShare) {
-        return this.sharesIndex.has(share.hash);
+        return this.hashIndexer.has(share.hash);
     }
 
     add(share: BaseShare) {
         if (!share.validity) return;
 
-        let shares = this.absheightIndex.get(share.info.absheight);
+        let shares = this.absheightIndexer.get(share.info.absheight);
         if (!shares) {
             shares = new Array<BaseShare>();
-            this.absheightIndex.set(share.info.absheight, shares);
+            this.absheightIndexer.set(share.info.absheight, shares);
         }
 
         if (shares.some(s => s.hash === share.hash)) return;
         logger.info(`height: ${share.info.absheight}`);
         shares.push(share);
-        this.sharesIndex.set(share.hash, share.info.absheight);
+        this.hashIndexer.set(share.hash, share.info.absheight);
 
         if (this._newest_.hasValue() && share.info.absheight > this._newest_.value.info.absheight) {
             let last = this._newest_.value;
             this._newest_.set(share);
 
             // check the previous share array whether has multiple items or not
-            let previousShares = this.absheightIndex.get(last.info.absheight);
+            let previousShares = this.absheightIndexer.get(last.info.absheight);
             if (!previousShares) return;
             if (previousShares.length < 2) return;
 
@@ -114,7 +115,7 @@ export default class Sharechain extends Event {
             logger.info(`orphans found: ${orphans.length}, at ${last.info.absheight}`);
 
             // always keep the first element is on the main chain
-            this.absheightIndex.set(last.info.absheight, [verified].concat(orphans));
+            this.absheightIndexer.set(last.info.absheight, [verified].concat(orphans));
             return;
         }
 
@@ -131,7 +132,7 @@ export default class Sharechain extends Event {
             if (shares.length < 2) return;
 
             let nextHeight = share.info.absheight + 1;
-            let nextShares = this.absheightIndex.get(nextHeight);
+            let nextShares = this.absheightIndexer.get(nextHeight);
             if (!nextShares || nextShares.length == 0) return;
 
             // dead share arrived
@@ -146,7 +147,7 @@ export default class Sharechain extends Event {
             logger.warn(`old orphans found at ${share.info.absheight}`);
 
             // keep the first element is on the main chain
-            this.absheightIndex.set(share.info.absheight, [share].concat(orphans));
+            this.absheightIndexer.set(share.info.absheight, [share].concat(orphans));
             return;
         }
 
@@ -154,11 +155,11 @@ export default class Sharechain extends Event {
     }
 
     *subchain(startHash: string, length: number = Number.MAX_SAFE_INTEGER) {
-        let absheight = this.sharesIndex.get(startHash);
+        let absheight = this.hashIndexer.get(startHash);
         if (!absheight) return;
 
         while (length--) {
-            let shares = this.absheightIndex.get(absheight);
+            let shares = this.absheightIndexer.get(absheight);
             if (!shares || shares.length == 0) return;
 
             let share = shares[0];
@@ -172,7 +173,7 @@ export default class Sharechain extends Event {
 
         let count = 0;
         let height = this._newest_.value.info.absheight;
-        while (this.absheightIndex.has(height)) {
+        while (this.absheightIndexer.has(height)) {
             count++;
             height--;
         }
@@ -181,7 +182,7 @@ export default class Sharechain extends Event {
     }
 
     size() {
-        return this.absheightIndex.size;
+        return this.absheightIndexer.size;
     }
 
     // check whether has holes
@@ -193,7 +194,7 @@ export default class Sharechain extends Event {
         let absheight = this._newest_.value.info.absheight;
 
         while (true) {
-            let shares = this.absheightIndex.get(absheight);
+            let shares = this.absheightIndexer.get(absheight);
             if (!shares || shares.length == 0) break;
 
             let share = shares[0];

@@ -1,9 +1,9 @@
 
-import { DaemonWatcher, DaemonOptions, GetBlockTemplate } from "../../core/DaemonWatcher";
-import { Peer, PeerOptions } from "./Peer";
+import { DaemonWatcher, DaemonOptions, GetBlockTemplate } from "../core/DaemonWatcher";
+import { Peer, PeerOptions } from "./p2p/Peer";
 import Bitcoin from './coins/Bitcoin';
-import { BaseShare } from "./shares/index";
-import { Algos } from "../../core/Algos";
+import { BaseShare } from "./p2p/shares/index";
+import { Algos } from "../core/Algos";
 
 export type Js2PoolOptions = {
     daemon: DaemonOptions,

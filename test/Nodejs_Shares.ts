@@ -11,7 +11,7 @@ import * as crypto from 'crypto';
 import { HashLink } from "../p2pool/p2p/shares/HashLink";
 import * as Utils from '../misc/Utils';
 import * as BigNum from 'bignum';
-import Bitcoin from "../p2pool/p2p/coins/Bitcoin";
+import Bitcoin from "../p2pool/coins/Bitcoin";
 import { Peer } from "../p2pool/p2p/Peer";
 import winston from '../misc/Logger';
 
