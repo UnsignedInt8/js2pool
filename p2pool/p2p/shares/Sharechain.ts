@@ -42,13 +42,14 @@ export default class Sharechain extends Event {
         deadArrived: 'DeadArrived',
         candidateArrived: 'CandidateArrived',
         orphansFound: 'OrphansFound',
+        gapsFound: 'GapsFound',
     }
 
     private hashIndexer = new Map<string, number>();
     private absheightIndexer = new Map<number, Array<BaseShare>>();
     private _newest_ = ObservableProperty.init<BaseShare>(null);
     private merging = false;
-    
+
     get newest() { return this._newest_.value; };
 
     private constructor() {
@@ -73,12 +74,12 @@ export default class Sharechain extends Event {
         super.register(Sharechain.Events.newestChanged, callback);
     }
 
-    onOldestChanged(callback: (sender: Sharechain, value: BaseShare) => void) {
-        super.register(Sharechain.Events.oldestChanged, callback);
-    }
-
     onCandidateArrived(callback: (sender: Sharechain, value: BaseShare) => void) {
         super.register(Sharechain.Events.candidateArrived, callback);
+    }
+
+    onGapsFound(callback: (sender: Sharechain, childHash: string) => void) {
+        super.register(Sharechain.Events.gapsFound, callback);
     }
 
     has(share: BaseShare) {
@@ -103,6 +104,9 @@ export default class Sharechain extends Event {
             let last = this._newest_.value;
             this._newest_.set(share);
 
+            // find gaps
+            if (!this.absheightIndexer.has(share.info.absheight - 1)) super.trigger(Sharechain.Events.gapsFound, this, share.hash);
+
             // check the previous share array whether has multiple items or not
             let previousShares = this.absheightIndexer.get(last.info.absheight);
             if (!previousShares) return;
@@ -116,6 +120,7 @@ export default class Sharechain extends Event {
 
             // always keep the first element is on the main chain
             this.absheightIndexer.set(last.info.absheight, [verified].concat(orphans));
+
             return;
         }
 

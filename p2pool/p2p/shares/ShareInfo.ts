@@ -14,7 +14,7 @@ type Segwit = {
         branch: Buffer[], // hash list
         index?: number, // 0 bit, always 0
     },
-    wtxidMerkleRoot: string,// 'ffffffffffffffffffffffffffffffff', // 256 bytes
+    wtxidMerkleRoot: Buffer,// 'ffffffffffffffffffffffffffffffff', // 256 bytes
 };
 
 type ShareData = {
@@ -56,7 +56,7 @@ export default class ShareInfo {
         let segBuf = Buffer.alloc(0);
         if (this.segwit) {
             let txidMerkleLink = BufferWriter.writeList(this.segwit.txidMerkleLink.branch);
-            segBuf = Buffer.concat([txidMerkleLink, utils.uint256BufferFromHash(this.segwit.wtxidMerkleRoot)]);
+            segBuf = Buffer.concat([txidMerkleLink, this.segwit.wtxidMerkleRoot]);
         }
 
         return Buffer.concat([
@@ -81,6 +81,12 @@ export default class ShareInfo {
         return tuples;
     }
 
+    static fromObject(obj: any) {
+        let info = new ShareInfo();
+        info = Object.assign(obj);
+        return info as ShareInfo;
+    }
+
     static fromBufferReader(reader: BufferReader, segwitActivated: boolean) {
         let info = new ShareInfo();
         info.data = {
@@ -100,7 +106,7 @@ export default class ShareInfo {
                     branch: reader.readList(32),
                     index: 0
                 },
-                wtxidMerkleRoot: reader.readReversedFixedString(32),
+                wtxidMerkleRoot: reader.read(32),
             };
         }
 

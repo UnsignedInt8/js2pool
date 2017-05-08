@@ -47,6 +47,12 @@ export default class SmallBlockHeader {
         return header;
     }
 
+    static fromObject(obj: any) {
+        let header = new SmallBlockHeader();
+        header = Object.assign(header, obj);
+        return header;
+    }
+
     static fromBuffer(data: Buffer) {
         return SmallBlockHeader.fromBufferReader(new BufferReader(data));
     }

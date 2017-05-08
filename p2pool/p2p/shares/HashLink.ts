@@ -26,6 +26,12 @@ export class HashLink {
         return crypto.createHash('sha256').update(new SHA256(data, this.state, extra, 8 * this.length).digest()).digest();
     }
 
+    static fromObject(obj: any){
+        let hashlink = new HashLink();
+        hashlink = Object.assign(hashlink, obj);
+        return hashlink as HashLink;
+    }
+
     static fromBufferReader(reader: BufferReader) {
         let link = new HashLink();
         link.state = reader.read(32);

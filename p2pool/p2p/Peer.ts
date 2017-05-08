@@ -32,6 +32,12 @@ export class Peer {
         this.miningTxs.onPropertyChanged(this.onMiningTxsChanged.bind(this));
         this.server = net.createServer(this.onSocketConnected.bind(this)).listen(opts.port);
         this.server.on('error', error => { console.error(error.message); throw error; });
+
+        this.sharechain.onGapsFound(this.onGapsFound.bind(this));
+        this.sharechain.onOrphansFound(this.onOrphansFound.bind(this));
+        this.sharechain.onNewestChanged(this.onNewestShareChanged.bind(this));
+        this.sharechain.onCandidateArrived(this.onCandidateArrived.bind(this));
+        this.sharechain.onDeadShareArrived(this.onDeadShareArrived.bind(this));
     }
 
     private onSocketConnected(s: Socket) {
@@ -42,6 +48,25 @@ export class Peer {
         this.registerNode(node);
     }
 
+    private onGapsFound(sender: Sharechain, childShareHash: string) {
+
+    }
+
+    private onCandidateArrived(sender: Sharechain, share: BaseShare) {
+
+    }
+
+    private onDeadShareArrived(sender: Sharechain, share: BaseShare) {
+
+    }
+
+    private onOrphansFound(sender: Sharechain, orphans: BaseShare[]) {
+
+    }
+
+    private onNewestShareChanged(sender: Sharechain, share: BaseShare) {
+
+    }
 
     // ----------------- Node message events -------------------
 

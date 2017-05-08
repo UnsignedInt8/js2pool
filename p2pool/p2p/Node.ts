@@ -313,7 +313,7 @@ export default class Node extends Event {
         }
     }
 
-    async sendVersionAsync() {
+    async sendVersionAsync(bestShareHash: string = null) {
         if (this.peerAliveTimer) clearTimeout(this.peerAliveTimer);
         this.peerAliveTimer = setTimeout(this.close.bind(this, true), 10 * 1000);
 
@@ -334,6 +334,7 @@ export default class Node extends Event {
             payload: {
                 addressFrom: addrFrom,
                 addressTo: addrTo,
+                bestShareHash,
             }
         });
 

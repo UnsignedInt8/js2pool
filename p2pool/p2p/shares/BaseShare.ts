@@ -39,7 +39,6 @@ export abstract class BaseShare {
     newScript: Buffer;
     target: number;
     gentxHash: Buffer;
-    newTxHashes: string[];
     validity = false;
 
     constructor(minHeader: SmallBlockHeader = null, info: ShareInfo = null, hashLink: HashLink = null, merkleLink: Buffer[] = null) {
@@ -61,7 +60,6 @@ export abstract class BaseShare {
         });
         if (n.size !== this.info.newTransactionHashes.length) return false;
 
-        this.newTxHashes = this.info.newTransactionHashes;
         this.newScript = utils.hash160ToScript(this.info.data.pubkeyHash); // script Pub Key
         this.target = bitsToTarget(this.info.bits);
 
@@ -74,7 +72,7 @@ export abstract class BaseShare {
         let merkleRoot = (segwitActivated && this.info.segwit.txidMerkleLink.branch ? this.info.segwit.txidMerkleLink.branch : this.merkleLink).aggregate(this.gentxHash, (c, n) => utils.sha256d(Buffer.concat([c, n])));
         let headerHash = this.minHeader.calculateHash(merkleRoot);
         this.hash = utils.hexFromReversedBuffer(headerHash);
-        
+
         if (this.target > BaseShare.MAX_TARGET) return false;
         if (BigNum.fromBuffer(BaseShare.PowFunc(this.minHeader.buildHeader(merkleRoot)), { endian: 'little', size: 32 }).toNumber() > this.target) return false;
 
@@ -141,6 +139,6 @@ export class NewShare extends BaseShare {
     }
 }
 
-const ShareVersionMapper = { 16: Share, 17: NewShare };
+export const ShareVersionMapper = { 16: Share, 17: NewShare };
 
 
