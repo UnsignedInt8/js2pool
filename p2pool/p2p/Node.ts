@@ -75,7 +75,7 @@ export default class Node extends Event {
     tag: string;
     externalAddress?: string; // IP address from peer's view
     externalPort?: number; // the port from peer's view
-    connectionTime: number;
+    connectionTime = 300; // ms
 
     constructor() {
         super();
@@ -149,7 +149,7 @@ export default class Node extends Event {
             this.trigger(Node.Events.end, this);
             super.removeAllEvents();
 
-            logger.info(`peer ${this.tag} disconnected`);
+            logger.info(`${this.tag} disconnected`);
         }
     }
 

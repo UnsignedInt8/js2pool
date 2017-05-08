@@ -179,7 +179,6 @@ export class Peer {
 
         this.knownTxs.set(newTxs);
         this.sharechain.verify();
-        logger.info('length:' + this.sharechain.length);
     }
 
     private handleSharereq(sender: Node, request: TypeSharereq) {

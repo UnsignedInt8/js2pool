@@ -24,6 +24,9 @@ export class Js2Pool {
     private readonly blocks = new Array<string>();
 
     constructor(opts: Js2PoolOptions) {
+        Sharechain.Instance.onNewestChanged(this.onNewestShareChanged.bind(this));
+        Sharechain.Instance.onCandidateArrived(this.onNewestShareChanged.bind(this));
+
         this.daemonWatcher = new DaemonWatcher(opts.daemon);
         this.daemonWatcher.onBlockTemplateUpdated(this.onMiningTemplateUpdated.bind(this));
         this.daemonWatcher.onBlockNotified(this.onBlockNotified.bind(this));
@@ -39,9 +42,6 @@ export class Js2Pool {
         BaseShare.IDENTIFIER = targetCoin.IDENTIFIER;
         BaseShare.SEGWIT_ACTIVATION_VERSION = targetCoin.SEGWIT_ACTIVATION_VERSION;
         BaseShare.PowFunc = targetCoin.POWFUNC;
-
-        Sharechain.Instance.onNewestChanged(this.onNewestShareChanged.bind(this));
-        Sharechain.Instance.onCandidateArrived(this.onNewestShareChanged.bind(this));
     }
 
     private onNewestShareChanged(sender: Sharechain, share: BaseShare) {
