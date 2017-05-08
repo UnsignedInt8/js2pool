@@ -96,7 +96,6 @@ export default class Sharechain extends Event {
         }
 
         if (shares.some(s => s.hash === share.hash)) return;
-        logger.info(`height: ${share.info.absheight}`);
         shares.push(share);
         this.hashIndexer.set(share.hash, share.info.absheight);
 
@@ -115,8 +114,7 @@ export default class Sharechain extends Event {
             // find orphans
             let verified = previousShares.single(s => s.hash === share.info.data.previousShareHash);
             let orphans = previousShares.except([verified], (i1, i2) => i1.hash === i2.hash).toArray();
-            this.trigger(Sharechain.Events.orphansFound, this, orphans);
-            logger.info(`orphans found: ${orphans.length}, at ${last.info.absheight}`);
+            if (orphans.length > 0) this.trigger(Sharechain.Events.orphansFound, this, orphans);
 
             // always keep the first element is on the main chain
             this.absheightIndexer.set(last.info.absheight, [verified].concat(orphans));
@@ -148,8 +146,7 @@ export default class Sharechain extends Event {
 
             // check orphans. if this happened, means someone is attacking p2pool network, or node's sharechain is stale
             let orphans = shares.except([share], (i1, i2) => i1.hash === i2.hash).toArray();
-            this.trigger(Sharechain.Events.orphansFound, this, orphans);
-            logger.warn(`old orphans found at ${share.info.absheight}`);
+            if (orphans.length > 0) this.trigger(Sharechain.Events.orphansFound, this, orphans);
 
             // keep the first element is on the main chain
             this.absheightIndexer.set(share.info.absheight, [share].concat(orphans));

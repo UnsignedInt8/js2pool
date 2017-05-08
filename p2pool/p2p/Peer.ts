@@ -50,22 +50,24 @@ export class Peer {
     }
 
     private onGapsFound(sender: Sharechain, childShareHash: string) {
-
+        logger.warn(`gaps found, child: ${childShareHash}`);
     }
 
     private onCandidateArrived(sender: Sharechain, share: BaseShare) {
-
+        logger.info(`candidate arrived, ${share.hash}`);
     }
 
     private onDeadShareArrived(sender: Sharechain, share: BaseShare) {
-
+        logger.warn(`dead share arrived, ${share.info.absheight}, ${share.hash}`)
     }
 
     private onOrphansFound(sender: Sharechain, orphans: BaseShare[]) {
+        logger.warn(`orphans found, ${orphans.length}, ${orphans[0].info.absheight}, ${orphans[0].hash}`);
 
     }
 
     private onNewestShareChanged(sender: Sharechain, share: BaseShare) {
+        logger.info(`sharechain new height: ${share.info.absheight}`);
 
     }
 
@@ -113,7 +115,6 @@ export class Peer {
         if (shares.length == 0) return;
 
         let result = new Array<{ share: BaseShare, txs: TransactionTemplate[] }>();
-
         for (let share of shares.where(s => s.contents && s.contents.validity).select(s => s.contents)) {
             logger.info(share.hash);
 

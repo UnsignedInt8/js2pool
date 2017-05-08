@@ -143,8 +143,10 @@ export default class Node extends Event {
         } finally {
             if (this.keepAliveTimer) clearInterval(this.keepAliveTimer);
             if (this.peerAliveTimer) clearTimeout(this.peerAliveTimer);
-            super.removeAllEvents();
             this.trigger(Node.Events.end, this);
+            super.removeAllEvents();
+
+            logger.info(`peer ${this.tag} disconnected`);
         }
     }
 
