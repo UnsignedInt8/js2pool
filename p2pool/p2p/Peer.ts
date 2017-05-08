@@ -9,6 +9,7 @@ import ObservableProperty from "../../nodejs/ObservableProperty";
 import { Version } from "./Messages/Version";
 import { TypeShares } from "./Messages/Shares";
 import Sharechain from "./shares/Sharechain";
+import logger from '../../misc/Logger';
 
 export type PeerOptions = {
     maxConn?: number,
@@ -31,7 +32,7 @@ export class Peer {
         this.knownTxs.onPropertyChanged(this.onKnownTxsChanged.bind(this));
         this.miningTxs.onPropertyChanged(this.onMiningTxsChanged.bind(this));
         this.server = net.createServer(this.onSocketConnected.bind(this)).listen(opts.port);
-        this.server.on('error', error => { console.error(error.message); throw error; });
+        this.server.on('error', error => { logger.error(error.message); throw error; });
 
         this.sharechain.onGapsFound(this.onGapsFound.bind(this));
         this.sharechain.onOrphansFound(this.onOrphansFound.bind(this));
@@ -84,7 +85,7 @@ export class Peer {
 
             let knownTx = this.knownTxs.value.get(hash) || this.knownTxsCaches.where(cache => cache.has(hash)).select(cache => cache.get(hash)).firstOrDefault();
             if (!knownTx) {
-                console.info('Peer referenced unknown transaction %s, disconnecting', hash);
+                logger.info(`Peer referenced unknown transaction ${hash}, disconnecting`);
                 sender.close(false);
                 return;
             }
@@ -114,7 +115,8 @@ export class Peer {
         let result = new Array<{ share: BaseShare, txs: TransactionTemplate[] }>();
 
         for (let share of shares.where(s => s.contents && s.contents.validity).select(s => s.contents)) {
-            console.log(share.hash);
+            logger.info(share.hash);
+
             let txs = new Array<TransactionTemplate>();
 
             for (let txHash of share.info.newTransactionHashes) {
@@ -139,7 +141,7 @@ export class Peer {
 
                 let cache = this.knownTxsCaches.firstOrDefault(c => c.has(txHash), null);
                 if (!cache) {
-                    console.log/*sender.close*/(true, 'Peer referenced unknown transaction, disconnecting');
+                    logger.warn('Peer referenced unknown transaction');
                     continue;
                 }
 
@@ -160,7 +162,7 @@ export class Peer {
 
         this.knownTxs.set(newTxs);
         this.sharechain.verify();
-        console.log('length:', this.sharechain.length);
+        logger.info('length:' + this.sharechain.length);
     }
 
     // ----------------- Peer work ---------------------
@@ -192,7 +194,7 @@ export class Peer {
         this.knownTxsCaches.push(removed.select(hash => { return [hash, oldValue.get(hash)]; }).toMap<string, TransactionTemplate>())
         if (this.knownTxsCaches.length > 10) this.knownTxsCaches.shift();
 
-        console.log('known txs changed, added: %d, removed: %d', added.length, removed.length)
+        logger.info(`known txs changed, added: ${added.length}, removed: ${removed.length}`)
 
     }
 
@@ -213,7 +215,7 @@ export class Peer {
             this.peers.forEach(p => p.sendForget_txAsync(removed.map(tx => tx.txid || tx.hash), totalSize));
         }
 
-        console.log('mining txs changed, added: %d, removed: %d, %dms', added.length, removed.length);
+        logger.info(`mining txs changed, added: ${added.length}, removed: ${removed.length}`, );
     }
 
     async initPeersAsync(peers: { host: string, port: number }[]) {

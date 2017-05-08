@@ -20,6 +20,7 @@ import { Share, NewShare, BaseShare } from "./Shares";
 import { TypeSharereq, default as Sharereq } from "./Messages/Sharereq";
 import { TypeSharereply, default as Sharereply } from "./Messages/Sharereply";
 import { TransactionTemplate } from "../../core/DaemonWatcher";
+import logger from '../../misc/Logger';
 
 export default class Node extends Event {
 
@@ -106,7 +107,7 @@ export default class Node extends Event {
         socket.setTimeout(10 * 1000, () => me.trigger(Node.Events.timeout, me));
         socket.once('end', () => me.close(false));
         socket.once('error', err => {
-            console.info(socket.remoteAddress, err.message);
+            logger.error(`${socket.remoteAddress}, ${err.message}`);
             me.close(true);
         });
     }
@@ -122,7 +123,7 @@ export default class Node extends Event {
             this.beginReceivingMessagesAsync();
             return true;
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             socket.removeAllListeners();
             return false;
         }
@@ -130,7 +131,7 @@ export default class Node extends Event {
 
     close(destroy: boolean, info?: string) {
         try {
-            if (info) console.info(info);
+            if (info) logger.info(info);
             this.rememberedTxs.clear();
             this.remoteTxHashs.clear();
 
@@ -138,7 +139,7 @@ export default class Node extends Event {
             destroy ? this.socket.destroy() : this.socket.end();
             this.socket.removeAllListeners();
         } catch (error) {
-            console.log(error);
+            logger.error(error);
         } finally {
             if (this.keepAliveTimer) clearInterval(this.keepAliveTimer);
             if (this.peerAliveTimer) clearTimeout(this.peerAliveTimer);
@@ -192,10 +193,10 @@ export default class Node extends Event {
             this.peerAliveTimer = setTimeout(this.close.bind(this, true, '100 seconds exceeded, timeout. close...'), 100 * 1000);
             this.msgHandlers.get(command)(payload);
         } else {
-            console.info(`unknown command: ${command}`);
+            logger.warn(`unknown command: ${command}`);
             this.trigger(Node.Events.unknownCommand, this, command);
         }
-        // console.log(command);
+
         let me = this;
         process.nextTick(async () => await me.beginReceivingMessagesAsync(remain));
     }
@@ -221,7 +222,7 @@ export default class Node extends Event {
 
     // Nothing to do here
     private handlePong(payload: Buffer) {
-        console.info(this.socket.remoteAddress, 'is alive');
+        logger.info(`${this.socket.remoteAddress} is alive`);
     }
 
     private handleAddrs(payload: Buffer) {
@@ -274,7 +275,7 @@ export default class Node extends Event {
         for (let hash of txHashes) {
             this.rememberedTxs.delete(hash);
         }
-        console.log('forget_tx: %d, remember_tx: ', txHashes.length, this.rememberedTxs.size);
+        logger.info(`forget_tx: ${txHashes.length}, remember_tx: ${this.rememberedTxs.size}`);
         this.trigger(Node.Events.forgetTx, this, txHashes);
     }
 

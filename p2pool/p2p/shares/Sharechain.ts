@@ -215,6 +215,9 @@ export default class Sharechain extends Event {
     }
 
     checkGaps() {
+        let gaps = new Array<string>();
+        for (let i of Array.from(this.absheightIndexer.keys()).sort((a, b) => a - b)) {
 
+        }
     }
 }
