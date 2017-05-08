@@ -29,6 +29,7 @@ export class SharechainHelper {
 
         if (!fs.existsSync(appDir)) {
             fs.mkdirSync(appDir);
+            fs.mkdirSync(path.resolve(appDir, 'data'));
         }
 
         if (!fs.existsSync(dataDir)) {
@@ -36,22 +37,24 @@ export class SharechainHelper {
         }
     }
 
-    static async saveSharesAsync(shares: BaseShare[]) {
+    static saveShares(shares: BaseShare[]) {
         if (!SharechainHelper.appDir) throw Error('not initialized');
         if (shares.length === 0) return;
 
+        shares = shares.sort((a, b) => a.info.absheight - b.info.absheight);
         let filename = `shares_${shares.first().info.absheight}_${shares[shares.length - 1].info.absheight}`;
         let targetFile = path.resolve(SharechainHelper.dataDir, filename);
         if (fs.existsSync(targetFile)) return;
 
         let seralizableObjs = shares.map(share => {
-            let obj = Object.assign({}, share) as BaseShare;
+            let obj = <BaseShare>Object.assign({}, share);
             obj.SUCCESSOR = null;
             obj.refMerkleLink = <any>obj.refMerkleLink.map(l => l.toString('hex'));
             obj.merkleLink = <any>obj.merkleLink.map(l => l.toString('hex'));
             obj.newScript = <any>obj.newScript.toString('hex');
             obj.gentxHash = <any>obj.gentxHash.toString('hex');
             obj.lastTxoutNonce = <any>obj.lastTxoutNonce.toBuffer().toString('hex');
+            obj.info.data.subsidy = <any>obj.info.data.subsidy.toBuffer().toString('hex');
 
             if (obj.info.segwit) {
                 obj.info.segwit.txidMerkleLink.branch = <any>obj.info.segwit.txidMerkleLink.branch.map(b => b.toString('hex'));
@@ -64,16 +67,11 @@ export class SharechainHelper {
             return obj;
         });
 
-        await new Promise((resolve, reject) => {
-            fs.writeFile(targetFile, JSON.stringify(seralizableObjs), 'hex', err => {
-                if (err) {
-                    reject(err);
-                    logger.error(err.message);
-                    return;
-                }
+        let data = JSON.stringify(seralizableObjs);
 
-                resolve();
-            });
+        fs.writeFile(targetFile, data, 'utf8', err => {
+            if (!err) return;
+            logger.error(err.message);
         });
     }
 
@@ -92,7 +90,10 @@ export class SharechainHelper {
 
         let shares = await new Promise<BaseShare[]>(resolve => {
             let shares = targetFiles.select(filename => {
-                let objs = JSON.parse(fs.readFileSync(filename, 'hex')) as BaseShare[];
+                let file = fs.readFileSync(filename, 'utf8');
+                if (!file.length) return [];
+
+                let objs = JSON.parse(file) as BaseShare[];
                 return objs.map(obj => {
                     let header = SmallBlockHeader.fromObject(obj.minHeader);
 
@@ -104,6 +105,7 @@ export class SharechainHelper {
                     obj.hashLink.state = Buffer.from(<any>obj.hashLink.state, 'hex');
                     obj.hashLink.extra = Buffer.from(<any>obj.hashLink.extra, 'hex');
 
+                    obj.info.data.subsidy = BigNum.fromBuffer(Buffer.from(<any>obj.info.data.subsidy, 'hex'), { endian: 'little', size: 8 });
                     let info = ShareInfo.fromObject(obj.info);
                     let hashlink = HashLink.fromObject(obj.hashLink);
 

@@ -7,6 +7,7 @@ import { Shares } from "./p2p/Messages/Shares";
 import { DaemonWatcher } from "../core/DaemonWatcher";
 import { BaseShare } from "./p2p/shares/index";
 import Bitcoin from "./coins/Bitcoin";
+import { SharechainHelper } from "./p2p/shares/SharechainHelper";
 kinq.enable();
 
 const opts = {
@@ -34,8 +35,10 @@ const opts = {
     }
 };
 
-function run() {
+async function run() {
     BaseShare.IDENTIFIER = Bitcoin.IDENTIFIER;
+    SharechainHelper.init('bitcoin');
+    await SharechainHelper.loadSharesAsync(0, Number.MAX_SAFE_INTEGER);
     let js2pool = new Js2Pool(opts);
 
     // let daemon = new DaemonWatcher(opts.daemon);

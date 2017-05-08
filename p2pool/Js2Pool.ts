@@ -6,6 +6,7 @@ import { BaseShare } from "./p2p/shares/index";
 import { Algos } from "../core/Algos";
 import logger from '../misc/Logger';
 import Sharechain from "./p2p/shares/Sharechain";
+import { SharechainHelper } from "./p2p/shares/SharechainHelper";
 
 export type Js2PoolOptions = {
     daemon: DaemonOptions,
@@ -47,10 +48,12 @@ export class Js2Pool {
 
     private onNewestShareChanged(sender: Sharechain, share: BaseShare) {
         this.daemonWatcher.refreshBlockTemplateAsync();
+        if (sender.size % 5 === 0)
+            SharechainHelper.saveShares(Array.from(sender.subchain(share.hash, 2, 'backward')));
     }
 
     private onMiningTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
-        logger.info('template updating');
+        logger.info('update mining template');
         this.peer.updateMiningTemplate(template);
     }
 
