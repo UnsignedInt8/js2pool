@@ -128,7 +128,7 @@ export class Peer {
     }
 
     handleShares(sender: Node, shares: TypeShares[]) {
-        if (shares.length == 0) return;
+        if (shares.length === 0) return;
 
         let result = new Array<{ share: BaseShare, txs: TransactionTemplate[] }>();
         for (let share of shares.where(s => s.contents && s.contents.validity).select(s => s.contents)) {
@@ -193,6 +193,8 @@ export class Peer {
         for (let share of reply.shares.shares) {
             this.sharechain.add(share.contents);
         }
+
+        this.sharechain.checkGaps();
     }
 
     // ----------------- Peer work ---------------------

@@ -14,6 +14,12 @@ type ShareNode = {
     item: BaseShare;
 }
 
+export type Gap = {
+    descendent: string,
+    descendentHeight: number,
+    length: number,
+}
+
 /**
  * Sharechain
  * 
@@ -24,7 +30,7 @@ type ShareNode = {
  * [x][-]
  * [x]
  * [x]
- * xxx a gap here xxx
+ * xxx a gap here xxx (length: 1)
  * [x][-][-]
  * [x][-]
  * [x]
@@ -76,7 +82,7 @@ export default class Sharechain extends Event {
         super.register(Sharechain.Events.candidateArrived, callback);
     }
 
-    onGapsFound(callback: (sender: Sharechain, childHash: string) => void) {
+    onGapsFound(callback: (sender: Sharechain, gaps: Gap[]) => void) {
         super.register(Sharechain.Events.gapsFound, callback);
     }
 
@@ -85,8 +91,8 @@ export default class Sharechain extends Event {
     }
 
     /**
-     * if returns ture, means it's a new share, it can be broadcasted to other peers
-     * if returns false, means it's an old or invalid share
+     * if returns ture, means it's a new share, and it can be broadcasted to other peers
+     * if returns false, means it's **an old** or invalid share, and it should not be broadcasted to other peers
      */
     add(share: BaseShare) {
         if (!share.validity) return false;
@@ -106,7 +112,8 @@ export default class Sharechain extends Event {
             this.newest.set(share);
 
             // find gaps
-            if (!this.absheightIndexer.has(share.info.absheight - 1)) super.trigger(Sharechain.Events.gapsFound, this, share.hash);
+            if (!this.absheightIndexer.has(share.info.absheight - 1))
+                super.trigger(Sharechain.Events.gapsFound, this, [{ descendent: share.hash, descendentHeight: share.info.absheight, length: 1 }]);
 
             // check the previous share array whether has multiple items or not
             let previousShares = this.absheightIndexer.get(last.info.absheight);
@@ -165,7 +172,7 @@ export default class Sharechain extends Event {
 
         while (length--) {
             let shares = this.absheightIndexer.get(absheight);
-            if (!shares || shares.length == 0) return;
+            if (!shares || shares.length === 0) return;
 
             let share = shares[0];
             absheight = share.info.absheight + 1;
@@ -200,7 +207,7 @@ export default class Sharechain extends Event {
 
         while (true) {
             let shares = this.absheightIndexer.get(absheight);
-            if (!shares || shares.length == 0) break;
+            if (!shares || shares.length === 0) break;
 
             let share = shares[0];
             if (hash != share.hash) break;
@@ -215,9 +222,18 @@ export default class Sharechain extends Event {
     }
 
     checkGaps() {
-        let gaps = new Array<string>();
-        for (let i of Array.from(this.absheightIndexer.keys()).sort((a, b) => a - b)) {
+        if (!this.newest.hasValue()) return;
 
+        let gaps = new Array<Gap>();
+        let descendentHeight = this.newest.value.info.absheight;
+
+        for (let ancestorHeight of Array.from(this.absheightIndexer.keys()).sort((a, b) => b - a).skip(1)) {
+            if (ancestorHeight + 1 === descendentHeight) continue;
+
+            let length = descendentHeight - ancestorHeight - 1;
+            gaps.push({ descendent: this.absheightIndexer.get(descendentHeight)[0].hash, length, descendentHeight });
         }
+
+        if (gaps.length > 0) super.trigger(Sharechain.Events.gapsFound, this, gaps);
     }
 }

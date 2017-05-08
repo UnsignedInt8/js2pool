@@ -38,7 +38,7 @@ export class SharechainHelper {
 
     static async saveSharesAsync(shares: BaseShare[]) {
         if (!SharechainHelper.appDir) throw Error('not initialized');
-        if (shares.length == 0) return;
+        if (shares.length === 0) return;
 
         let filename = `shares_${shares.first().info.absheight}_${shares[shares.length - 1].info.absheight}`;
         let targetFile = path.resolve(SharechainHelper.dataDir, filename);
