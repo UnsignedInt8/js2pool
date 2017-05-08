@@ -3,11 +3,10 @@
  * Github: https://github.com/unsignedint8
  */
 
+import logger from '../../../misc/Logger';
 import { BaseShare } from "./index";
 import { Event } from "../../../nodejs/Event";
 import ObservableProperty from "../../../nodejs/ObservableProperty";
-import * as kinq from 'kinq';
-import logger from '../../../misc/Logger';
 
 type ShareNode = {
     next?: string;
@@ -25,6 +24,7 @@ type ShareNode = {
  * [x][-]
  * [x]
  * [x]
+ * xxx a gap here xxx
  * [x][-][-]
  * [x][-]
  * [x]
@@ -185,7 +185,7 @@ export default class Sharechain extends Event {
         return this.absheightIndexer.size;
     }
 
-    // check whether has holes
+    // check it whether has gaps or not
     verify() {
         if (!this._newest_.hasValue()) return false;
 

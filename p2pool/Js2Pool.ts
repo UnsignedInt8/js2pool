@@ -4,13 +4,13 @@ import { Peer, PeerOptions } from "./p2p/Peer";
 import Bitcoin from './coins/Bitcoin';
 import { BaseShare } from "./p2p/shares/index";
 import { Algos } from "../core/Algos";
+import logger from '../misc/Logger';
 
 export type Js2PoolOptions = {
     daemon: DaemonOptions,
     server: PeerOptions,
     coin: {
         name: string,
-        algo: string,
     }
 
     bootstrapPeers: { host: string, port: number }[],
@@ -41,7 +41,7 @@ export class Js2Pool {
     }
 
     private onMiningTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
-        console.log('template update');
+        logger.info('template updating');
         this.peer.updateGbt(template);
     }
 
@@ -56,6 +56,6 @@ export class Js2Pool {
         if (!block) return;
 
         this.peer.removeDeprecatedTxs(block.tx);
-        console.log('clean txs: ', block.tx.length);
+        logger.info('clean deprecated txs: ', block.tx.length);
     }
 }
