@@ -82,7 +82,7 @@ export class SharechainHelper {
         file.end();
     }
 
-    static async loadSharesAsync(days: number = 3) {
+    static loadShares(days: number = 3) {
         if (!SharechainHelper.appDir) throw Error('not initialized');
 
         let files = fs.readdirSync(SharechainHelper.dataDir);
@@ -91,41 +91,35 @@ export class SharechainHelper {
             return { path: path.resolve(SharechainHelper.dataDir, item), day: Number.parseInt(items[1]) };
         }).orderByDescending(i => i.day).take(days).toArray();
 
-        let shares = await new Promise<BaseShare[]>(resolve => {
-            let shares = targetFiles.select(file => {
-                let data = fs.readFileSync(file.path, 'utf8');
-                if (!data.length) return [];
+        return targetFiles.select(file => {
+            let data = fs.readFileSync(file.path, 'utf8');
+            if (!data.length) return [];
 
-                return data.split('\n').where(s => s.length > 0).select(s => <BaseShare>JSON.parse(s)).select(obj => {
-                    let header = SmallBlockHeader.fromObject(obj.minHeader);
+            return data.split('\n').where(s => s.length > 0).select(s => <BaseShare>JSON.parse(s)).select(obj => {
+                let header = SmallBlockHeader.fromObject(obj.minHeader);
+                if (obj.info.segwit) {
+                    obj.info.segwit.wtxidMerkleRoot = Buffer.from(<any>obj.info.segwit.wtxidMerkleRoot, 'hex');
+                    obj.info.segwit.txidMerkleLink.branch = obj.info.segwit.txidMerkleLink.branch.map(b => Buffer.from(<any>b, 'hex'));
+                }
 
-                    if (obj.info.segwit) {
-                        obj.info.segwit.wtxidMerkleRoot = Buffer.from(<any>obj.info.segwit.wtxidMerkleRoot, 'hex');
-                        obj.info.segwit.txidMerkleLink.branch = obj.info.segwit.txidMerkleLink.branch.map(b => Buffer.from(<any>b, 'hex'));
-                    }
+                obj.hashLink.state = Buffer.from(<any>obj.hashLink.state, 'hex');
+                obj.hashLink.extra = Buffer.from(<any>obj.hashLink.extra, 'hex');
 
-                    obj.hashLink.state = Buffer.from(<any>obj.hashLink.state, 'hex');
-                    obj.hashLink.extra = Buffer.from(<any>obj.hashLink.extra, 'hex');
+                obj.info.data.subsidy = BigNum.fromBuffer(Buffer.from(<any>obj.info.data.subsidy, 'hex'));
+                let info = ShareInfo.fromObject(obj.info);
+                let hashlink = HashLink.fromObject(obj.hashLink);
 
-                    obj.info.data.subsidy = BigNum.fromBuffer(Buffer.from(<any>obj.info.data.subsidy, 'hex'));
-                    let info = ShareInfo.fromObject(obj.info);
-                    let hashlink = HashLink.fromObject(obj.hashLink);
+                let share = new ShareVersionMapper[obj.VERSION](header, info, hashlink) as BaseShare;
+                share.refMerkleLink = obj.refMerkleLink.map(l => Buffer.from(<any>l, 'hex'));
+                share.merkleLink = obj.merkleLink.map(l => Buffer.from(<any>l, 'hex'));
+                share.newScript = Buffer.from(<any>obj.newScript, 'hex');
+                share.gentxHash = Buffer.from(<any>obj.gentxHash, 'hex');
+                share.lastTxoutNonce = BigNum.fromBuffer(Buffer.from(<any>obj.lastTxoutNonce, 'hex'));
+                share.target = obj.target;
+                share.validity = obj.validity;
 
-                    let share = new ShareVersionMapper[obj.VERSION](header, info, hashlink) as BaseShare;
-                    share.refMerkleLink = obj.refMerkleLink.map(l => Buffer.from(<any>l, 'hex'));
-                    share.merkleLink = obj.merkleLink.map(l => Buffer.from(<any>l, 'hex'));
-                    share.newScript = Buffer.from(<any>obj.newScript, 'hex');
-                    share.gentxHash = Buffer.from(<any>obj.gentxHash, 'hex');
-                    share.lastTxoutNonce = BigNum.fromBuffer(Buffer.from(<any>obj.lastTxoutNonce, 'hex'));
-                    share.target = obj.target;
-                    share.validity = obj.validity;
-
-                    return share;
-                });
-            }).flatten(false).toArray();
-            resolve(shares);
-        });
-
-        return shares;
+                return share;
+            });
+        }).flatten(false).toArray();
     }
 }

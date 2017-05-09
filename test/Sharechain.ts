@@ -21,10 +21,10 @@ describe('Sharechain', () => {
 
     let chain = Sharechain.Instance;
 
-    it('load', async () => {
-        let shares = await SharechainHelper.loadSharesAsync();
+    it('load', () => {
+        let shares = SharechainHelper.loadShares();
         console.log(shares.length);
-        assert.equal(shares.length > 0, true);
+        assert.equal(shares.length, 5);
     });
 
     it('add', () => {

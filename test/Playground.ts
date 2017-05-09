@@ -72,12 +72,11 @@ function testShares() {
     // peer.handleShares(new Node(), shares.shares);
     // fs.writeFileSync('/tmp/bad_shares', binary);
 
-    SharechainHelper.appDir = __dirname;
-    SharechainHelper.dataDir = __dirname;
+    SharechainHelper.init('bitcoin');
 
     let num = BigNum.fromBuffer(Buffer.alloc(8), { size: 8, endian: 'little' });
     console.log(num);
-    SharechainHelper.loadSharesAsync();
+    SharechainHelper.loadShares();
 }
 
 testShares();

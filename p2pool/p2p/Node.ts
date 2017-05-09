@@ -99,6 +99,8 @@ export default class Node extends Event {
     /// ---------------------- sockets ----------------------------
 
     initSocket(socket: Socket) {
+        socket.setKeepAlive(true);
+        
         this.socket = socket;
         this.peerAddress = socket.remoteAddress;
         this.peerPort = socket.remotePort;

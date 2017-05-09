@@ -43,11 +43,7 @@ node_modules
 *.ignore
 
 # Typescript declaration files
-build/*.d.ts
-build/**/*.d.ts
-build/**/*.js
-build/**/*.js.map
-dist/**/*.*
+dist/**/*
 # typings/
 
 # temporary ignore
