@@ -27,7 +27,7 @@ export class Peer {
     private readonly knownTxs = ObservableProperty.init(new Map<string, TransactionTemplate>());
     private readonly knownTxsCaches = new Array<Map<string, TransactionTemplate>>();
     private readonly miningTxs = ObservableProperty.init(new Map<string, TransactionTemplate>());
-    private sharechain = Sharechain.Instance;
+    private readonly sharechain = Sharechain.Instance;
     readonly peers = new Map<string, Node>(); // ip:port -> Node
 
     bestShare: BaseShare;
@@ -133,7 +133,9 @@ export class Peer {
     }
 
     handleShares(sender: Node, shares: TypeShares[]) {
-        if (shares.length === 0) return;
+        console.log('shares received', shares.length);
+
+        if (!shares || shares.length === 0) return;
         if (shares.all(item => Sharechain.Instance.has(item.contents.hash))) return;
 
         let result = new Array<{ share: BaseShare, txs: TransactionTemplate[] }>();
@@ -186,7 +188,7 @@ export class Peer {
         this.knownTxs.set(newTxs);
         this.sharechain.verify();
 
-        Array.from(this.peers.values()).except([sender], (i1, i2) => i1.tag===i2.tag).each(peer=> peer.sendSharesAsync(shares));
+        Array.from(this.peers.values()).except([sender], (i1, i2) => i1.tag === i2.tag).each(peer => peer.sendSharesAsync(shares));
     }
 
     private handleSharereq(sender: Node, request: TypeSharereq) {
@@ -201,9 +203,9 @@ export class Peer {
             }
         }
 
+        console.log('response shares request: ', shares);
         if (shares.length === 0) return;
         let wrapper = Shares.fromObject(shares.map(s => { return { version: s.VERSION, contents: s }; }));
-        console.log(wrapper);
         sender.sendSharereplyAsync({ id: request.id, result: 0, wrapper })
     }
 

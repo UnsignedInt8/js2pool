@@ -116,6 +116,8 @@ export default class Node extends Event {
             logger.error(`${socket.remoteAddress}, ${err.message}`);
             me.close(true);
         });
+
+        this.beginReceivingMessagesAsync();
     }
 
     async connectAsync(peerAddress: string, peerPort: number = 9333) {
@@ -127,7 +129,6 @@ export default class Node extends Event {
         try {
             if (!await socket.connectAsync(peerPort, peerAddress)) return false;
             this.initSocket(socket);
-            this.beginReceivingMessagesAsync();
             this.connectionTime = Date.now() - timestamp;
             return true;
         } catch (error) {
@@ -183,7 +184,7 @@ export default class Node extends Event {
         let magic = data.slice(0, 8);
         if (!magic.equals(Message.magic)) {
             this.trigger(Node.Events.badPeer, this, 'Bad magic number');
-            this.close(true);
+            this.close(true, 'Bad magic number');
             return;
         }
 
@@ -194,7 +195,7 @@ export default class Node extends Event {
         let { data: payload, lopped: remain } = await Node.readFlowingBytesAsync(this.socket, length, lopped);
         if (utils.sha256d(payload).readUInt32LE(0) !== checksum) {
             this.trigger(Node.Events.badPeer, this, 'Bad checksum');
-            this.close(true);
+            this.close(true, 'Bad checksum');
             return;
         }
 
@@ -206,7 +207,7 @@ export default class Node extends Event {
             logger.warn(`unknown command: ${command}`);
             this.trigger(Node.Events.unknownCommand, this, command);
         }
-
+        console.log(this.tag, command);
         let me = this;
         process.nextTick(async () => await me.beginReceivingMessagesAsync(remain));
     }
@@ -306,6 +307,7 @@ export default class Node extends Event {
 
     private handleSharereq(payload: Buffer) {
         let request = Sharereq.fromBuffer(payload);
+        console.log('new share request', request);
         this.trigger(Node.Events.shareReq, this, request);
     }
 
@@ -319,6 +321,7 @@ export default class Node extends Event {
     private async sendAsync(data: Buffer) {
         try {
             return await this.socket.writeAsync(data);
+            // console.log(this.socket.write(data));
         } catch (error) {
             this.trigger(Node.Events.error, this, error);
         }
