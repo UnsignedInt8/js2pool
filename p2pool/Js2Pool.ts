@@ -49,7 +49,7 @@ export class Js2Pool {
     private onNewestShareChanged(sender: Sharechain, share: BaseShare) {
         this.daemonWatcher.refreshBlockTemplateAsync();
         if (sender.size % 5 === 0)
-            SharechainHelper.saveShares(Array.from(sender.subchain(share.hash, 8, 'backward')).skip(2));
+            SharechainHelper.saveShares(Array.from(sender.subchain(share.hash, 10, 'backward')).skip(5));
     }
 
     private onMiningTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {

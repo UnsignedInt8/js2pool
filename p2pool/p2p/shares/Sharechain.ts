@@ -262,6 +262,7 @@ export default class Sharechain extends Event {
         }
 
         if (gaps.length > 0) super.trigger(Sharechain.Events.gapsFound, this, gaps);
+        console.log('check gaps', gaps.length);
         return gaps;
     }
 }

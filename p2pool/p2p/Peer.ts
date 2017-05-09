@@ -14,6 +14,7 @@ import logger from '../../misc/Logger';
 import { TypeSharereq } from "./Messages/Sharereq";
 import { TypeSharereply } from "./Messages/Sharereply";
 import * as BigNum from 'bignum';
+import { SharechainHelper } from "./shares/SharechainHelper";
 
 export type PeerOptions = {
     maxConn?: number,
@@ -56,12 +57,15 @@ export class Peer {
     private onGapsFound(sender: Sharechain, gaps: Gap[]) {
         logger.warn(`gaps found, count: ${gaps.length}`);
         if (!this.peers.size) return;
+        if (!gaps.length) return;
 
         let fastNode = kinq.toLinqable(this.peers.values()).min(item => item.connectionTime);
+        let gap = gaps[0];
+
         fastNode.sendSharereqAsync({
             id: new BigNum(Math.random() * 1000000 | 0),
-            hashes: gaps.map(i => i.descendent),
-            parents: Math.max(gaps.max(i => i.length).length, 800),
+            hashes: [gap.descendent],
+            parents: Math.min(gap.length, 500),
         });
     }
 
@@ -183,7 +187,7 @@ export class Peer {
     }
 
     private handleSharereq(sender: Node, request: TypeSharereq) {
-        let parents = Math.min(request.parents, 1000 / request.hashes.length | 0);
+        let parents = Math.min(Math.min(request.parents, 500 / request.hashes.length | 0), 500);
         let stops = new Set(request.stops);
         let shares = new Array<BaseShare>();
 
@@ -196,6 +200,7 @@ export class Peer {
 
         if (shares.length === 0) return;
         let wrapper = Shares.fromObject(shares.map(s => { return { version: s.VERSION, contents: s }; }));
+        console.log(wrapper);
         sender.sendSharereplyAsync({ id: request.id, result: 0, wrapper })
     }
 
@@ -207,6 +212,7 @@ export class Peer {
             this.sharechain.add(share.contents);
         }
 
+        SharechainHelper.saveShares(reply.wrapper.shares.select(wrapper => wrapper.contents));
         this.sharechain.checkGaps();
     }
 

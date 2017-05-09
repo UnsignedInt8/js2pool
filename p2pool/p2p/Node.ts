@@ -21,6 +21,7 @@ import { TypeSharereq, default as Sharereq } from "./Messages/Sharereq";
 import { TypeSharereply, default as Sharereply } from "./Messages/Sharereply";
 import { TransactionTemplate } from "../../core/DaemonWatcher";
 import logger from '../../misc/Logger';
+import * as fs from 'fs';
 
 export default class Node extends Event {
 
@@ -100,7 +101,7 @@ export default class Node extends Event {
 
     initSocket(socket: Socket) {
         socket.setKeepAlive(true);
-        
+
         this.socket = socket;
         this.peerAddress = socket.remoteAddress;
         this.peerPort = socket.remotePort;

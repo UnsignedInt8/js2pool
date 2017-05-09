@@ -47,9 +47,9 @@ async function run() {
     setTimeout(() => new Js2Pool(opts), 3000);
 
     setTimeout(() => {
-        let peer = new Peer({ port: 19990 });
-        peer.initPeersAsync([{ host: 'localhost', port: 9777 }]);
-        peer.peers.first()[1].sendSharereqAsync({ id: new BigNum(8964), hashes: ['0000000000000c9479601f6eba0b9f550c5d6843559bb2695845aaee799fb4bd'] });
+        // let peer = new Peer({ port: 19990 });
+        // peer.initPeersAsync([{ host: 'localhost', port: 9777 }]);
+        // peer.peers.first()[1].sendSharereqAsync({ id: new BigNum(8964), hashes: ['0000000000000c9479601f6eba0b9f550c5d6843559bb2695845aaee799fb4bd'] });
     }, 7000);
 
     // let daemon = new DaemonWatcher(opts.daemon);
