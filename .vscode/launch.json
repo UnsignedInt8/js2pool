@@ -7,8 +7,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Share Parsing Program",
-            "program": "${workspaceRoot}/test/Nodejs_Shares.ts",
+            "name": "Launch Playground",
+            "program": "${workspaceRoot}/test/Playground.ts",
             "outFiles": [
                 "${workspaceRoot}/dist/**/*.js"
             ]

@@ -58,7 +58,7 @@ export class Peer {
 
         let fastNode = kinq.toLinqable(this.peers.values()).min(item => item.connectionTime);
         fastNode.sendSharereqAsync({
-            id: Math.random() * 100000 | 0,
+            id: Math.random() * 1000000 | 0,
             hashes: gaps.map(i => i.descendent),
             parents: gaps.max(i => i.length).length,
         });
@@ -91,7 +91,7 @@ export class Peer {
         if (<any>version.bestShareHash == 0) return;
         if (this.sharechain.has(version.bestShareHash)) return;
 
-        sender.sendSharereqAsync({ id: Math.random() * 100000 | 0, hashes: [version.bestShareHash], parents: 1 });
+        sender.sendSharereqAsync({ id: Math.random() * 1000000 | 0, hashes: [version.bestShareHash], parents: 1 });
     }
 
     private handleRemember_tx(sender: Node, txHashes: string[], txs: Transaction[]) {
@@ -205,7 +205,7 @@ export class Peer {
         node.onShares(this.handleShares.bind(this));
         node.onSharereq(this.handleSharereq.bind(this));
         node.onSharereply(this.handleSharereply.bind(this));
-        node.onEnd(function (sender: Node) { this.peers.delete(sender.tag) }.bind(this));
+        node.onEnd(function (sender: Node) { this.peers.delete(sender.tag); }.bind(this));
         this.peers.set(node.tag, node);
     }
 

@@ -17,8 +17,8 @@ import * as crypto from 'crypto';
  */
 export class SharechainHelper {
 
-    private static appDir: string;
-    private static dataDir: string;
+    static appDir: string;
+    static dataDir: string;
 
     static get today() {
         return Date.now() / 1000 / 60 / 60 / 24 | 0;
@@ -45,59 +45,58 @@ export class SharechainHelper {
         if (!SharechainHelper.appDir) throw Error('not initialized');
         if (shares.length === 0) return;
 
-        shares = shares.sort((a, b) => a.info.absheight - b.info.absheight);
         let basename = `shares_${SharechainHelper.today}`;
         let filename = path.resolve(SharechainHelper.dataDir, basename);
-        
+
         let seralizableObjs = shares.map(share => {
             let obj = <BaseShare>Object.assign({}, share);
             obj.SUCCESSOR = null;
-            obj.refMerkleLink = <any>obj.refMerkleLink.map(l => l.toString('hex'));
-            obj.merkleLink = <any>obj.merkleLink.map(l => l.toString('hex'));
-            obj.newScript = <any>obj.newScript.toString('hex');
-            obj.gentxHash = <any>obj.gentxHash.toString('hex');
-            obj.lastTxoutNonce = <any>obj.lastTxoutNonce.toBuffer().toString('hex');
-            obj.info.data.subsidy = <any>obj.info.data.subsidy.toBuffer().toString('hex');
-
-            if (obj.info.segwit) {
-                obj.info.segwit.txidMerkleLink.branch = <any>obj.info.segwit.txidMerkleLink.branch.map(b => b.toString('hex'));
-                obj.info.segwit.wtxidMerkleRoot = <any>obj.info.segwit.wtxidMerkleRoot.toString('hex');
+            obj.refMerkleLink = <any>share.refMerkleLink.map(l => l.toString('hex'));
+            obj.merkleLink = <any>share.merkleLink.map(l => l.toString('hex'));
+            obj.newScript = <any>share.newScript.toString('hex');
+            obj.gentxHash = <any>share.gentxHash.toString('hex');
+            obj.lastTxoutNonce = <any>share.lastTxoutNonce.toBuffer().toString('hex');
+            try {
+                obj.info.data.subsidy = <any>share.info.data.subsidy.toBuffer().toString('hex');
+            }
+            catch (err) {
+                console.log(share.info.data);
+                throw err;
             }
 
-            obj.hashLink.state = <any>obj.hashLink.state.toString('hex');
-            obj.hashLink.extra = <any>obj.hashLink.extra.toString('hex');
+            if (obj.info.segwit) {
+                obj.info.segwit.txidMerkleLink.branch = <any>share.info.segwit.txidMerkleLink.branch.map(b => b.toString('hex'));
+                obj.info.segwit.wtxidMerkleRoot = <any>share.info.segwit.wtxidMerkleRoot.toString('hex');
+            }
 
-            return obj;
+            obj.hashLink.state = <any>share.hashLink.state.toString('hex');
+            obj.hashLink.extra = <any>share.hashLink.extra.toString('hex');
+
+            return JSON.stringify(obj);
         });
 
-        let data = JSON.stringify(seralizableObjs);
-
-        fs.writeFile(filename, data, 'utf8', err => {
-            if (!err) return;
-            logger.error(err.message);
-        });
+        let file = fs.createWriteStream(filename, <any>{ flags: 'a' });
+        file.on('error', err => { logger.error(err.message); file.end(); });
+        file.on('end', () => file.removeAllListeners());
+        seralizableObjs.forEach(obj => file.write(obj + '\n'));
+        file.end();
     }
 
-    static async loadSharesAsync(fromAbsheight: number = 0, toAbsheight: number = 0) {
+    static async loadSharesAsync(days: number = 3) {
         if (!SharechainHelper.appDir) throw Error('not initialized');
 
-        let files = await new Promise<string[]>(resolve => {
-            let files = fs.readdirSync(SharechainHelper.dataDir);
-            resolve(files);
-        });
-
-        let targetFiles = files.select(item => {
+        let files = fs.readdirSync(SharechainHelper.dataDir);
+        let targetFiles = files.where(s => s.startsWith('shares_')).select(item => {
             let items = item.split('.')[0].split('_');
-            return { filename: path.resolve(SharechainHelper.dataDir, item), begin: Number.parseInt(items[1]), end: Number.parseInt(items[2]) };
-        }).skipWhile(file => file.begin < fromAbsheight).takeWhile(file => file.end <= toAbsheight).select(file => file.filename).toArray();
+            return { path: path.resolve(SharechainHelper.dataDir, item), day: Number.parseInt(items[1]) };
+        }).orderByDescending(i => i.day).take(days).toArray();
 
         let shares = await new Promise<BaseShare[]>(resolve => {
-            let shares = targetFiles.select(filename => {
-                let file = fs.readFileSync(filename, 'utf8');
-                if (!file.length) return [];
+            let shares = targetFiles.select(file => {
+                let data = fs.readFileSync(file.path, 'utf8');
+                if (!data.length) return [];
 
-                let objs = JSON.parse(file) as BaseShare[];
-                return objs.map(obj => {
+                return data.split('\n').where(s => s.length > 0).select(s => <BaseShare>JSON.parse(s)).select(obj => {
                     let header = SmallBlockHeader.fromObject(obj.minHeader);
 
                     if (obj.info.segwit) {
@@ -108,16 +107,16 @@ export class SharechainHelper {
                     obj.hashLink.state = Buffer.from(<any>obj.hashLink.state, 'hex');
                     obj.hashLink.extra = Buffer.from(<any>obj.hashLink.extra, 'hex');
 
-                    obj.info.data.subsidy = BigNum.fromBuffer(Buffer.from(<any>obj.info.data.subsidy, 'hex'), { endian: 'little', size: 8 });
+                    obj.info.data.subsidy = BigNum.fromBuffer(Buffer.from(<any>obj.info.data.subsidy, 'hex'));
                     let info = ShareInfo.fromObject(obj.info);
                     let hashlink = HashLink.fromObject(obj.hashLink);
 
-                    let share = ShareVersionMapper[obj.VERSION](header, info, hashlink) as BaseShare;
+                    let share = new ShareVersionMapper[obj.VERSION](header, info, hashlink) as BaseShare;
                     share.refMerkleLink = obj.refMerkleLink.map(l => Buffer.from(<any>l, 'hex'));
                     share.merkleLink = obj.merkleLink.map(l => Buffer.from(<any>l, 'hex'));
                     share.newScript = Buffer.from(<any>obj.newScript, 'hex');
                     share.gentxHash = Buffer.from(<any>obj.gentxHash, 'hex');
-                    share.lastTxoutNonce = BigNum.fromBuffer(Buffer.from(<any>obj.lastTxoutNonce, 'hex'), { endian: 'little', size: 8 });
+                    share.lastTxoutNonce = BigNum.fromBuffer(Buffer.from(<any>obj.lastTxoutNonce, 'hex'));
                     share.target = obj.target;
                     share.validity = obj.validity;
 
