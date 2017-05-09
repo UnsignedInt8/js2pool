@@ -275,8 +275,8 @@ export class Peer {
         for (let peer of peers) {
             let node = new Node();
             if (!await node.connectAsync(peer.host, peer.port)) continue;
-            node.sendVersionAsync();
             this.registerNode(node);
+            node.sendVersionAsync(this.sharechain.newest.hasValue() ? this.sharechain.newest.value.hash : null);
             logger.info(`${node.tag} connected ${node.connectionTime}ms`);
         }
     }

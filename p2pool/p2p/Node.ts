@@ -25,6 +25,8 @@ import * as fs from 'fs';
 
 export default class Node extends Event {
 
+    static readonly MAX_REMEMBERED_TXS = 30000;
+
     protected static readonly Events = {
         error: 'Error',
         badPeer: 'BadPeer',
@@ -415,7 +417,9 @@ export default class Node extends Event {
         return await this.sendAsync(msg.toBuffer());
     }
 
-    // isAvailable = () => this.socket && this.socket.readable && this.socket.writable;
+    get isAvailable() {
+        return this.socket && this.socket && this.socket.readable && this.socket.writable;
+    }
 
     /// -------------------- onXXXEvents --------------------------
 
