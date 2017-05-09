@@ -7,6 +7,7 @@ import { Payload } from "./Payload";
 import * as BigNum from 'bignum';
 import * as utils from '../../../misc/Utils';
 import * as assert from 'assert';
+import * as ipaddr from 'ipaddr.js';
 
 const PROTOCOL_ADDRESS_LENGTH = 26;
 const PAYLOAD_LENGTH = PROTOCOL_ADDRESS_LENGTH + 8; // address length + timestamp
@@ -32,7 +33,7 @@ export class MutliAddrs extends Payload {
     toBuffer() {
         return Buffer.concat(this.buffers);
     }
-} 
+}
 
 export default class Addrs extends Payload {
     timestamp: number; // 8 bytes, seconds 
@@ -60,7 +61,7 @@ export default class Addrs extends Payload {
             addr.ip.split('.').forEach((byte, index) => buffer[index + 12] = parseInt(byte));
             ip = buffer;
         } else if (ipv6.test(addr.ip)) {
-            ip = Buffer.from(addr.ip.replace(/:/g, ''), 'hex');
+            ip = Buffer.from(ipaddr.parse(addr.ip).toByteArray());
         } else {
             ip = Buffer.alloc(16, 0);
         }

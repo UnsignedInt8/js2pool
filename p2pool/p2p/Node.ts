@@ -179,7 +179,7 @@ export default class Node extends Event {
 
     protected async beginReceivingMessagesAsync(preBuffer: Buffer = null) {
         let { data, lopped } = await Node.readFlowingBytesAsync(this.socket, PROTOCOL_HEAD_LENGTH, preBuffer);
-
+        
         let magic = data.slice(0, 8);
         if (!magic.equals(Message.magic)) {
             this.trigger(Node.Events.badPeer, this, 'Bad magic number');
@@ -206,7 +206,7 @@ export default class Node extends Event {
             logger.warn(`unknown command: ${command}`);
             this.trigger(Node.Events.unknownCommand, this, command);
         }
-
+        
         let me = this;
         process.nextTick(async () => await me.beginReceivingMessagesAsync(remain));
     }
@@ -326,8 +326,7 @@ export default class Node extends Event {
 
     async sendVersionAsync(bestShareHash: string = null) {
         if (this.peerAliveTimer) clearTimeout(this.peerAliveTimer);
-        this.peerAliveTimer = setTimeout(this.close.bind(this, true), 10 * 1000);
-
+        
         let addrTo = {
             services: 0,
             ip: this.socket.remoteAddress,
