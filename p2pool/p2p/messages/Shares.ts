@@ -37,9 +37,10 @@ export class Shares extends Payload {
         }));
     }
 
-    static fromObject(obj: TypeShares[]) {
+    static fromObject(objs: TypeShares[]) {
         let shares = new Shares();
-        shares.shares = obj;
+        shares.shares = objs;
+        console.log(objs.map(obj => obj.contents.info.toBuffer))
         return shares;
     }
 

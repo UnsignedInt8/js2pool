@@ -9,6 +9,7 @@ import * as BigNum from 'bignum';
 import { bitsToDifficulty, bitsToTarget } from "../../../core/Algos";
 import MerkleTree from "../../../core/MerkleTree";
 import { Block } from "bitcoinjs-lib";
+import { TypeShares } from "../Messages/Shares";
 
 const DONATION_SCRIPT = Buffer.from('4104ffd03de44a6e11b9917f3a29f9443283d9871c9d743ef30d5eddcd37094b64d1b3d8090496b53256786bf5c82932ec23c3b74d9f05a6f95a8b5529352656664bac', 'hex')
 const GENTX_BEFORE_REFHASH = Buffer.concat([BufferWriter.writeVarNumber(DONATION_SCRIPT.length), DONATION_SCRIPT, Buffer.alloc(8, 0), BufferWriter.writeVarString('6a28' + '0000000000000000000000000000000000000000000000000000000000000000' + '0000000000000000', 'hex').slice(0, 3)]);
@@ -91,6 +92,13 @@ export abstract class BaseShare {
         ]);
     }
 
+    static fromTemplate(template: TypeShares) {
+        let constructor = ShareVersionMapper[template.version];
+        if (!constructor) return null;
+        let share = new constructor() as BaseShare;
+        
+        return share;
+    }
 
     static fromBufferReader(version: number, reader: BufferReader) {
         let constructor = ShareVersionMapper[version];
@@ -123,7 +131,7 @@ export class Share extends BaseShare {
 
     // constructor(blockHeader: SmallBlockHeader = null, info: ShareInfo = null, hashLink: HashLink = null, merkleLink: Buffer[] = null) {
     //     super(blockHeader, info, hashLink, merkleLink);
-        
+
     // }
 }
 

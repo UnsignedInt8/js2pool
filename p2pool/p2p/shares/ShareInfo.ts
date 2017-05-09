@@ -83,7 +83,7 @@ export default class ShareInfo {
 
     static fromObject(obj: any) {
         let info = new ShareInfo();
-        info = Object.assign(obj);
+        info = Object.assign(info, obj);
         return info as ShareInfo;
     }
 

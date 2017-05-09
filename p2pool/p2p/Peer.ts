@@ -203,7 +203,7 @@ export class Peer {
             }
         }
 
-        console.log('response shares request: ', shares);
+        console.log('response shares request: ', shares.length);
         if (shares.length === 0) return;
         let wrapper = Shares.fromObject(shares.map(s => { return { version: s.VERSION, contents: s }; }));
         sender.sendSharereplyAsync({ id: request.id, result: 0, wrapper })

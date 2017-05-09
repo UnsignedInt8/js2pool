@@ -29,7 +29,7 @@ const opts = {
         port: 9777,
     },
     bootstrapPeers: [{
-        host: '123.163.48.115',
+        host: '123.163.48.115x',
         port: 9333
     }],
     coin: {

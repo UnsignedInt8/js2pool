@@ -207,7 +207,7 @@ export default class Node extends Event {
             logger.warn(`unknown command: ${command}`);
             this.trigger(Node.Events.unknownCommand, this, command);
         }
-        console.log(this.tag, command);
+        
         let me = this;
         process.nextTick(async () => await me.beginReceivingMessagesAsync(remain));
     }
@@ -307,7 +307,7 @@ export default class Node extends Event {
 
     private handleSharereq(payload: Buffer) {
         let request = Sharereq.fromBuffer(payload);
-        console.log('new share request', request);
+        console.log('new share request', request.hashes);
         this.trigger(Node.Events.shareReq, this, request);
     }
 
@@ -321,7 +321,6 @@ export default class Node extends Event {
     private async sendAsync(data: Buffer) {
         try {
             return await this.socket.writeAsync(data);
-            // console.log(this.socket.write(data));
         } catch (error) {
             this.trigger(Node.Events.error, this, error);
         }

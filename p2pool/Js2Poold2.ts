@@ -49,10 +49,9 @@ setTimeout(async () => {
 
         setInterval(() => {
             let node = pool.peer.peers.first()[1];
-            console.log('Hi!!!!!!!!!!!!!', node.tag);
             node.sendPingAsync();
-            // node.sendSharereqAsync({ id: new BigNum(8964), parents: 2, hashes: ['00000000000003104e3b54d5c817acd91a2cc121dc23e81b3353bbcfaa1776ff'] });
-        }, 2000);
+            node.sendSharereqAsync({ id: new BigNum(8964), parents: 2, hashes: ['00000000000003104e3b54d5c817acd91a2cc121dc23e81b3353bbcfaa1776ff'] });
+        }, 5000);
     }, 2000);
 
 }, 20);
