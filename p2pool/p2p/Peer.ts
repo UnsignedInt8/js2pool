@@ -133,8 +133,6 @@ export class Peer {
     }
 
     handleShares(sender: Node, shares: TypeShares[]) {
-        console.log('shares received', shares.length);
-
         if (!shares || shares.length === 0) return;
         if (shares.all(item => Sharechain.Instance.has(item.contents.hash))) return;
 
@@ -203,10 +201,11 @@ export class Peer {
             }
         }
 
-        console.log('response shares request: ', shares.length);
         if (shares.length === 0) return;
+        logger.info(`response shares request: ${shares.length}`);
+        
         let wrapper = Shares.fromObject(shares.map(s => { return { version: s.VERSION, contents: s }; }));
-        sender.sendSharereplyAsync({ id: request.id, result: 0, wrapper })
+        sender.sendSharereplyAsync({ id: request.id, result: 0, wrapper });
     }
 
     private handleSharereply(sender: Node, reply: TypeSharereply) {

@@ -286,8 +286,9 @@ export default class Node extends Event {
         for (let hash of txHashes) {
             this.rememberedTxs.delete(hash);
         }
-        logger.info(`forget_tx: ${txHashes.length}, remember_tx: ${this.rememberedTxs.size}`);
+        
         this.trigger(Node.Events.forgetTx, this, txHashes);
+        logger.info(`forget_tx: ${txHashes.length}, remember_tx: ${this.rememberedTxs.size}`);
     }
 
     private handleRemember_tx(payload: Buffer) {
@@ -307,7 +308,6 @@ export default class Node extends Event {
 
     private handleSharereq(payload: Buffer) {
         let request = Sharereq.fromBuffer(payload);
-        console.log('new share request', request.hashes);
         this.trigger(Node.Events.shareReq, this, request);
     }
 
