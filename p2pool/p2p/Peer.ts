@@ -8,11 +8,12 @@ import { BaseShare } from "./shares";
 import { DaemonWatcher, DaemonOptions, GetBlockTemplate, TransactionTemplate } from "../../core/DaemonWatcher";
 import ObservableProperty from "../../nodejs/ObservableProperty";
 import { Version } from "./Messages/Version";
-import { TypeShares } from "./Messages/Shares";
+import { TypeShares, Shares } from "./Messages/Shares";
 import Sharechain, { Gap } from "./shares/Sharechain";
 import logger from '../../misc/Logger';
 import { TypeSharereq } from "./Messages/Sharereq";
 import { TypeSharereply } from "./Messages/Sharereply";
+import * as BigNum from 'bignum';
 
 export type PeerOptions = {
     maxConn?: number,
@@ -22,11 +23,11 @@ export type PeerOptions = {
 export class Peer {
 
     private readonly server: Server;
-    private readonly peers = new Map<string, Node>(); // ip:port -> Node
     private readonly knownTxs = ObservableProperty.init(new Map<string, TransactionTemplate>());
     private readonly knownTxsCaches = new Array<Map<string, TransactionTemplate>>();
     private readonly miningTxs = ObservableProperty.init(new Map<string, TransactionTemplate>());
     private sharechain = Sharechain.Instance;
+    readonly peers = new Map<string, Node>(); // ip:port -> Node
 
     bestShare: BaseShare;
     desired: any[];
@@ -58,7 +59,7 @@ export class Peer {
 
         let fastNode = kinq.toLinqable(this.peers.values()).min(item => item.connectionTime);
         fastNode.sendSharereqAsync({
-            id: Math.random() * 1000000 | 0,
+            id: new BigNum(Math.random() * 1000000 | 0),
             hashes: gaps.map(i => i.descendent),
             parents: Math.max(gaps.max(i => i.length).length, 800),
         });
@@ -91,7 +92,7 @@ export class Peer {
         if (<any>version.bestShareHash == 0) return;
         if (this.sharechain.has(version.bestShareHash)) return;
 
-        sender.sendSharereqAsync({ id: Math.random() * 1000000 | 0, hashes: [version.bestShareHash], parents: 1 });
+        sender.sendSharereqAsync({ id: new BigNum(Math.random() * 1000000 | 0), hashes: [version.bestShareHash], parents: 1 });
     }
 
     private handleRemember_tx(sender: Node, txHashes: string[], txs: Transaction[]) {
@@ -182,8 +183,20 @@ export class Peer {
     }
 
     private handleSharereq(sender: Node, request: TypeSharereq) {
-        let parents = Math.min(request.parents, 800 / request.hashes.length);
+        let parents = Math.min(request.parents, 1000 / request.hashes.length | 0);
+        let stops = new Set(request.stops);
+        let shares = new Array<BaseShare>();
 
+        for (let hash of request.hashes) {
+            for (let share of this.sharechain.subchain(hash, parents, 'backward')) {
+                if (stops.has(share.hash)) break;
+                shares.push(share);
+            }
+        }
+
+        if (shares.length === 0) return;
+        let wrapper = Shares.fromObject(shares.map(s => { return { version: s.VERSION, contents: s }; }));
+        sender.sendSharereplyAsync({ id: request.id, result: 0, wrapper })
     }
 
     private handleSharereply(sender: Node, reply: TypeSharereply) {

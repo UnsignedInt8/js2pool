@@ -11,7 +11,7 @@ import BufferWriter from "../../../misc/BufferWriter";
 
 export type TypeShares = {
     version: number,
-    contents: Share | NewShare,
+    contents: BaseShare | Share | NewShare,
 }
 
 /**

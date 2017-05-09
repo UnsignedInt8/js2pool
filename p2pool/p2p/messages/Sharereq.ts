@@ -10,7 +10,7 @@ import BufferReader from "../../../misc/BufferReader";
 import * as BigNum from 'bignum';
 
 export type TypeSharereq = {
-    id: number,
+    id: BigNum,
     hashes: string[],
     parents?: number, // If it's 0, it means no other shares needed.
     stops?: string[],
@@ -33,7 +33,7 @@ export default class Sharereq extends Payload {
 
     static fromObject(obj: TypeSharereq) {
         let req = new Sharereq();
-        req.id = new BigNum(obj.id);
+        req.id = obj.id;
         req.hashes = obj.hashes;
         req.parents = obj.parents || 0;
         req.stops = obj.stops || [];

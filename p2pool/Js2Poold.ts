@@ -9,6 +9,8 @@ import { BaseShare } from "./p2p/shares/index";
 import Bitcoin from "./coins/Bitcoin";
 import { SharechainHelper } from "./p2p/shares/SharechainHelper";
 import Sharechain from "./p2p/shares/Sharechain";
+import { Peer } from "./p2p/Peer";
+import * as BigNum from 'bignum';
 kinq.enable();
 
 const opts = {
@@ -43,6 +45,12 @@ async function run() {
     shares.forEach(s => Sharechain.Instance.add(s));
     console.log(shares.length);
     setTimeout(() => new Js2Pool(opts), 3000);
+
+    setTimeout(() => {
+        let peer = new Peer({ port: 19990 });
+        peer.initPeersAsync([{ host: 'localhost', port: 9777 }]);
+        peer.peers.first()[1].sendSharereqAsync({ id: new BigNum(8964), hashes: ['0000000000000c9479601f6eba0b9f550c5d6843559bb2695845aaee799fb4bd'] });
+    }, 7000);
 
     // let daemon = new DaemonWatcher(opts.daemon);
     // daemon.getBlockAsync('000000000000000000020fe5e98fd311039ba3b0953fe6268b5a3a357de83067').then(value => {

@@ -7,21 +7,22 @@ import { Payload } from "./Payload";
 import { Shares } from "./Shares";
 import BufferReader from "../../../misc/BufferReader";
 import BufferWriter from "../../../misc/BufferWriter";
+import * as BigNum from 'bignum';
 
 export type TypeSharereply = {
-    id: string;
+    id: BigNum;
     result: number;// {0: 'good', 1: 'too long', 2: 'unk2', 3: 'unk3', 4: 'unk4', 5: 'unk5', 6: 'unk6'})),
     wrapper: Shares;
 }
 
 export default class Sharereply extends Payload {
-    id: string; // 256 bits 
+    id: BigNum; // 256 bits 
     result: number; // var int
     wrapper: Shares;
 
     toBuffer() {
         return Buffer.concat([
-            BufferWriter.writeFixedString(this.id, 'hex'),
+            this.id.toBuffer({ size: 32, endian: 'little' }),
             BufferWriter.writeVarNumber(this.result),
             this.wrapper.toBuffer(),
         ]);
@@ -36,7 +37,7 @@ export default class Sharereply extends Payload {
     static fromBuffer(data: Buffer) {
         let reply = new Sharereply();
         let reader = new BufferReader(data);
-        reply.id = reader.readFixedString(32);
+        reply.id = reader.readNumber(32);
         reply.result = reader.readVarNumber();
         reply.wrapper = Shares.fromBuffer(data.slice(reader.offset));
         return reply;
