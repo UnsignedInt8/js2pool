@@ -3,6 +3,7 @@ import Client from 'bitcoin-core';
 import { Event } from "../nodejs/Event";
 import { Socket, Server } from "net";
 const BitcoinClient = require('bitcoin-core');
+import logger from '../misc/Logger';
 
 export type DaemonOptions = {
     host: string,
@@ -49,7 +50,7 @@ export class DaemonWatcher extends Event {
 
         await this.refreshBlockTemplateAsync();
         super.trigger(DaemonWatcher.Events.blockNotified, this, hash);
-        console.info('new block notified: \n', hash);
+        logger.info(`new block notified: ${hash}`);
     }
 
     beginWatching() {
@@ -71,7 +72,7 @@ export class DaemonWatcher extends Event {
             await this.refreshBlockTemplateAsync();
             return true;
         } catch (error) {
-            console.log(error);
+            logger.error(error);
             this.trigger(DaemonWatcher.Events.error, this, error);
             return false;
         }
@@ -80,14 +81,14 @@ export class DaemonWatcher extends Event {
     async submitBlockAsync(blockHex: string) {
         try {
             let results: any[] = await this.client.command([{ method: 'submitblock', parameters: [blockHex] }]);
-            console.log(results);
+            logger.info(results);
             let result = results.first();
             if (result == null) return true;
             if (typeof (result) === 'string') return false;
             if (result.error || result.result === 'reject') return false;
             return true;
         } catch (error) {
-            console.error('submit block error: ', error);
+            logger.error(`submit block error: ${error}`, );
             return false;
         }
     }
@@ -99,7 +100,7 @@ export class DaemonWatcher extends Event {
             this.blockHeight = template.height - 1;
             super.trigger(DaemonWatcher.Events.blockTemplateUpdate, this, template);
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             this.trigger(DaemonWatcher.Events.error, this, error);
         }
     }
