@@ -120,13 +120,17 @@ export default class Sharechain extends Event {
             if (!previousShares) return true;
             if (previousShares.length < 2) return true;
 
-            // find orphans
-            let verified = previousShares.single(s => s.hash === share.info.data.previousShareHash);
-            let orphans = previousShares.except([verified], (i1, i2) => i1.hash === i2.hash).toArray();
-            if (orphans.length > 0) this.trigger(Sharechain.Events.orphansFound, this, orphans);
+            // find orphans, maybe a gap in here
+            let verified = previousShares.singleOrDefault(s => s.hash === share.info.data.previousShareHash, null);
+            if (verified) {
+                let orphans = previousShares.except([verified], (i1, i2) => i1.hash === i2.hash).toArray();
+                if (orphans.length > 0) this.trigger(Sharechain.Events.orphansFound, this, orphans);
 
-            // always keep the first element is on the main chain
-            this.absheightIndexer.set(last.info.absheight, [verified].concat(orphans));
+                // always keep the first element is on the main chain
+                this.absheightIndexer.set(last.info.absheight, [verified].concat(orphans));
+            } else {
+                super.trigger(Sharechain.Events.gapsFound, this, [{ descendent: share.hash, descendentHeight: share.info.absheight, length: 1 }])
+            }
 
             return true;
         }
@@ -171,7 +175,7 @@ export default class Sharechain extends Event {
         if (!absheight) return;
 
         let step = direction === 'backward' ? -1 : 1;
-        
+
         while (length--) {
             let shares = this.absheightIndexer.get(absheight);
             if (!shares || shares.length === 0) return;

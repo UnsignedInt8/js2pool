@@ -42,8 +42,7 @@ async function run() {
     let shares = SharechainHelper.loadShares();
     shares.forEach(s => Sharechain.Instance.add(s));
     console.log(shares.length);
-    console.log(Sharechain.Instance.newest.value);
-    let js2pool = new Js2Pool(opts);
+    setTimeout(() => new Js2Pool(opts), 3000);
 
     // let daemon = new DaemonWatcher(opts.daemon);
     // daemon.getBlockAsync('000000000000000000020fe5e98fd311039ba3b0953fe6268b5a3a357de83067').then(value => {

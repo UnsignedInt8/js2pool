@@ -41,14 +41,13 @@ export class SharechainHelper {
         }
     }
 
-    static saveShares(shares: BaseShare[]) {
+    static saveShares(shares: _Linqable<BaseShare>) {
         if (!SharechainHelper.appDir) throw Error('not initialized');
-        if (shares.length === 0) return;
 
         let basename = `shares_${SharechainHelper.today}`;
         let filename = path.resolve(SharechainHelper.dataDir, basename);
 
-        let seralizableObjs = shares.map(share => {
+        let seralizableObjs = shares.where(s => s.validity).select(share => {
             let obj = <BaseShare>Object.assign({}, share);
             obj.info = Object.assign({}, share.info);
             obj.info.data = Object.assign({}, share.info.data);
@@ -73,7 +72,7 @@ export class SharechainHelper {
             obj.hashLink.extra = <any>share.hashLink.extra.toString('hex');
 
             return JSON.stringify(obj);
-        });
+        }).toArray();
 
         let file = fs.createWriteStream(filename, <any>{ flags: 'a' });
         file.on('error', err => { logger.error(err.message); file.end(); });

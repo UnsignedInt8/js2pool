@@ -60,7 +60,7 @@ export class Peer {
         fastNode.sendSharereqAsync({
             id: Math.random() * 1000000 | 0,
             hashes: gaps.map(i => i.descendent),
-            parents: gaps.max(i => i.length).length,
+            parents: Math.max(gaps.max(i => i.length).length, 800),
         });
     }
 
@@ -187,10 +187,10 @@ export class Peer {
     }
 
     private handleSharereply(sender: Node, reply: TypeSharereply) {
-        logger.info(`received share reply, ${reply.id}`);
-        if (reply.result != 0) return;
+        logger.info(`received share reply, ${reply.wrapper.shares.length}`);
+        if (reply.result != 0) return; // not ok
 
-        for (let share of reply.shares.shares) {
+        for (let share of reply.wrapper.shares) {
             this.sharechain.add(share.contents);
         }
 
