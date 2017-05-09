@@ -117,6 +117,7 @@ export class SharechainHelper {
                 share.lastTxoutNonce = BigNum.fromBuffer(Buffer.from(<any>obj.lastTxoutNonce, 'hex'));
                 share.target = obj.target;
                 share.validity = obj.validity;
+                share.hash = obj.hash;
 
                 return share;
             });

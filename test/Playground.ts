@@ -16,6 +16,7 @@ import { Peer } from "../p2pool/p2p/Peer";
 import winston from '../misc/Logger';
 import { SharechainHelper } from "../p2pool/p2p/shares/SharechainHelper";
 import * as path from 'path';
+import Sharechain from "../p2pool/p2p/shares/Sharechain";
 
 kinq.enable();
 
@@ -76,7 +77,11 @@ function testShares() {
 
     let num = BigNum.fromBuffer(Buffer.alloc(8), { size: 8, endian: 'little' });
     console.log(num);
-    SharechainHelper.loadShares();
+    let chain = Sharechain.Instance;
+    SharechainHelper.loadShares().forEach(s => chain.add(s));
+    console.log(chain.length);
+    let gaps = chain.checkGaps();
+    chain.verify();
 }
 
 testShares();
