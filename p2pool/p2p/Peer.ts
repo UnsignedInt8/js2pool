@@ -159,7 +159,7 @@ export class Peer {
                 let cache = this.knownTxsCaches.firstOrDefault(c => c.has(txHash), null);
                 if (!cache) {
                     logger.warn('Peer referenced unknown transaction');
-                    continue;
+                    break;
                 }
 
                 txs.push(cache.get(txHash));

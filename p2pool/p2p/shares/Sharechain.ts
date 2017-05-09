@@ -122,7 +122,7 @@ export default class Sharechain extends Event {
                 super.trigger(Sharechain.Events.gapsFound, this, [{ descendent: share.hash, descendentHeight: share.info.absheight, length: 1 }]);
                 return true;
             }
-            
+
             if (previousShares.length < 2) return true;
 
             // find orphans, maybe a gap in here
@@ -240,7 +240,7 @@ export default class Sharechain extends Event {
             hash = share.info.data.previousShareHash;
         }
 
-        logger.info(`verifying ${count}, ${this.length}`);
+        logger.info(`verifying ${count}, ${this.length}, ${this.size}`);
         return count === this.length;
     }
 
