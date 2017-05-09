@@ -40,7 +40,7 @@ export default class Sharechain extends Event {
 
     static readonly Instance = new Sharechain();
     static readonly CHAIN_LENGTH = 24 * 60 * 60 / 10;
-    static readonly MAX_CHAIN_LENGTH = Sharechain.CHAIN_LENGTH * 3;
+    static readonly MAX_CHAIN_LENGTH = Sharechain.CHAIN_LENGTH * 2;
 
     static readonly Events = {
         newestChanged: 'NewestChanged',
@@ -55,6 +55,7 @@ export default class Sharechain extends Event {
     private absheightIndexer = new Map<number, Array<BaseShare>>();
     private merging = false;
     newest = ObservableProperty.init<BaseShare>(null);
+    oldest: BaseShare;
 
     private constructor() {
         super();
@@ -106,18 +107,22 @@ export default class Sharechain extends Event {
         if (shares.some(s => s.hash === share.hash)) return false;
         shares.push(share);
         this.hashIndexer.set(share.hash, share.info.absheight);
+        if (this.oldest && share.info.absheight < this.oldest.info.absheight) this.oldest = share;
 
         if (this.newest.hasValue() && share.info.absheight > this.newest.value.info.absheight) {
             let last = this.newest.value;
             this.newest.set(share);
 
-            // find gaps
-            if (!this.absheightIndexer.has(share.info.absheight - 1))
-                super.trigger(Sharechain.Events.gapsFound, this, [{ descendent: share.hash, descendentHeight: share.info.absheight, length: 1 }]);
+            this.cleanDeprecations();
 
             // check the previous share array whether has multiple items or not
             let previousShares = this.absheightIndexer.get(last.info.absheight);
-            if (!previousShares) return true;
+            if (!previousShares) {
+                // find a gap
+                super.trigger(Sharechain.Events.gapsFound, this, [{ descendent: share.hash, descendentHeight: share.info.absheight, length: 1 }]);
+                return true;
+            }
+            
             if (previousShares.length < 2) return true;
 
             // find orphans, maybe a gap in here
@@ -126,7 +131,7 @@ export default class Sharechain extends Event {
                 let orphans = previousShares.except([verified], (i1, i2) => i1.hash === i2.hash).toArray();
                 if (orphans.length > 0) this.trigger(Sharechain.Events.orphansFound, this, orphans);
 
-                // always keep the first element is on the main chain
+                // always keep the first element on the main chain
                 this.absheightIndexer.set(last.info.absheight, [verified].concat(orphans));
             } else {
                 super.trigger(Sharechain.Events.gapsFound, this, [{ descendent: share.hash, descendentHeight: share.info.absheight, length: 1 }])
@@ -167,7 +172,19 @@ export default class Sharechain extends Event {
         }
 
         if (!this.newest.hasValue()) this.newest.set(share);
+        if (!this.oldest) this.oldest = share;
+
         return true;
+    }
+
+    cleanDeprecations() {
+        if (!this.newest.hasValue() || !this.oldest) return;
+        if (this.newest.value.info.absheight - this.oldest.info.absheight < Sharechain.MAX_CHAIN_LENGTH) return;
+        let deprecatedShares = this.absheightIndexer.get(this.oldest.info.absheight);
+        if (!deprecatedShares || deprecatedShares.length === 0) return;
+
+        this.absheightIndexer.delete(this.oldest.info.absheight);
+        for (let ds of deprecatedShares) this.hashIndexer.delete(ds.hash);
     }
 
     *subchain(startHash: string, length: number = Number.MAX_SAFE_INTEGER, direction: 'backward' | 'forward' = 'forward') {
