@@ -35,7 +35,7 @@ declare interface _Linqable<T> extends Iterable<T> {
     * @return All elements satisfy a condition returns true, or returns false.
     * predicate: (T) -> Boolean
     */
-  all(predicate: (T) => boolean): boolean;
+  all(predicate: (item: T) => boolean): boolean;
 
   /**
     * Determines whether a sequence contains any elements.
@@ -44,7 +44,7 @@ declare interface _Linqable<T> extends Iterable<T> {
     * @return Any elements satisfy a condition returns true, or returns false.
     * predicate: (T) -> Boolean
     */
-  any(predicate: (T) => boolean): boolean;
+  any(predicate: (item: T) => boolean): boolean;
 
   /**
   * 

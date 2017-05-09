@@ -15,7 +15,7 @@ import Getaddrs from "./Messages/GetAddrs";
 import { Have_tx, Losing_tx, Forget_tx } from "./Messages/Have_tx";
 import { Remember_tx, TypeRemember_tx } from "./Messages/Remember_tx";
 import { Block, Transaction } from "bitcoinjs-lib";
-import { Shares } from "./Messages/Shares";
+import { Shares, TypeShares } from "./Messages/Shares";
 import { Share, NewShare, BaseShare } from "./Shares";
 import { TypeSharereq, default as Sharereq } from "./Messages/Sharereq";
 import { TypeSharereply, default as Sharereply } from "./Messages/Sharereply";
@@ -179,7 +179,7 @@ export default class Node extends Event {
 
     protected async beginReceivingMessagesAsync(preBuffer: Buffer = null) {
         let { data, lopped } = await Node.readFlowingBytesAsync(this.socket, PROTOCOL_HEAD_LENGTH, preBuffer);
-        
+
         let magic = data.slice(0, 8);
         if (!magic.equals(Message.magic)) {
             this.trigger(Node.Events.badPeer, this, 'Bad magic number');
@@ -206,7 +206,7 @@ export default class Node extends Event {
             logger.warn(`unknown command: ${command}`);
             this.trigger(Node.Events.unknownCommand, this, command);
         }
-        
+
         let me = this;
         process.nextTick(async () => await me.beginReceivingMessagesAsync(remain));
     }
@@ -326,7 +326,7 @@ export default class Node extends Event {
 
     async sendVersionAsync(bestShareHash: string = null) {
         if (this.peerAliveTimer) clearTimeout(this.peerAliveTimer);
-        
+
         let addrTo = {
             services: 0,
             ip: this.socket.remoteAddress,
@@ -388,6 +388,11 @@ export default class Node extends Event {
 
     async sendSharereplyAsync(reply: TypeSharereply) {
         let msg = Message.fromObject({ command: 'sharereply', payload: reply });
+        return await this.sendAsync(msg.toBuffer());
+    }
+
+    async sendSharesAsync(shares: TypeShares[]) {
+        let msg = Message.fromObject({ command: 'shares', payload: shares });
         return await this.sendAsync(msg.toBuffer());
     }
 

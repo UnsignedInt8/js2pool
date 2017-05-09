@@ -134,6 +134,7 @@ export class Peer {
 
     handleShares(sender: Node, shares: TypeShares[]) {
         if (shares.length === 0) return;
+        if (shares.all(item => Sharechain.Instance.has(item.contents.hash))) return;
 
         let result = new Array<{ share: BaseShare, txs: TransactionTemplate[] }>();
         for (let share of shares.where(s => s.contents && s.contents.validity).select(s => s.contents)) {
@@ -184,6 +185,8 @@ export class Peer {
 
         this.knownTxs.set(newTxs);
         this.sharechain.verify();
+
+        Array.from(this.peers.values()).except([sender], (i1, i2) => i1.tag===i2.tag).each(peer=> peer.sendSharesAsync(shares));
     }
 
     private handleSharereq(sender: Node, request: TypeSharereq) {

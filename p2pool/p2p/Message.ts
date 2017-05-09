@@ -14,10 +14,11 @@ import { TypeSharereq } from "./Messages/Sharereq";
 import { TypeSharereply } from "./Messages/Sharereply";
 import { TypeHave_tx } from "./Messages/Have_tx";
 import { TypeRemember_tx } from "./Messages/Remember_tx";
+import { TypeShares } from "./Messages/Shares";
 
 type TypeMessage = {
-    command: 'version' | 'ping' | 'pong' | 'addrme' | 'getaddrs' | 'addrs' | 'sharereq' | 'sharereply' | 'have_tx' | 'losing_tx' | 'remember_tx' | 'forget_tx',
-    payload: TypeVersion | TypePing | TypeAddrme | TypeGetaddrs | TypeAddrs[] | TypeSharereq | TypeSharereply | TypeHave_tx | TypeRemember_tx,
+    command: 'version' | 'ping' | 'pong' | 'addrme' | 'getaddrs' | 'addrs' | 'sharereq' | 'sharereply' | 'have_tx' | 'losing_tx' | 'remember_tx' | 'forget_tx' | 'shares',
+    payload: TypeVersion | TypePing | TypeAddrme | TypeGetaddrs | TypeAddrs[] | TypeSharereq | TypeSharereply | TypeHave_tx | TypeRemember_tx | TypeShares,
 }
 
 export const PROTOCOL_HEAD_LENGTH = 28; // magic(8), command(12), length(4), checksum(4)
