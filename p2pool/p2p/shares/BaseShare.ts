@@ -117,26 +117,24 @@ export abstract class BaseShare {
 }
 
 export class Share extends BaseShare {
-    static readonly VERSION = 16;
-    static readonly VOTING_VERSION = 16;
+    readonly VERSION = 16;
+    readonly VOTING_VERSION = 16;
     readonly SUCCESSOR = NewShare;
 
-    constructor() {
-        super();
-        super.VERSION = Share.VERSION;
-        super.VOTING_VERSION = Share.VOTING_VERSION;
-    }
+    // constructor(blockHeader: SmallBlockHeader = null, info: ShareInfo = null, hashLink: HashLink = null, merkleLink: Buffer[] = null) {
+    //     super(blockHeader, info, hashLink, merkleLink);
+        
+    // }
 }
 
 export class NewShare extends BaseShare {
-    static readonly VERSION = 17;
+    readonly VERSION = 17;
     readonly VOTING_VERSION = 17;
     readonly MAX_NEW_TXS_SIZE = 100000;
 
-    constructor() {
-        super();
-        super.VERSION = NewShare.VERSION;
-    }
+    // constructor(blockHeader: SmallBlockHeader, info: ShareInfo = null, hashLink: HashLink = null, merkleLink: Buffer[] = null) {
+    //     super(blockHeader, info, hashLink, merkleLink);
+    // }
 }
 
 export const ShareVersionMapper = { 16: Share, 17: NewShare };

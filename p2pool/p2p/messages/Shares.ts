@@ -22,7 +22,7 @@ export type TypeShares = {
 export class Shares extends Payload {
     shares: {
         version: number, // var int
-        contents: Share | NewShare, // nullable, check it before using
+        contents: BaseShare | Share | NewShare, // nullable, check it before using
     }[] = [];
 
     toBuffer() {

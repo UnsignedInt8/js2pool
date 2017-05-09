@@ -50,21 +50,21 @@ export class SharechainHelper {
 
         let seralizableObjs = shares.map(share => {
             let obj = <BaseShare>Object.assign({}, share);
+            obj.info = Object.assign({}, share.info);
+            obj.info.data = Object.assign({}, share.info.data);
+
+            obj.minHeader = Object.assign({}, share.minHeader);
+            obj.hashLink = Object.assign({}, share.hashLink);
             obj.SUCCESSOR = null;
             obj.refMerkleLink = <any>share.refMerkleLink.map(l => l.toString('hex'));
             obj.merkleLink = <any>share.merkleLink.map(l => l.toString('hex'));
             obj.newScript = <any>share.newScript.toString('hex');
             obj.gentxHash = <any>share.gentxHash.toString('hex');
             obj.lastTxoutNonce = <any>share.lastTxoutNonce.toBuffer().toString('hex');
-            try {
-                obj.info.data.subsidy = <any>share.info.data.subsidy.toBuffer().toString('hex');
-            }
-            catch (err) {
-                console.log(share.info.data);
-                throw err;
-            }
+            obj.info.data.subsidy = <any>share.info.data.subsidy.toBuffer().toString('hex');
 
             if (obj.info.segwit) {
+                obj.info.segwit = Object.assign({}, share.info.segwit);
                 obj.info.segwit.txidMerkleLink.branch = <any>share.info.segwit.txidMerkleLink.branch.map(b => b.toString('hex'));
                 obj.info.segwit.wtxidMerkleRoot = <any>share.info.segwit.wtxidMerkleRoot.toString('hex');
             }

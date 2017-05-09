@@ -39,9 +39,10 @@ const opts = {
 async function run() {
     BaseShare.IDENTIFIER = Bitcoin.IDENTIFIER;
     SharechainHelper.init('bitcoin');
-    console.log(SharechainHelper);
     let shares = SharechainHelper.loadShares();
     shares.forEach(s => Sharechain.Instance.add(s));
+    console.log(shares.length);
+    console.log(Sharechain.Instance.newest.value);
     let js2pool = new Js2Pool(opts);
 
     // let daemon = new DaemonWatcher(opts.daemon);
