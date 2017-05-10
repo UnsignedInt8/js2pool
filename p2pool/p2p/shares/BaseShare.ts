@@ -6,7 +6,7 @@ import * as utils from '../../../misc/Utils';
 import BufferWriter from '../../../misc/BufferWriter';
 import * as assert from 'assert';
 import * as Bignum from 'bignum';
-import { bitsToDifficulty, bitsToTarget } from "../../../core/Algos";
+import { bitsToDifficulty, bitsToTarget, targetToAverageAttempts } from "../../../core/Algos";
 import MerkleTree from "../../../core/MerkleTree";
 import { Block } from "bitcoinjs-lib";
 import { TypeShares } from "../Messages/Shares";
@@ -39,6 +39,7 @@ export abstract class BaseShare {
     hash: string; // share hash
     newScript: Buffer;
     target: number;
+    maxTarget: number;
     gentxHash: Buffer;
     validity = false;
 
@@ -63,6 +64,7 @@ export abstract class BaseShare {
 
         this.newScript = utils.hash160ToScript(this.info.data.pubkeyHash); // script Pub Key
         this.target = bitsToTarget(this.info.bits);
+        this.maxTarget = bitsToTarget(this.info.maxBits);
 
         this.gentxHash = this.hashLink.check(Buffer.concat([
             BaseShare.getRefHash(this.info, this.refMerkleLink), // the last txout share info which is written in coinbase 
@@ -73,10 +75,10 @@ export abstract class BaseShare {
         let merkleRoot = (segwitActivated && this.info.segwit.txidMerkleLink.branch ? this.info.segwit.txidMerkleLink.branch : this.merkleLink).aggregate(this.gentxHash, (c, n) => utils.sha256d(Buffer.concat([c, n])));
         let headerHash = this.minHeader.calculateHash(merkleRoot);
         this.hash = utils.hexFromReversedBuffer(headerHash);
-        
+
         if (this.target > BaseShare.MAX_TARGET) return false;
         if (Bignum.fromBuffer(BaseShare.POWFUNC(this.minHeader.buildHeader(merkleRoot)), { endian: 'little', size: 32 }).toNumber() > this.target) return false;
-        
+
         this.validity = true;
         return true;
     }
@@ -90,6 +92,14 @@ export abstract class BaseShare {
             this.hashLink.toBuffer(),
             BufferWriter.writeList(this.merkleLink)
         ]);
+    }
+
+    get work() {
+        return targetToAverageAttempts(this.target);
+    }
+
+    get minWork() {
+        return targetToAverageAttempts(this.maxTarget);
     }
 
     static fromTemplate(template: TypeShares) {
