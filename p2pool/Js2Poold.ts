@@ -11,6 +11,7 @@ import { SharechainHelper } from "./p2p/shares/SharechainHelper";
 import Sharechain from "./p2p/shares/Sharechain";
 import { Peer } from "./p2p/Peer";
 import * as Bignum from 'bignum';
+import { ShareGenerator } from "./pool/ShareGenerator";
 kinq.enable();
 
 const opts = {
@@ -42,6 +43,8 @@ async function run() {
     BaseShare.IDENTIFIER = Bitcoin.IDENTIFIER;
     BaseShare.POWFUNC = Bitcoin.POWFUNC;
     BaseShare.MAX_TARGET = Bitcoin.MAX_TARGET;
+    ShareGenerator.MAX_TARGET = Bitcoin.MAX_TARGET;
+    ShareGenerator.TARGET_LOOKBEHIND = Bitcoin.TARGET_LOOKBEHIND;
     SharechainHelper.init('bitcoin');
     let shares = await SharechainHelper.loadSharesAsync();
     Sharechain.Instance.add(shares);

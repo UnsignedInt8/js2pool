@@ -96,6 +96,22 @@ export default class Sharechain extends Event {
         return this.hashIndexer.has(hash);
     }
 
+    /**
+     * Return a share by hash or absheight
+     */
+    get(id: string | number) {
+        let height = id;
+
+        if (typeof id === 'string') {
+            if (!this.hashIndexer.has(id)) return null;
+            height = this.hashIndexer.get(id);
+        }
+
+        let shares = this.absheightIndexer.get(<number>height);
+        if (!shares || shares.length === 0) return null;
+        return shares[0];
+    }
+
     add(shares: BaseShare[]) {
         for (let share of shares) {
             this.append(share);
@@ -106,7 +122,7 @@ export default class Sharechain extends Event {
      * if returns ture, means it's a new share, and it can be broadcasted to other peers
      * if returns false, means it's **an old** or invalid share, and it should not be broadcasted to other peers
      */
-    private append(share: BaseShare) {
+    append(share: BaseShare) {
         if (!share.validity) {
             logger.warn(`invalid share, ${share.info.absheight}, ${share.hash}`);
             return false;
@@ -293,7 +309,7 @@ export default class Sharechain extends Event {
                 length: Sharechain.BASE_CHAIN_LENGTH - (this.newest.value.info.absheight - this.oldest.info.absheight),
             });
         }
-        
+
         if (gaps.length > 0) super.trigger(Sharechain.Events.gapsFound, this, gaps);
         return gaps;
     }

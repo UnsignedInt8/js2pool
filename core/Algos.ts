@@ -12,8 +12,21 @@ export function targetToDifficulty(target: number) {
     return (0xffff0000 * Math.pow(2, 256 - 64) + 1) / (target + 1)
 }
 
+export function difficultyToTarget(diff: number) {
+    if (diff === 0) return 2 ** 256 - 1;
+    return Math.min(((0xffff0000 * 2 ** (256 - 64) + 1) / diff - 1 + 0.5) | 0, 2 ** 256 - 1)
+}
+
 export function bitsToDifficulty(bits: number) {
     return targetToDifficulty(bitsToTarget(bits));
+}
+
+export function targetToAverageAttempts(target: number) {
+    return 2 ** 256 / (target + 1);
+}
+
+export function averageAttemptsToTarget(attempts: number) {
+    return Math.min((2 ** 256 / attempts - 1 + 0.5) | 0, 2 ** 256 - 1);
 }
 
 export const Algos = {
