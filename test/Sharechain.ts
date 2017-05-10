@@ -24,7 +24,7 @@ describe('Sharechain', () => {
     it('load', () => {
         let shares = SharechainHelper.loadShares();
         console.log(shares.length);
-        assert.equal(shares.length, 5);
+        assert.equal(shares.length, 10);
     });
 
     it('add', () => {

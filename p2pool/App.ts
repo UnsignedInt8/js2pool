@@ -33,11 +33,11 @@ export class App {
         BaseShare.PowFunc = coin.POWFUNC;
         Message.MAGIC = coin.MSGPREFIX;
 
-        logger.info('-------------- BOOTING JS2POOL --------------');
-        logger.info('');
-        logger.info('-- https://github.com/unsignedint8/js2pool --')
-        logger.info('');
-        logger.info('----------- Initializing Sharechain ---------');
+        logger.info('|-------------- BOOTING JS2POOL --------------|');
+        logger.info('|                                             |');
+        logger.info('|-- https://github.com/unsignedint8/js2pool --|')
+        logger.info('|                                             |');
+        logger.info('|----------- Initializing Sharechain ---------|');
 
         let chain = Sharechain.Instance;
         SharechainHelper.init(coiname);

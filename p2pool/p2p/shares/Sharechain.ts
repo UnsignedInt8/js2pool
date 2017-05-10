@@ -49,14 +49,14 @@ export default class Sharechain extends Event {
         candidateArrived: 'CandidateArrived',
         orphansFound: 'OrphansFound',
         gapsFound: 'GapsFound',
-        chainSynced: 'ChainSynced',
+        baseLengthReached: 'BaseLengthReached',
     }
 
     private hashIndexer = new Map<string, number>();
     private absheightIndexer = new Map<number, Array<BaseShare>>();
     newest = ObservableProperty.init<BaseShare>(null);
-    synced = false;
     oldest: BaseShare;
+    calculatable = false;
 
     private constructor() {
         super();
@@ -87,8 +87,8 @@ export default class Sharechain extends Event {
         super.register(Sharechain.Events.gapsFound, callback);
     }
 
-    onSyncCompleted(callback: (sender: Sharechain, verified: number) => void) {
-        super.register(Sharechain.Events.chainSynced, callback);
+    onChainReachedBaseLength(callback: (sender: Sharechain) => void) {
+        super.register(Sharechain.Events.baseLengthReached, callback);
     }
 
     has(hash: string) {
@@ -99,8 +99,8 @@ export default class Sharechain extends Event {
         for (let share of shares) {
             this.append(share);
         }
-        
-        if (!this.synced) this.verify();
+
+        if (!this.calculatable) this.verify();
     }
 
     /**
@@ -253,8 +253,8 @@ export default class Sharechain extends Event {
             hash = share.info.data.previousShareHash;
         }
 
-        this.synced = verified == this.length && verified > Sharechain.BASE_CHAIN_LENGTH;
-        if (this.synced) super.trigger(Sharechain.Events.chainSynced, this, verified);
+        this.calculatable = verified == this.length && verified >= Sharechain.BASE_CHAIN_LENGTH;
+        if (this.calculatable) super.trigger(Sharechain.Events.baseLengthReached, this, verified);
 
         logger.info(`sharechain verified: ${verified}, length: ${this.length}, size: ${this.size}`);
         return verified === this.length;
@@ -275,6 +275,14 @@ export default class Sharechain extends Event {
             let length = descendentHeight - ancestorHeight - 1;
             gaps.push({ descendent: this.absheightIndexer.get(descendentHeight)[0].hash, length, descendentHeight });
             descendentHeight = ancestorHeight;
+        }
+
+        if (this.oldest && this.newest.hasValue() && this.newest.value.info.absheight - this.oldest.info.absheight < Sharechain.BASE_CHAIN_LENGTH) {
+            gaps.push({
+                descendent: this.oldest.hash,
+                descendentHeight: this.oldest.info.absheight,
+                length: Sharechain.BASE_CHAIN_LENGTH - (this.newest.value.info.absheight - this.oldest.info.absheight),
+            });
         }
 
         if (gaps.length > 0) super.trigger(Sharechain.Events.gapsFound, this, gaps);
