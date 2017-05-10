@@ -80,7 +80,7 @@ function testShares() {
     let chain = Sharechain.Instance;
     chain.onGapsFound((sender, gaps) => console.log('No.1 ', gaps.length));
     chain.onGapsFound((sender, gaps) => console.log('No.2 ', gaps.length));
-    chain.add(SharechainHelper.loadShares());
+    chain.add(SharechainHelper.loadShares().distinct((s1, s2) => s1.hash === s2.hash).toArray());
     console.log(chain.length);
     let gaps = chain.checkGaps();
     console.log(chain.verify());

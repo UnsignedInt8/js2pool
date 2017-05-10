@@ -73,10 +73,10 @@ export abstract class BaseShare {
         let merkleRoot = (segwitActivated && this.info.segwit.txidMerkleLink.branch ? this.info.segwit.txidMerkleLink.branch : this.merkleLink).aggregate(this.gentxHash, (c, n) => utils.sha256d(Buffer.concat([c, n])));
         let headerHash = this.minHeader.calculateHash(merkleRoot);
         this.hash = utils.hexFromReversedBuffer(headerHash);
-
+        
         if (this.target > BaseShare.MAX_TARGET) return false;
         if (BigNum.fromBuffer(BaseShare.PowFunc(this.minHeader.buildHeader(merkleRoot)), { endian: 'little', size: 32 }).toNumber() > this.target) return false;
-
+        
         this.validity = true;
         return true;
     }
@@ -96,7 +96,7 @@ export abstract class BaseShare {
         let constructor = ShareVersionMapper[template.version];
         if (!constructor) return null;
         let share = new constructor() as BaseShare;
-        
+
         return share;
     }
 

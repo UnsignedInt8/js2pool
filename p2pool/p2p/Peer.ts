@@ -24,7 +24,8 @@ export type PeerOptions = {
 
 export class Peer {
 
-    private readonly server: Server;
+    private port: number;
+    private server: Server;
     private readonly knownTxs = ObservableProperty.init(new Map<string, TransactionTemplate>());
     private readonly knownTxsCaches = new Array<Map<string, TransactionTemplate>>();
     private readonly miningTxs = ObservableProperty.init(new Map<string, TransactionTemplate>());
@@ -37,14 +38,22 @@ export class Peer {
     constructor(opts: PeerOptions) {
         this.knownTxs.onPropertyChanged(this.onKnownTxsChanged.bind(this));
         this.miningTxs.onPropertyChanged(this.onMiningTxsChanged.bind(this));
-        this.server = net.createServer(this.onSocketConnected.bind(this)).listen(opts.port);
-        this.server.on('error', error => { logger.error(error.message); throw error; });
 
         this.sharechain.onGapsFound(this.onGapsFound.bind(this));
         this.sharechain.onOrphansFound(this.onOrphansFound.bind(this));
         this.sharechain.onNewestChanged(this.onNewestShareChanged.bind(this));
         this.sharechain.onCandidateArrived(this.onCandidateArrived.bind(this));
         this.sharechain.onDeadShareArrived(this.onDeadShareArrived.bind(this));
+
+        if (!this.sharechain.calculatable) {
+            logger.info('Waiting for sharechain downloading');
+            this.sharechain.onChainCalculatable(this.onChainCalculatable.bind(this));
+            this.port = opts.port;
+            return;
+        }
+
+        this.server = net.createServer(this.onSocketConnected.bind(this)).listen(opts.port);
+        this.server.on('error', error => { logger.error(error.message); throw error; });
     }
 
     private onSocketConnected(s: Socket) {
@@ -55,8 +64,15 @@ export class Peer {
         this.registerNode(node);
     }
 
+    private onChainCalculatable(sender: Sharechain) {
+        if (this.server) return;
+        this.server = net.createServer(this.onSocketConnected.bind(this)).listen(this.port);
+        this.server.on('error', error => { logger.error(error.message); throw error; });
+        logger.info('Sharechain downloading completed');
+    }
+
     private onGapsFound(sender: Sharechain, gaps: Gap[]) {
-        logger.warn(`gaps found, count: ${gaps.length}`);
+        logger.warn(`Sharechain gaps found, count: ${gaps.length}, length: ${gaps.sum(g => g.length)}`);
         if (!this.peers.size) return;
         if (!gaps.length) return;
 
@@ -217,7 +233,7 @@ export class Peer {
         this.sharechain.checkGaps();
         SharechainHelper.saveShares(shares);
 
-        logger.info(`received ${reply.wrapper.shares.length} shares from ${sender.tag}`);
+        logger.info(`received ${shares.length} shares from ${sender.tag}`);
     }
 
     // ----------------- Peer work ---------------------

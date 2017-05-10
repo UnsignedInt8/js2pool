@@ -49,7 +49,7 @@ export default class Sharechain extends Event {
         candidateArrived: 'CandidateArrived',
         orphansFound: 'OrphansFound',
         gapsFound: 'GapsFound',
-        baseLengthReached: 'BaseLengthReached',
+        chainCalculatable: 'ChainCalculatable',
     }
 
     private hashIndexer = new Map<string, number>();
@@ -87,8 +87,8 @@ export default class Sharechain extends Event {
         super.register(Sharechain.Events.gapsFound, callback);
     }
 
-    onChainReachedBaseLength(callback: (sender: Sharechain) => void) {
-        super.register(Sharechain.Events.baseLengthReached, callback);
+    onChainCalculatable(callback: (sender: Sharechain) => void) {
+        super.register(Sharechain.Events.chainCalculatable, callback);
     }
 
     has(hash: string) {
@@ -97,7 +97,9 @@ export default class Sharechain extends Event {
 
     add(shares: BaseShare[]) {
         for (let share of shares) {
-            this.append(share);
+            if (!this.append(share)) {
+                // console.log('add share failed', share.hash, share.info.absheight);
+            }
         }
 
         if (!this.calculatable) this.verify();
@@ -108,7 +110,10 @@ export default class Sharechain extends Event {
      * if returns false, means it's **an old** or invalid share, and it should not be broadcasted to other peers
      */
     private append(share: BaseShare) {
-        if (!share.validity) return false;
+        if (!share.validity) {
+            logger.error(`invalid share, ${share.info.absheight}, ${share.hash}`);
+            return false;
+        }
 
         let shares = this.absheightIndexer.get(share.info.absheight);
         if (!shares) {
@@ -116,7 +121,12 @@ export default class Sharechain extends Event {
             this.absheightIndexer.set(share.info.absheight, shares);
         }
 
-        if (shares.some(s => s.hash === share.hash)) return false;
+
+        if (shares.some(s => s.hash === share.hash)) {
+            logger.warn(`duplicate share, ${share.info.absheight}, ${share.hash}`);
+            return false;
+        }
+
         shares.push(share);
         this.hashIndexer.set(share.hash, share.info.absheight);
 
@@ -163,7 +173,7 @@ export default class Sharechain extends Event {
         if (this.newest.hasValue() && share.info.absheight < this.newest.value.info.absheight) {
 
             // just an old share arrived
-            if (shares.length < 2) return false;
+            if (shares.length < 2) return true;
 
             let nextHeight = share.info.absheight + 1;
             let nextShares = this.absheightIndexer.get(nextHeight);
@@ -253,8 +263,10 @@ export default class Sharechain extends Event {
             hash = share.info.data.previousShareHash;
         }
 
-        this.calculatable = verified == this.length && verified >= Sharechain.BASE_CHAIN_LENGTH;
-        if (this.calculatable) super.trigger(Sharechain.Events.baseLengthReached, this, verified);
+        if (!this.calculatable) {
+            this.calculatable = verified == this.length && verified >= Sharechain.BASE_CHAIN_LENGTH;
+            if (this.calculatable) super.trigger(Sharechain.Events.chainCalculatable, this, verified);
+        }
 
         logger.info(`sharechain verified: ${verified}, length: ${this.length}, size: ${this.size}`);
         return verified === this.length;
@@ -286,7 +298,6 @@ export default class Sharechain extends Event {
         }
 
         if (gaps.length > 0) super.trigger(Sharechain.Events.gapsFound, this, gaps);
-        console.log('check gaps', gaps.length);
         return gaps;
     }
 }
