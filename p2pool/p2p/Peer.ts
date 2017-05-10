@@ -137,29 +137,28 @@ export class Peer {
         this.knownTxs.set(knownTxs);
     }
 
-    handleShares(sender: Node, shares: TypeShares[]) {
-        if (!shares || shares.length === 0) return;
-        if (shares.all(item => Sharechain.Instance.has(item.contents.hash))) return;
+    handleShares(sender: Node, wrappers: TypeShares[]) {
+        if (!wrappers || wrappers.length === 0) return;
+        if (wrappers.all(item => Sharechain.Instance.has(item.contents.hash))) return;
 
-        let result = new Array<{ share: BaseShare, txs: TransactionTemplate[] }>();
-        for (let share of shares.where(s => s.contents && s.contents.validity).select(s => s.contents)) {
+        let newTxs = new Map(this.knownTxs.value);
+        for (let share of wrappers.where(s => s.contents && s.contents.validity).select(s => s.contents)) {
             logger.info(share.hash);
-
-            let txs = new Array<TransactionTemplate>();
 
             for (let txHash of share.info.newTransactionHashes) {
                 if (this.knownTxs.value.has(txHash)) {
-                    txs.push(this.knownTxs.value.get(txHash));
+                    let tx = this.knownTxs.value.get(txHash);
+                    newTxs.set(txHash, tx);
                     continue;
                 }
 
                 if (sender.rememberedTxs.has(txHash)) {
-                    txs.push(sender.rememberedTxs.get(txHash));
+                    let tx = sender.rememberedTxs.get(txHash);
+                    newTxs.set(txHash, tx);
                     continue;
                 }
 
                 if (this.miningTxs.value.has(txHash)) {
-                    txs.push(this.miningTxs.value.get(txHash));
                     continue;
                 }
 
@@ -173,25 +172,15 @@ export class Peer {
                     break;
                 }
 
-                txs.push(cache.get(txHash));
+                let tx = cache.get(txHash);
+                newTxs.set(txHash, tx);
             }
-
-            result.push({ share, txs });
         }
 
-        let newTxs = new Map(this.knownTxs.value);
-        for (let { share, txs } of result) {
-            for (let tx of txs) {
-                newTxs.set(tx.hash, tx);
-            }
-
-            this.sharechain.add(share);
-        }
-
+        this.sharechain.add(wrappers.map(s => s.contents));
         this.knownTxs.set(newTxs);
-        this.sharechain.verify();
 
-        Array.from(this.peers.values()).except([sender], (i1, i2) => i1.tag === i2.tag).each(peer => peer.sendSharesAsync(shares));
+        Array.from(this.peers.values()).except([sender], (i1, i2) => i1.tag === i2.tag).each(peer => peer.sendSharesAsync(wrappers));
     }
 
     private handleSharereq(sender: Node, request: TypeSharereq) {
@@ -223,12 +212,10 @@ export class Peer {
             return;
         }
 
-        for (let share of reply.wrapper.shares) {
-            this.sharechain.add(share.contents);
-        }
-
-        SharechainHelper.saveShares(reply.wrapper.shares.select(wrapper => wrapper.contents));
+        let shares = reply.wrapper.shares.map(s => s.contents);
+        this.sharechain.add(shares);
         this.sharechain.checkGaps();
+        SharechainHelper.saveShares(shares);
 
         logger.info(`received ${reply.wrapper.shares.length} shares from ${sender.tag}`);
     }

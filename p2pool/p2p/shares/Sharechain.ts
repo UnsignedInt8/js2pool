@@ -95,11 +95,19 @@ export default class Sharechain extends Event {
         return this.hashIndexer.has(hash);
     }
 
+    add(shares: BaseShare[]) {
+        for (let share of shares) {
+            this.append(share);
+        }
+        
+        if (!this.synced) this.verify();
+    }
+
     /**
      * if returns ture, means it's a new share, and it can be broadcasted to other peers
      * if returns false, means it's **an old** or invalid share, and it should not be broadcasted to other peers
      */
-    add(share: BaseShare) {
+    private append(share: BaseShare) {
         if (!share.validity) return false;
 
         let shares = this.absheightIndexer.get(share.info.absheight);
@@ -113,7 +121,6 @@ export default class Sharechain extends Event {
         this.hashIndexer.set(share.hash, share.info.absheight);
 
         if (this.oldest && share.info.absheight < this.oldest.info.absheight) this.oldest = share;
-        if (!this.synced) this.verify();
 
         if (this.newest.hasValue() && share.info.absheight > this.newest.value.info.absheight) {
             let last = this.newest.value;

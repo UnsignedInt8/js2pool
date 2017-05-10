@@ -11,9 +11,6 @@ import { SharechainHelper } from "./p2p/shares/SharechainHelper";
 export type Js2PoolOptions = {
     daemon: DaemonOptions,
     server: PeerOptions,
-    coin: {
-        name: string,
-    }
 
     bootstrapPeers: { host: string, port: number }[],
 }
@@ -32,15 +29,6 @@ export class Js2Pool {
         this.daemonWatcher.onBlockTemplateUpdated(this.onMiningTemplateUpdated.bind(this));
         this.daemonWatcher.onBlockNotified(this.onBlockNotified.bind(this));
         this.daemonWatcher.beginWatching();
-
-        let coins = new Map([['bitcoin', Bitcoin]]);
-        let targetCoin = coins.get(opts.coin.name);
-        if (!targetCoin) throw Error(`${opts.coin.name} not be supported`);
-
-        BaseShare.MAX_TARGET = targetCoin.MAX_TARGET;
-        BaseShare.IDENTIFIER = targetCoin.IDENTIFIER;
-        BaseShare.SEGWIT_ACTIVATION_VERSION = targetCoin.SEGWIT_ACTIVATION_VERSION;
-        BaseShare.PowFunc = targetCoin.POWFUNC;
 
         this.peer = new Peer(opts.server);
         this.peer.initPeersAsync(opts.bootstrapPeers);

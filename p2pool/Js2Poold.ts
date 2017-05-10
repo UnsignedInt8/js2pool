@@ -42,7 +42,7 @@ async function run() {
     BaseShare.IDENTIFIER = Bitcoin.IDENTIFIER;
     SharechainHelper.init('bitcoin');
     let shares = SharechainHelper.loadShares();
-    shares.forEach(s => Sharechain.Instance.add(s));
+    Sharechain.Instance.add(shares);
     console.log(shares.length);
     setTimeout(() => new Js2Pool(opts), 2000);
 

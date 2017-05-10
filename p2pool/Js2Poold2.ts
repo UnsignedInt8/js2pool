@@ -15,7 +15,7 @@ SharechainHelper.init('bitcoin2');
 BaseShare.IDENTIFIER = Bitcoin.IDENTIFIER;
 SharechainHelper.init('bitcoin');
 let shares = SharechainHelper.loadShares();
-shares.forEach(s => Sharechain.Instance.add(s));
+Sharechain.Instance.add(shares);
 console.log(shares.length);
 
 const opts = {
