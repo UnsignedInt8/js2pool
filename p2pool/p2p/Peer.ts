@@ -72,7 +72,7 @@ export class Peer {
     }
 
     private onGapsFound(sender: Sharechain, gaps: Gap[]) {
-        logger.warn(`Sharechain gaps found, count: ${gaps.length}, length: ${gaps.sum(g => g.length)}`);
+        if (sender.calculatable) logger.warn(`Sharechain gaps found, count: ${gaps.length}, length: ${gaps.sum(g => g.length)}`);
         if (!this.peers.size) return;
         if (!gaps.length) return;
 

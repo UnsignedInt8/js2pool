@@ -30,7 +30,7 @@ export class App {
         BaseShare.MAX_TARGET = coin.MAX_TARGET;
         BaseShare.IDENTIFIER = coin.IDENTIFIER;
         BaseShare.SEGWIT_ACTIVATION_VERSION = coin.SEGWIT_ACTIVATION_VERSION;
-        BaseShare.PowFunc = coin.POWFUNC;
+        BaseShare.POWFUNC = coin.POWFUNC;
         Message.MAGIC = coin.MSGPREFIX;
 
         logger.info('|-------------- BOOTING JS2POOL --------------|');

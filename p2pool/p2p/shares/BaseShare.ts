@@ -20,7 +20,7 @@ export abstract class BaseShare {
     // These fileds should be initalized when pool starts
     static SEGWIT_ACTIVATION_VERSION = 0
     static IDENTIFIER: Buffer;
-    static PowFunc: (data: Buffer) => Buffer;
+    static POWFUNC: (data: Buffer) => Buffer;
     static MAX_TARGET = 0;
 
     VERSION = 0;
@@ -75,7 +75,7 @@ export abstract class BaseShare {
         this.hash = utils.hexFromReversedBuffer(headerHash);
         
         if (this.target > BaseShare.MAX_TARGET) return false;
-        if (BigNum.fromBuffer(BaseShare.PowFunc(this.minHeader.buildHeader(merkleRoot)), { endian: 'little', size: 32 }).toNumber() > this.target) return false;
+        if (BigNum.fromBuffer(BaseShare.POWFUNC(this.minHeader.buildHeader(merkleRoot)), { endian: 'little', size: 32 }).toNumber() > this.target) return false;
         
         this.validity = true;
         return true;

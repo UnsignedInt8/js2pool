@@ -51,7 +51,7 @@ SharechainHelper.dataDir = __dirname;
 
 function testShares() {
     BaseShare.IDENTIFIER = Bitcoin.IDENTIFIER;
-    BaseShare.PowFunc = Utils.sha256d;
+    BaseShare.POWFUNC = Utils.sha256d;
     BaseShare.MAX_TARGET = 2 ** 256 / 2 ** 32 - 1;
     // let str = BufferWriter.writeVarString('6a28' + '0000000000000000000000000000000000000000000000000000000000000000' + '0000000000000000', 'hex');
 

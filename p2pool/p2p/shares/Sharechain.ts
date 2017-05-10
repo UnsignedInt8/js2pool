@@ -111,7 +111,7 @@ export default class Sharechain extends Event {
      */
     private append(share: BaseShare) {
         if (!share.validity) {
-            logger.error(`invalid share, ${share.info.absheight}, ${share.hash}`);
+            logger.warn(`invalid share, ${share.info.absheight}, ${share.hash}`);
             return false;
         }
 
@@ -123,7 +123,7 @@ export default class Sharechain extends Event {
 
 
         if (shares.some(s => s.hash === share.hash)) {
-            logger.warn(`duplicate share, ${share.info.absheight}, ${share.hash}`);
+            if (this.calculatable) logger.warn(`duplicate share, ${share.info.absheight}, ${share.hash}`);
             return false;
         }
 
