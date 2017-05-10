@@ -15,6 +15,7 @@ import { TypeSharereq } from "./Messages/Sharereq";
 import { TypeSharereply } from "./Messages/Sharereply";
 import * as BigNum from 'bignum';
 import { SharechainHelper } from "./shares/SharechainHelper";
+import * as Utils from '../../misc/Utils';
 
 export type PeerOptions = {
     maxConn?: number,
@@ -59,14 +60,18 @@ export class Peer {
         if (!this.peers.size) return;
         if (!gaps.length) return;
 
-        let fastNode = kinq.toLinqable(this.peers.values()).min(item => item.connectionTime);
-        let gap = gaps[0];
+        let peers = Array.from(this.peers.values());
+        let randomGaps = gaps.length > 1 ? Utils.shuffle(gaps) : gaps;
 
-        fastNode.sendSharereqAsync({
-            id: new BigNum(Math.random() * 1000000 | 0),
-            hashes: [gap.descendent],
-            parents: Math.min(gap.length, 80),
-        });
+        for (let gap of randomGaps) {
+            if (!peers.length) break;
+            let node = peers.shift();
+            node.sendSharereqAsync({
+                id: new BigNum(Math.random() * 1000000 | 0),
+                hashes: [gap.descendent],
+                parents: Math.min(gap.length, 80),
+            });
+        }
     }
 
     private onCandidateArrived(sender: Sharechain, share: BaseShare) {
@@ -201,16 +206,22 @@ export class Peer {
             }
         }
 
-        if (shares.length === 0) return;
-        logger.info(`response shares request: ${shares.length}`);
-        
+        if (shares.length === 0) {
+            sender.sendSharereplyAsync({ id: request.id, result: 2, wrapper: Shares.fromObject([]) })
+            return;
+        }
+
         let wrapper = Shares.fromObject(shares.map(s => { return { version: s.VERSION, contents: s }; }));
         sender.sendSharereplyAsync({ id: request.id, result: 0, wrapper });
+        logger.info(`sending ${shares.length} shares to ${sender.tag}`);
     }
 
     private handleSharereply(sender: Node, reply: TypeSharereply) {
-        logger.info(`received share reply, ${reply.wrapper.shares.length}`);
-        if (reply.result != 0) return; // not ok
+        // not ok
+        if (reply.result != 0) {
+            this.sharechain.checkGaps();
+            return;
+        }
 
         for (let share of reply.wrapper.shares) {
             this.sharechain.add(share.contents);
@@ -218,6 +229,8 @@ export class Peer {
 
         SharechainHelper.saveShares(reply.wrapper.shares.select(wrapper => wrapper.contents));
         this.sharechain.checkGaps();
+
+        logger.info(`received ${reply.wrapper.shares.length} shares from ${sender.tag}`);
     }
 
     // ----------------- Peer work ---------------------
@@ -252,7 +265,6 @@ export class Peer {
         if (this.knownTxsCaches.length > 10) this.knownTxsCaches.shift();
 
         logger.info(`known txs changed, added: ${added.length}, removed: ${removed.length}`)
-
     }
 
     /**

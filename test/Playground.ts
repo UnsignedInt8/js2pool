@@ -84,6 +84,9 @@ function testShares() {
     console.log(chain.length);
     let gaps = chain.checkGaps();
     console.log(chain.verify());
+
+    let s = Utils.shuffle([1, 2, 3, 4, 5, 6, 7]);
+    console.log(s);
 }
 
 testShares();
