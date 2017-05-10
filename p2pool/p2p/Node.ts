@@ -182,7 +182,7 @@ export default class Node extends Event {
         let { data, lopped } = await Node.readFlowingBytesAsync(this.socket, PROTOCOL_HEAD_LENGTH, preBuffer);
 
         let magic = data.slice(0, 8);
-        if (!magic.equals(Message.magic)) {
+        if (!magic.equals(Message.MAGIC)) {
             this.trigger(Node.Events.badPeer, this, 'Bad magic number');
             this.close(true, 'Bad magic number');
             return;
@@ -286,7 +286,7 @@ export default class Node extends Event {
         for (let hash of txHashes) {
             this.rememberedTxs.delete(hash);
         }
-        
+
         this.trigger(Node.Events.forgetTx, this, txHashes);
         logger.info(`forget_tx: ${txHashes.length}, remember_tx: ${this.rememberedTxs.size}`);
     }

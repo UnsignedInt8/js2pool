@@ -65,7 +65,7 @@ export class Peer {
         fastNode.sendSharereqAsync({
             id: new BigNum(Math.random() * 1000000 | 0),
             hashes: [gap.descendent],
-            parents: Math.min(gap.length, 500),
+            parents: Math.min(gap.length, 80),
         });
     }
 

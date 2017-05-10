@@ -25,7 +25,7 @@ export const PROTOCOL_HEAD_LENGTH = 28; // magic(8), command(12), length(4), che
 
 export class Message {
 
-    static readonly magic = Buffer.from('2472ef181efcd37b', 'hex');  // 8 bytes, P2Pool protocol
+    static MAGIC = Buffer.from('2472ef181efcd37b', 'hex');  // 8 bytes, P2Pool protocol
 
     command: string;
     payload: any;
@@ -44,7 +44,7 @@ export class Message {
         headBuf.writeUInt32LE(payBuf.length, 12);
         headBuf.writeUInt32LE(checksum, 16);
 
-        return Buffer.concat([Message.magic, headBuf, payBuf]);
+        return Buffer.concat([Message.MAGIC, headBuf, payBuf]);
     }
 
     static fromObject(obj: TypeMessage) {
