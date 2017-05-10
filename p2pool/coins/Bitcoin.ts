@@ -12,7 +12,7 @@ export default class Bitcoin {
     static readonly TARGET_LOOKBEHIND = 200;// # shares
     static readonly SPREAD = 3;// # blocks
     static readonly IDENTIFIER = Buffer.from('fc70035c7a81bc6f', 'hex');
-    static readonly PREFIX = Buffer.from('2472ef181efcd37b', 'hex');
+    static readonly MSGPREFIX = Buffer.from('2472ef181efcd37b', 'hex');
     static readonly P2P_PORT = 9333;
     static readonly MIN_TARGET = 0;
     static readonly MAX_TARGET = 2 ** 256 / 2 ** 32 - 1

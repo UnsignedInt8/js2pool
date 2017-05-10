@@ -21,8 +21,8 @@ export type Js2PoolOptions = {
 export class Js2Pool {
 
     private daemonWatcher: DaemonWatcher;
-    private peer: Peer;
     private readonly blocks = new Array<string>();
+    peer: Peer;
 
     constructor(opts: Js2PoolOptions) {
         Sharechain.Instance.onNewestChanged(this.onNewestShareChanged.bind(this));
