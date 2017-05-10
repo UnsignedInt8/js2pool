@@ -7,16 +7,16 @@ import { Payload } from "./Payload";
 import { Shares } from "./Shares";
 import BufferReader from "../../../misc/BufferReader";
 import BufferWriter from "../../../misc/BufferWriter";
-import * as BigNum from 'bignum';
+import * as Bignum from 'bignum';
 
 export type TypeSharereply = {
-    id: BigNum;
+    id: Bignum;
     result: number;// {0: 'good', 1: 'too long', 2: 'unk2', 3: 'unk3', 4: 'unk4', 5: 'unk5', 6: 'unk6'})),
     wrapper: Shares;
 }
 
 export default class Sharereply extends Payload {
-    id: BigNum; // 256 bits 
+    id: Bignum; // 256 bits 
     result: number; // var int
     wrapper: Shares;
 

@@ -3,7 +3,7 @@
  * Github: https://github.com/unsignedint8
  */
 
-import * as BigNum from 'bignum';
+import * as Bignum from 'bignum';
 import * as utils from './Utils';
 
 export default class BufferReader {
@@ -39,7 +39,7 @@ export default class BufferReader {
     }
 
     readNumber(size: number, endian = 'little') {
-        let num = BigNum.fromBuffer(this.data.slice(this.offset, this.offset + size), { endian, size });
+        let num = Bignum.fromBuffer(this.data.slice(this.offset, this.offset + size), { endian, size });
         this.offset += size;
         return num;
     }

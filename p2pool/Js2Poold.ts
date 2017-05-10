@@ -10,7 +10,7 @@ import Bitcoin from "./coins/Bitcoin";
 import { SharechainHelper } from "./p2p/shares/SharechainHelper";
 import Sharechain from "./p2p/shares/Sharechain";
 import { Peer } from "./p2p/Peer";
-import * as BigNum from 'bignum';
+import * as Bignum from 'bignum';
 kinq.enable();
 
 const opts = {

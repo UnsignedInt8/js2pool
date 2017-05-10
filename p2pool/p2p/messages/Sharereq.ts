@@ -7,17 +7,17 @@ import { Payload } from "./Payload";
 import BufferWriter from "../../../misc/BufferWriter";
 import * as utils from '../../../misc/Utils';
 import BufferReader from "../../../misc/BufferReader";
-import * as BigNum from 'bignum';
+import * as Bignum from 'bignum';
 
 export type TypeSharereq = {
-    id: BigNum,
+    id: Bignum,
     hashes: string[],
     parents?: number, // If it's 0, it means no other shares needed.
     stops?: string[],
 }
 
 export default class Sharereq extends Payload {
-    id: BigNum; // 256 bits
+    id: Bignum; // 256 bits
     hashes: string[]; // list 256bits
     parents: number; // var int
     stops: string[]; // hash list

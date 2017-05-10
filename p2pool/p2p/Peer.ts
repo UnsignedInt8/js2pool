@@ -13,7 +13,7 @@ import Sharechain, { Gap } from "./shares/Sharechain";
 import logger from '../../misc/Logger';
 import { TypeSharereq } from "./Messages/Sharereq";
 import { TypeSharereply } from "./Messages/Sharereply";
-import * as BigNum from 'bignum';
+import * as Bignum from 'bignum';
 import { SharechainHelper } from "./shares/SharechainHelper";
 import * as Utils from '../../misc/Utils';
 
@@ -83,7 +83,7 @@ export class Peer {
             if (!peers.length) break;
             let node = peers.shift();
             node.sendSharereqAsync({
-                id: new BigNum(Math.random() * 1000000 | 0),
+                id: new Bignum(Math.random() * 1000000 | 0),
                 hashes: [gap.descendent],
                 parents: Math.min(gap.length, 80),
             });
@@ -117,7 +117,7 @@ export class Peer {
         if (<any>version.bestShareHash == 0) return;
         if (this.sharechain.has(version.bestShareHash)) return;
 
-        sender.sendSharereqAsync({ id: new BigNum(Math.random() * 1000000 | 0), hashes: [version.bestShareHash], parents: 1 });
+        sender.sendSharereqAsync({ id: new Bignum(Math.random() * 1000000 | 0), hashes: [version.bestShareHash], parents: 1 });
     }
 
     private handleRemember_tx(sender: Node, txHashes: string[], txs: Transaction[]) {

@@ -4,7 +4,7 @@
  */
 
 import { Payload } from "./Payload";
-import * as BigNum from 'bignum';
+import * as Bignum from 'bignum';
 import * as utils from '../../../misc/Utils';
 import * as assert from 'assert';
 import * as ipaddr from 'ipaddr.js';
@@ -42,14 +42,14 @@ export default class Addrs extends Payload {
     port: number; // 2 bytes
 
     toBuffer(): Buffer {
-        let timeBuf = (new BigNum(this.timestamp)).toBuffer({ endian: 'little', size: 8 });
+        let timeBuf = (new Bignum(this.timestamp)).toBuffer({ endian: 'little', size: 8 });
         let addrBuf = Addrs.convertAddressToBuffer(this);
 
         return Buffer.concat([timeBuf, addrBuf]);
     }
 
     static convertAddressToBuffer(addr: TypeAddrs) {
-        let services = new BigNum(addr.services).toBuffer({ endian: 'little', size: 8 });
+        let services = new Bignum(addr.services).toBuffer({ endian: 'little', size: 8 });
 
         let ip: Buffer;
         if (ipv4.test(addr.ip)) {
@@ -89,7 +89,7 @@ export default class Addrs extends Payload {
         }
 
         return {
-            services: BigNum.fromBuffer(buf.slice(0, 8), { endian: 'little', size: 8 }).toNumber(),
+            services: Bignum.fromBuffer(buf.slice(0, 8), { endian: 'little', size: 8 }).toNumber(),
             ip: parseIP(buf.slice(8, 24)),
             port: buf.readUInt16BE(24)
         };
@@ -128,7 +128,7 @@ export default class Addrs extends Payload {
             let slice = content.slice(offset, offset + PAYLOAD_LENGTH);
 
             let addr = new Addrs();
-            addr.timestamp = BigNum.fromBuffer(slice.slice(0, 8), { endian: 'little', size: 8 }).toNumber();
+            addr.timestamp = Bignum.fromBuffer(slice.slice(0, 8), { endian: 'little', size: 8 }).toNumber();
 
             let { services, ip, port } = Addrs.convertBufferToAddress(slice.slice(8));
             addr.services = services;

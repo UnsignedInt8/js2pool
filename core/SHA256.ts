@@ -1,4 +1,4 @@
-import * as BigNum from 'bignum';
+import * as Bignum from 'bignum';
 
 const k = [
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -11,35 +11,35 @@ const k = [
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
 ];
 
-const bignumK = k.map(i => new BigNum(i));
+const bignumK = k.map(i => new Bignum(i));
 
 const INT_MAX = 2 ** 32;
 
 // https://wiki.python.org/moin/BitwiseOperators
 function rightrotate(x, n) {
-    return new BigNum(x).shiftRight(n).or(new BigNum(x).shiftLeft(32 - n).mod(INT_MAX));
+    return new Bignum(x).shiftRight(n).or(new Bignum(x).shiftLeft(32 - n).mod(INT_MAX));
 }
 
 function process(state: Buffer, chunk: Buffer) {
 
-    let w = new Array<BigNum>();
+    let w = new Array<Bignum>();
     for (let i = 0; i < chunk.length; i += 4) {
-        w.push(new BigNum(chunk.readUInt32BE(i)));
+        w.push(new Bignum(chunk.readUInt32BE(i)));
     }
 
     for (let i = 16; i < 64; i++) {
-        let s0 = rightrotate(w[i - 15], 7).xor(rightrotate(w[i - 15], 18)).xor(new BigNum(w[i - 15]).shiftRight(3));
-        let s1 = rightrotate(w[i - 2], 17).xor(rightrotate(w[i - 2], 19)).xor(new BigNum(w[i - 2]).shiftRight(10));
+        let s0 = rightrotate(w[i - 15], 7).xor(rightrotate(w[i - 15], 18)).xor(new Bignum(w[i - 15]).shiftRight(3));
+        let s1 = rightrotate(w[i - 2], 17).xor(rightrotate(w[i - 2], 19)).xor(new Bignum(w[i - 2]).shiftRight(10));
         w.push((w[i - 16].add(s0).add(w[i - 7]).add(s1).mod(INT_MAX)));
     }
 
-    let startState = new Array<BigNum>();
+    let startState = new Array<Bignum>();
     for (let i = 0; i < state.length; i += 4) {
-        startState.push(new BigNum(state.readUInt32BE(i)));
+        startState.push(new Bignum(state.readUInt32BE(i)));
     }
 
     let [a, b, c, d, e, f, g, h] = startState;
-    for (let [k_i, w_i] of bignumK.zip<BigNum>(w)) {
+    for (let [k_i, w_i] of bignumK.zip<Bignum>(w)) {
 
         let t1 = (h.add(rightrotate(e, 6).xor(rightrotate(e, 11)).xor(rightrotate(e, 25))).add((e.and(f)).xor(e.mul(-1).sub(1).and(g))).add(k_i).add(w_i)).mod(INT_MAX);
 
@@ -111,7 +111,7 @@ export default class SHA256 {
 
     digest() {
         let state = this.state;
-        let buf = Buffer.concat([this.buf, Buffer.from('80', 'hex'), Buffer.alloc(floorMod(SHA256.blockSize - 9 - this.buf.length, SHA256.blockSize), 0), new BigNum(this.length).toBuffer({ endian: 'big', size: 8 })]);
+        let buf = Buffer.concat([this.buf, Buffer.from('80', 'hex'), Buffer.alloc(floorMod(SHA256.blockSize - 9 - this.buf.length, SHA256.blockSize), 0), new Bignum(this.length).toBuffer({ endian: 'big', size: 8 })]);
 
         let chunks = new Array<Buffer>();
         for (let i = 0; i < buf.length; i += SHA256.blockSize) {

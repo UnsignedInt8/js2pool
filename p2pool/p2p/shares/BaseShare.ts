@@ -5,7 +5,7 @@ import BufferReader from '../../../misc/BufferReader';
 import * as utils from '../../../misc/Utils';
 import BufferWriter from '../../../misc/BufferWriter';
 import * as assert from 'assert';
-import * as BigNum from 'bignum';
+import * as Bignum from 'bignum';
 import { bitsToDifficulty, bitsToTarget } from "../../../core/Algos";
 import MerkleTree from "../../../core/MerkleTree";
 import { Block } from "bitcoinjs-lib";
@@ -32,7 +32,7 @@ export abstract class BaseShare {
     minHeader: SmallBlockHeader;
     info: ShareInfo;
     refMerkleLink: Buffer[]; // 256 bits list
-    lastTxoutNonce: BigNum; // 64 bits
+    lastTxoutNonce: Bignum; // 64 bits
     hashLink: HashLink;
     merkleLink: Buffer[];
 
@@ -66,7 +66,7 @@ export abstract class BaseShare {
 
         this.gentxHash = this.hashLink.check(Buffer.concat([
             BaseShare.getRefHash(this.info, this.refMerkleLink), // the last txout share info which is written in coinbase 
-            new BigNum(this.lastTxoutNonce).toBuffer({ endian: 'little', size: 8 }), // last txout nonce
+            new Bignum(this.lastTxoutNonce).toBuffer({ endian: 'little', size: 8 }), // last txout nonce
             Buffer.alloc(4, 0) // lock time, 4 bytes
         ]), GENTX_BEFORE_REFHASH);
 
@@ -75,7 +75,7 @@ export abstract class BaseShare {
         this.hash = utils.hexFromReversedBuffer(headerHash);
         
         if (this.target > BaseShare.MAX_TARGET) return false;
-        if (BigNum.fromBuffer(BaseShare.POWFUNC(this.minHeader.buildHeader(merkleRoot)), { endian: 'little', size: 32 }).toNumber() > this.target) return false;
+        if (Bignum.fromBuffer(BaseShare.POWFUNC(this.minHeader.buildHeader(merkleRoot)), { endian: 'little', size: 32 }).toNumber() > this.target) return false;
         
         this.validity = true;
         return true;

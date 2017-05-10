@@ -4,7 +4,7 @@
  */
 
 import BufferReader from '../../../misc/BufferReader';
-import * as BigNum from 'bignum';
+import * as Bignum from 'bignum';
 import * as utils from '../../../misc/Utils';
 import BufferWriter from "../../../misc/BufferWriter";
 import { bitsToTarget } from "../../../core/Algos";
@@ -22,7 +22,7 @@ type ShareData = {
     coinbase: string, // var string
     nonce: number, // 32 bits
     pubkeyHash: string, // 160 bits
-    subsidy: BigNum, // 64 bits
+    subsidy: Bignum, // 64 bits
     donation: number, // 16 bits
     staleInfo: number, // 8 bits {0: None, 253: 'orphan', 254: 'doa'}
     desiredVersion: number, // var int

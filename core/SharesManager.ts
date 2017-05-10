@@ -7,7 +7,7 @@ import * as Utils from '../misc/Utils';
 import { GetBlockTemplate } from "./DaemonWatcher";
 import { Task } from "./TaskConstructor";
 import { Algos, BaseTarget, bitsToTarget, targetToDifficulty } from "./Algos";
-import * as BigNum from 'bignum';
+import * as Bignum from 'bignum';
 
 export default class SharesManager {
     private txHasher: (data: Buffer) => Buffer;
@@ -30,7 +30,7 @@ export default class SharesManager {
         if (this.template && template.height < this.template.height) return;
 
         this.template = template;
-        this.blockTarget = template.target ? new BigNum(template.target, 16).toNumber() : bitsToTarget(Number.parseInt(template.bits, 16));
+        this.blockTarget = template.target ? new Bignum(template.target, 16).toNumber() : bitsToTarget(Number.parseInt(template.bits, 16));
         this.targetDiff = targetToDifficulty(this.blockTarget)
         console.info('block target: ', this.blockTarget);
         
@@ -61,7 +61,7 @@ export default class SharesManager {
         let headerHashBuf = this.headerHasher(header);
         let shareHash = Utils.reverseBuffer(headerHashBuf).toString('hex');
 
-        let shareTarget = BigNum.fromBuffer(headerHashBuf, { endian: 'little', size: 32 }).toNumber();
+        let shareTarget = Bignum.fromBuffer(headerHashBuf, { endian: 'little', size: 32 }).toNumber();
         let shareDiff = BaseTarget / shareTarget * this.mutliplier;
 
         let shareHex: string;

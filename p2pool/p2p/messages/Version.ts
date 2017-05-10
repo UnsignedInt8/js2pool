@@ -5,7 +5,7 @@
 import { Payload } from './Payload';
 import * as crypto from 'crypto';
 import * as utils from '../../../misc/Utils';
-import * as BigNum from 'bignum';
+import * as Bignum from 'bignum';
 import Addrs from "./Addrs";
 
 const PROTOCOL_VERSION = 1700;
@@ -75,7 +75,7 @@ export class Version extends Payload {
 
         version.addressTo = Addrs.convertBufferToAddress(data.slice(12, 38));
         version.addressFrom = Addrs.convertBufferToAddress(data.slice(38, 64));
-        version.nonce = BigNum.fromBuffer(data.slice(64, 72), { endian: 'little', size: 8 }).toNumber();
+        version.nonce = Bignum.fromBuffer(data.slice(64, 72), { endian: 'little', size: 8 }).toNumber();
         version.subVersion = utils.varBufferString(data.slice(72));
 
         let { offset, size } = utils.varStringLength(data.slice(72));

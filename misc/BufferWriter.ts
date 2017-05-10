@@ -4,7 +4,7 @@
  */
 
 import * as utils from './Utils';
-import * as BigNum from 'bignum';
+import * as Bignum from 'bignum';
 
 export default class BufferWriter {
 
@@ -31,7 +31,7 @@ export default class BufferWriter {
      * @param size the size of num, in bytes 
      */
     static writeNumber(num: number, size: number, endian = 'little') {
-        return (new BigNum(num)).toBuffer({ endian, size });
+        return (new Bignum(num)).toBuffer({ endian, size });
     }
 
     static writeUInt8(num: number) {

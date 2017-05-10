@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import { Shares } from "../Messages/Shares";
 import logger from '../../../misc/Logger';
 import { ShareVersionMapper } from "./BaseShare";
-import * as BigNum from 'bignum';
+import * as Bignum from 'bignum';
 import SmallBlockHeader from "./Smallblockheader";
 import ShareInfo from "./Shareinfo";
 import { HashLink } from "./HashLink";
@@ -104,7 +104,7 @@ export class SharechainHelper {
                 obj.hashLink.state = Buffer.from(<any>obj.hashLink.state, 'hex');
                 obj.hashLink.extra = Buffer.from(<any>obj.hashLink.extra, 'hex');
 
-                obj.info.data.subsidy = BigNum.fromBuffer(Buffer.from(<any>obj.info.data.subsidy, 'hex'));
+                obj.info.data.subsidy = Bignum.fromBuffer(Buffer.from(<any>obj.info.data.subsidy, 'hex'));
                 let info = ShareInfo.fromObject(obj.info);
                 let hashlink = HashLink.fromObject(obj.hashLink);
 
@@ -113,7 +113,7 @@ export class SharechainHelper {
                 share.merkleLink = obj.merkleLink.map(l => Buffer.from(<any>l, 'hex'));
                 share.newScript = Buffer.from(<any>obj.newScript, 'hex');
                 share.gentxHash = Buffer.from(<any>obj.gentxHash, 'hex');
-                share.lastTxoutNonce = BigNum.fromBuffer(Buffer.from(<any>obj.lastTxoutNonce, 'hex'));
+                share.lastTxoutNonce = Bignum.fromBuffer(Buffer.from(<any>obj.lastTxoutNonce, 'hex'));
                 share.target = obj.target;
                 share.validity = obj.validity;
                 share.hash = obj.hash;
