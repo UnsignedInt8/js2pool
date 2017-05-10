@@ -100,7 +100,8 @@ export class Peer {
 
     private onOrphansFound(sender: Sharechain, orphans: BaseShare[]) {
         logger.warn(`orphans found, ${orphans.length}, ${orphans[0].info.absheight}, ${orphans[0].hash}`);
-
+        sender.verify();
+        sender.checkGaps();
     }
 
     private onNewestShareChanged(sender: Sharechain, share: BaseShare) {

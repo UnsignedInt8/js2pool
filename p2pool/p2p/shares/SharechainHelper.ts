@@ -10,6 +10,8 @@ import SmallBlockHeader from "./Smallblockheader";
 import ShareInfo from "./Shareinfo";
 import { HashLink } from "./HashLink";
 import * as crypto from 'crypto';
+import * as readline from 'readline';
+import { CompleterResult } from "readline";
 
 /**
  * Data files name convention
@@ -81,7 +83,7 @@ export class SharechainHelper {
         file.end();
     }
 
-    static loadShares(days: number = 2) {
+    static async loadShares(days: number = 2) {
         if (!SharechainHelper.appDir) throw Error('not initialized');
 
         let files = fs.readdirSync(SharechainHelper.dataDir);
@@ -90,36 +92,68 @@ export class SharechainHelper {
             return { path: path.resolve(SharechainHelper.dataDir, item), day: Number.parseInt(items[1]) };
         }).orderByDescending(i => i.day).take(days).toArray();
 
-        return targetFiles.select(file => {
-            let data = fs.readFileSync(file.path, 'utf8');
-            if (!data.length) return [];
+        let allShares = new Array<BaseShare>();
 
-            return data.split('\n').where(s => s.length > 0).select(s => <BaseShare>JSON.parse(s)).select(obj => {
-                let header = SmallBlockHeader.fromObject(obj.minHeader);
-                if (obj.info.segwit) {
-                    obj.info.segwit.wtxidMerkleRoot = Buffer.from(<any>obj.info.segwit.wtxidMerkleRoot, 'hex');
-                    obj.info.segwit.txidMerkleLink.branch = obj.info.segwit.txidMerkleLink.branch.map(b => Buffer.from(<any>b, 'hex'));
-                }
+        for (let file of targetFiles) {
+            let onePart = await new Promise<Array<BaseShare>>(resolve => {
+                let shares = new Array<BaseShare>();
+                let filestream = fs.createReadStream(file.path, { autoClose: true, encoding: 'utf8' });
+                let size = fs.statSync(file.path).size;
 
-                obj.hashLink.state = Buffer.from(<any>obj.hashLink.state, 'hex');
-                obj.hashLink.extra = Buffer.from(<any>obj.hashLink.extra, 'hex');
+                let reader = readline.createInterface({
+                    input: filestream,
+                    terminal: false
+                });
 
-                obj.info.data.subsidy = Bignum.fromBuffer(Buffer.from(<any>obj.info.data.subsidy, 'hex'));
-                let info = ShareInfo.fromObject(obj.info);
-                let hashlink = HashLink.fromObject(obj.hashLink);
+                reader.on('error', (error) => {
+                    logger.error(error.message);
+                    reader.close();
+                    resolve([]);
+                });
+                
+                reader.on('close', () => {
+                    reader.removeAllListeners();
+                    resolve(shares);
+                });
 
-                let share = new ShareVersionMapper[obj.VERSION](header, info, hashlink) as BaseShare;
-                share.refMerkleLink = obj.refMerkleLink.map(l => Buffer.from(<any>l, 'hex'));
-                share.merkleLink = obj.merkleLink.map(l => Buffer.from(<any>l, 'hex'));
-                share.newScript = Buffer.from(<any>obj.newScript, 'hex');
-                share.gentxHash = Buffer.from(<any>obj.gentxHash, 'hex');
-                share.lastTxoutNonce = Bignum.fromBuffer(Buffer.from(<any>obj.lastTxoutNonce, 'hex'));
-                share.target = obj.target;
-                share.validity = obj.validity;
-                share.hash = obj.hash;
+                reader.on('line', data => {
+                    if (!data) return;
 
-                return share;
+                    let obj = JSON.parse(data);
+                    let header = SmallBlockHeader.fromObject(obj.minHeader);
+                    if (obj.info.segwit) {
+                        obj.info.segwit.wtxidMerkleRoot = Buffer.from(<any>obj.info.segwit.wtxidMerkleRoot, 'hex');
+                        obj.info.segwit.txidMerkleLink.branch = obj.info.segwit.txidMerkleLink.branch.map(b => Buffer.from(<any>b, 'hex'));
+                    }
+
+                    obj.hashLink.state = Buffer.from(<any>obj.hashLink.state, 'hex');
+                    obj.hashLink.extra = Buffer.from(<any>obj.hashLink.extra, 'hex');
+
+                    obj.info.data.subsidy = Bignum.fromBuffer(Buffer.from(<any>obj.info.data.subsidy, 'hex'));
+                    let info = ShareInfo.fromObject(obj.info);
+                    let hashlink = HashLink.fromObject(obj.hashLink);
+
+                    let share = new ShareVersionMapper[obj.VERSION](header, info, hashlink) as BaseShare;
+                    share.refMerkleLink = obj.refMerkleLink.map(l => Buffer.from(<any>l, 'hex'));
+                    share.merkleLink = obj.merkleLink.map(l => Buffer.from(<any>l, 'hex'));
+                    share.newScript = Buffer.from(<any>obj.newScript, 'hex');
+                    share.gentxHash = Buffer.from(<any>obj.gentxHash, 'hex');
+                    share.lastTxoutNonce = Bignum.fromBuffer(Buffer.from(<any>obj.lastTxoutNonce, 'hex'));
+                    share.target = obj.target;
+                    share.validity = obj.validity;
+                    share.hash = obj.hash;
+                    shares.push(share);
+
+                    if (filestream.bytesRead === size) {
+                        filestream.close();
+                        reader.close();
+                    }
+                });
             });
-        }).flatten(false).toArray();
+
+            allShares = allShares.concat(onePart);
+        }
+
+        return allShares;
     }
 }

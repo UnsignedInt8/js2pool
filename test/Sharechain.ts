@@ -21,8 +21,8 @@ describe('Sharechain', () => {
 
     let chain = Sharechain.Instance;
 
-    it('load', () => {
-        let shares = SharechainHelper.loadShares();
+    it('load', async () => {
+        let shares = await SharechainHelper.loadShares();
         console.log(shares.length);
         assert.equal(shares.length, 10);
     });

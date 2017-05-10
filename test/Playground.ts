@@ -17,6 +17,7 @@ import winston from '../misc/Logger';
 import { SharechainHelper } from "../p2pool/p2p/shares/SharechainHelper";
 import * as path from 'path';
 import Sharechain from "../p2pool/p2p/shares/Sharechain";
+import * as readline from 'readline';
 
 kinq.enable();
 
@@ -75,15 +76,20 @@ function testShares() {
 
     SharechainHelper.init('bitcoin');
 
-    let num = Bignum.fromBuffer(Buffer.alloc(8), { size: 8, endian: 'little' });
-    console.log(num);
     let chain = Sharechain.Instance;
-    chain.onGapsFound((s, gs) => console.log(gs));
-    chain.add(SharechainHelper.loadShares());
-    console.log(chain.length);
-    // let gaps = chain.checkGaps();
-    // console.log(gaps);
-    console.log(chain.verify());
+    // chain.onGapsFound((s, gs) => console.log(gs));
+    SharechainHelper.loadShares().then(shares => {
+        console.log(shares.length);
+        chain.add(shares);
+    });
+    // console.log(chain.length);
+    // // let gaps = chain.checkGaps();
+    // // console.log(gaps);
+    // console.log(chain.verify());
+
+    // readline.createInterface({
+    //     input: fs.createReadStream('/Users/unsignedint8/.js2pool/data/bitcoin/shares_17296', { encoding: 'utf8' })
+    // }).on('line', line => { console.log(line) });
 
     let s = Utils.shuffle([1, 2, 3, 4, 5, 6, 7]);
     console.log(s);

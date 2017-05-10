@@ -40,10 +40,10 @@ const opts = {
 
 async function run() {
     BaseShare.IDENTIFIER = Bitcoin.IDENTIFIER;
-    BaseShare.POWFUNC= Bitcoin.POWFUNC;
+    BaseShare.POWFUNC = Bitcoin.POWFUNC;
     BaseShare.MAX_TARGET = Bitcoin.MAX_TARGET;
     SharechainHelper.init('bitcoin');
-    let shares = SharechainHelper.loadShares().distinct((s1, s2) => s1.hash === s2.hash).toArray();
+    let shares = await SharechainHelper.loadShares();
     Sharechain.Instance.add(shares);
     console.log('share chain length', shares.length);
     setTimeout(() => new Js2Pool(opts), 2000);

@@ -14,9 +14,10 @@ kinq.enable();
 SharechainHelper.init('bitcoin2');
 BaseShare.IDENTIFIER = Bitcoin.IDENTIFIER;
 SharechainHelper.init('bitcoin');
-let shares = SharechainHelper.loadShares();
-Sharechain.Instance.add(shares);
-console.log(shares.length);
+SharechainHelper.loadShares().then(shares => {
+    Sharechain.Instance.add(shares);
+    console.log(shares.length);
+});
 
 const opts = {
     daemon: {
