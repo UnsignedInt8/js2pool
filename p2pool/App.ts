@@ -41,7 +41,7 @@ export class App {
 
         let chain = Sharechain.Instance;
         SharechainHelper.init(coiname);
-        SharechainHelper.loadShares().then(shares => {
+        SharechainHelper.loadSharesAsync().then(shares => {
             chain.add(shares);
         });
     }

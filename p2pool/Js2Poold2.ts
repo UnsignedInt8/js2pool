@@ -14,7 +14,7 @@ kinq.enable();
 SharechainHelper.init('bitcoin2');
 BaseShare.IDENTIFIER = Bitcoin.IDENTIFIER;
 SharechainHelper.init('bitcoin');
-SharechainHelper.loadShares().then(shares => {
+SharechainHelper.loadSharesAsync().then(shares => {
     Sharechain.Instance.add(shares);
     console.log(shares.length);
 });

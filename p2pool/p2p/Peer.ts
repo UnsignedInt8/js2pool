@@ -46,7 +46,7 @@ export class Peer {
         this.sharechain.onDeadShareArrived(this.onDeadShareArrived.bind(this));
 
         if (!this.sharechain.calculatable) {
-            logger.info('Waiting for sharechain downloading');
+            logger.info('waiting for sharechain downloading');
             this.sharechain.onChainCalculatable(this.onChainCalculatable.bind(this));
             this.port = opts.port;
             return;
@@ -198,6 +198,7 @@ export class Peer {
         this.knownTxs.set(newTxs);
 
         Array.from(this.peers.values()).except([sender], (i1, i2) => i1.tag === i2.tag).each(peer => peer.sendSharesAsync(wrappers));
+        this.sharechain.verify();
     }
 
     private handleSharereq(sender: Node, request: TypeSharereq) {

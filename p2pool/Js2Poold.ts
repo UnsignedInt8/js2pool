@@ -43,7 +43,7 @@ async function run() {
     BaseShare.POWFUNC = Bitcoin.POWFUNC;
     BaseShare.MAX_TARGET = Bitcoin.MAX_TARGET;
     SharechainHelper.init('bitcoin');
-    let shares = await SharechainHelper.loadShares();
+    let shares = await SharechainHelper.loadSharesAsync();
     Sharechain.Instance.add(shares);
     console.log('share chain length', shares.length);
     setTimeout(() => new Js2Pool(opts), 2000);

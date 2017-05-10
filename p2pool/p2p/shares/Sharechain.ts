@@ -100,11 +100,6 @@ export default class Sharechain extends Event {
         for (let share of shares) {
             this.append(share);
         }
-
-        if (!this.calculatable || !this.verified) {
-            this.checkGaps();
-            this.verify();
-        }
     }
 
     /**
@@ -123,9 +118,7 @@ export default class Sharechain extends Event {
             this.absheightIndexer.set(share.info.absheight, shares);
         }
 
-
         if (shares.some(s => s.hash === share.hash)) {
-            if (this.calculatable) logger.warn(`duplicate share, ${share.info.absheight}, ${share.hash}`);
             return false;
         }
 

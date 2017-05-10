@@ -78,7 +78,7 @@ function testShares() {
 
     let chain = Sharechain.Instance;
     // chain.onGapsFound((s, gs) => console.log(gs));
-    SharechainHelper.loadShares().then(shares => {
+    SharechainHelper.loadSharesAsync().then(shares => {
         console.log(shares.length);
         chain.add(shares);
     });

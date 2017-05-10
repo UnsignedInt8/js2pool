@@ -83,7 +83,7 @@ export class SharechainHelper {
         file.end();
     }
 
-    static async loadShares(days: number = 2) {
+    static async loadSharesAsync(days: number = 2) {
         if (!SharechainHelper.appDir) throw Error('not initialized');
 
         let files = fs.readdirSync(SharechainHelper.dataDir);
@@ -110,7 +110,7 @@ export class SharechainHelper {
                     reader.close();
                     resolve([]);
                 });
-                
+
                 reader.on('close', () => {
                     reader.removeAllListeners();
                     resolve(shares);
