@@ -99,8 +99,17 @@ export default class Sharechain extends Event {
         for (let share of shares) {
             this.append(share);
         }
+        // let hs = Array.from(this.absheightIndexer.keys()).sort((a, b) => b - a);
 
-        if (!this.calculatable) this.verify();
+        // let first = hs[0];
+        // for (let i of hs.skip(1)) {
+        //     if (i + 1 !== first) { console.log(i, first) }
+        //     first = i;
+        // }
+        if (!this.calculatable) {
+            this.checkGaps();
+            this.verify();
+        }
     }
 
     /**
@@ -131,13 +140,13 @@ export default class Sharechain extends Event {
         if (this.oldest && share.info.absheight < this.oldest.info.absheight) this.oldest = share;
 
         if (this.newest.hasValue() && share.info.absheight > this.newest.value.info.absheight) {
-            let last = this.newest.value;
+
             this.newest.set(share);
 
             this.cleanDeprecations();
 
             // check the previous share array whether has multiple items or not
-            let previousShares = this.absheightIndexer.get(last.info.absheight);
+            let previousShares = this.absheightIndexer.get(share.info.absheight - 1);
             if (!previousShares) {
                 // find a gap
                 super.trigger(Sharechain.Events.gapsFound, this, [{ descendent: share.hash, descendentHeight: share.info.absheight, length: 1 }]);
@@ -153,7 +162,7 @@ export default class Sharechain extends Event {
                 if (orphans.length > 0) this.trigger(Sharechain.Events.orphansFound, this, orphans);
 
                 // always keep the first element on the main chain
-                this.absheightIndexer.set(last.info.absheight, [verified].concat(orphans));
+                this.absheightIndexer.set(share.info.absheight - 1, [verified].concat(orphans));
             } else {
                 super.trigger(Sharechain.Events.gapsFound, this, [{ descendent: share.hash, descendentHeight: share.info.absheight, length: 1 }])
             }
@@ -275,16 +284,17 @@ export default class Sharechain extends Event {
 
         let gaps = new Array<Gap>();
         let descendentHeight = this.newest.value.info.absheight;
+        let ancestorHash = this.newest.value.info.data.previousShareHash;
 
-        for (let ancestorHeight of Array.from(this.absheightIndexer.keys()).sort((a, b) => b - a).skip(1)) {
-            if (ancestorHeight + 1 === descendentHeight) {
-                descendentHeight = ancestorHeight;
-                continue;
+        for (let [ancestorHeight, shares] of Array.from(this.absheightIndexer).sort((a, b) => b[0] - a[0]).skip(1)) {
+
+            if (!(ancestorHeight + 1 === descendentHeight && shares[0].hash === ancestorHash)) {
+                let length = descendentHeight - ancestorHeight;
+                gaps.push({ descendent: this.absheightIndexer.get(descendentHeight)[0].hash, length, descendentHeight });
             }
 
-            let length = descendentHeight - ancestorHeight - 1;
-            gaps.push({ descendent: this.absheightIndexer.get(descendentHeight)[0].hash, length, descendentHeight });
             descendentHeight = ancestorHeight;
+            ancestorHash = shares[0].info.data.previousShareHash;
         }
 
         if (this.oldest && this.newest.hasValue() && this.newest.value.info.absheight - this.oldest.info.absheight < Sharechain.BASE_CHAIN_LENGTH) {
@@ -294,7 +304,7 @@ export default class Sharechain extends Event {
                 length: Sharechain.BASE_CHAIN_LENGTH - (this.newest.value.info.absheight - this.oldest.info.absheight),
             });
         }
-
+        console.log('gaps:', gaps);
         if (gaps.length > 0) super.trigger(Sharechain.Events.gapsFound, this, gaps);
         return gaps;
     }

@@ -78,15 +78,16 @@ function testShares() {
     let num = BigNum.fromBuffer(Buffer.alloc(8), { size: 8, endian: 'little' });
     console.log(num);
     let chain = Sharechain.Instance;
-    chain.onGapsFound((sender, gaps) => console.log('No.1 ', gaps.length));
-    chain.onGapsFound((sender, gaps) => console.log('No.2 ', gaps.length));
-    chain.add(SharechainHelper.loadShares().distinct((s1, s2) => s1.hash === s2.hash).toArray());
+    chain.onGapsFound((s, gs) => console.log(gs));
+    chain.add(SharechainHelper.loadShares());
     console.log(chain.length);
-    let gaps = chain.checkGaps();
+    // let gaps = chain.checkGaps();
+    // console.log(gaps);
     console.log(chain.verify());
 
     let s = Utils.shuffle([1, 2, 3, 4, 5, 6, 7]);
     console.log(s);
+    process.stdin.resume();
 }
 
 testShares();
