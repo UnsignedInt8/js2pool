@@ -57,6 +57,7 @@ export default class Sharechain extends Event {
     newest = ObservableProperty.init<BaseShare>(null);
     oldest: BaseShare;
     calculatable = false;
+    verified = false;
 
     private constructor() {
         super();
@@ -99,14 +100,8 @@ export default class Sharechain extends Event {
         for (let share of shares) {
             this.append(share);
         }
-        // let hs = Array.from(this.absheightIndexer.keys()).sort((a, b) => b - a);
 
-        // let first = hs[0];
-        // for (let i of hs.skip(1)) {
-        //     if (i + 1 !== first) { console.log(i, first) }
-        //     first = i;
-        // }
-        if (!this.calculatable) {
+        if (!this.calculatable || !this.verified) {
             this.checkGaps();
             this.verify();
         }
@@ -276,7 +271,8 @@ export default class Sharechain extends Event {
         }
 
         logger.info(`sharechain verified: ${verified}, length: ${this.length}, size: ${this.size}`);
-        return verified === this.length;
+        this.verified = verified === this.length;
+        return this.verified;
     }
 
     checkGaps() {
@@ -304,7 +300,7 @@ export default class Sharechain extends Event {
                 length: Sharechain.BASE_CHAIN_LENGTH - (this.newest.value.info.absheight - this.oldest.info.absheight),
             });
         }
-        console.log('gaps:', gaps);
+        
         if (gaps.length > 0) super.trigger(Sharechain.Events.gapsFound, this, gaps);
         return gaps;
     }

@@ -104,7 +104,7 @@ export class Peer {
     }
 
     private onNewestShareChanged(sender: Sharechain, share: BaseShare) {
-        logger.info(`sharechain new height: ${share.info.absheight}`);
+        logger.info(`sharechain height: ${share.info.absheight}`);
 
     }
 
