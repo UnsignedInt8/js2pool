@@ -1,12 +1,12 @@
 
-import { DaemonWatcher, DaemonOptions, GetBlockTemplate } from "../core/DaemonWatcher";
-import { Peer, PeerOptions } from "./p2p/Peer";
-import Bitcoin from './coins/Bitcoin';
-import { BaseShare } from "./p2p/shares/index";
-import { Algos } from "../core/Algos";
-import logger from '../misc/Logger';
-import Sharechain from "./p2p/shares/Sharechain";
-import { SharechainHelper } from "./p2p/shares/SharechainHelper";
+import { DaemonWatcher, DaemonOptions, GetBlockTemplate } from "../../core/DaemonWatcher";
+import { Peer, PeerOptions } from "../p2p/Peer";
+import Bitcoin from '../coins/Bitcoin';
+import { BaseShare } from "../p2p/shares/index";
+import { Algos } from "../../core/Algos";
+import logger from '../../misc/Logger';
+import Sharechain from "../p2p/shares/Sharechain";
+import { SharechainHelper } from "../p2p/shares/SharechainHelper";
 
 export type Js2PoolOptions = {
     daemon: DaemonOptions,
@@ -48,7 +48,7 @@ export class Js2Pool {
     private async onBlockNotified(sender: DaemonWatcher, hash: string) {
         if (this.blocks.includes(hash)) return;
         Sharechain.Instance.checkGaps(); // check gaps when new blocks be found
-
+        
         this.blocks.push(hash);
         if (this.blocks.length < 4) return;
 

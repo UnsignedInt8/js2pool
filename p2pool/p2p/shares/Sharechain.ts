@@ -97,9 +97,7 @@ export default class Sharechain extends Event {
 
     add(shares: BaseShare[]) {
         for (let share of shares) {
-            if (!this.append(share)) {
-                // console.log('add share failed', share.hash, share.info.absheight);
-            }
+            this.append(share);
         }
 
         if (!this.calculatable) this.verify();

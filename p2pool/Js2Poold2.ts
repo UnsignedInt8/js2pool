@@ -8,7 +8,7 @@ import { SharechainHelper } from "./p2p/shares/SharechainHelper";
 import * as kinq from 'kinq';
 import { BaseShare } from "./p2p/shares/BaseShare";
 import Bitcoin from "./coins/Bitcoin";
-import { Js2Pool } from "./Js2Pool";
+import { Js2Pool } from "./pool/Js2Pool";
 kinq.enable();
 
 SharechainHelper.init('bitcoin2');

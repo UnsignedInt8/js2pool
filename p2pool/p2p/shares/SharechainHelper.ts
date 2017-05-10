@@ -81,7 +81,7 @@ export class SharechainHelper {
         file.end();
     }
 
-    static loadShares(days: number = 3) {
+    static loadShares(days: number = 2) {
         if (!SharechainHelper.appDir) throw Error('not initialized');
 
         let files = fs.readdirSync(SharechainHelper.dataDir);

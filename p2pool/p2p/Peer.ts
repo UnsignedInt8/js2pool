@@ -205,7 +205,7 @@ export class Peer {
         let shares = new Array<BaseShare>();
 
         for (let hash of request.hashes) {
-            for (let share of this.sharechain.subchain(hash, parents, 'backward')) {
+            for (let share of this.sharechain.subchain(hash, parents + 1, 'backward')) {
                 if (stops.has(share.hash)) break;
                 shares.push(share);
             }
@@ -231,6 +231,7 @@ export class Peer {
         let shares = reply.wrapper.shares.map(s => s.contents);
         this.sharechain.add(shares);
         this.sharechain.checkGaps();
+        this.sharechain.verify();
         SharechainHelper.saveShares(shares);
 
         logger.info(`received ${shares.length} shares from ${sender.tag}`);
