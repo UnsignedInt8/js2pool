@@ -39,8 +39,8 @@ export type Gap = {
 export default class Sharechain extends Event {
 
     static readonly Instance = new Sharechain();
-    static readonly CHAIN_LENGTH = 24 * 60 * 60 / 10;
-    static readonly MAX_CHAIN_LENGTH = Sharechain.CHAIN_LENGTH * 2;
+    static readonly BASE_CHAIN_LENGTH = 24 * 60 * 60 / 10;
+    static readonly MAX_CHAIN_LENGTH = Sharechain.BASE_CHAIN_LENGTH * 2;
 
     static readonly Events = {
         newestChanged: 'NewestChanged',
@@ -49,12 +49,13 @@ export default class Sharechain extends Event {
         candidateArrived: 'CandidateArrived',
         orphansFound: 'OrphansFound',
         gapsFound: 'GapsFound',
+        chainSynced: 'ChainSynced',
     }
 
     private hashIndexer = new Map<string, number>();
     private absheightIndexer = new Map<number, Array<BaseShare>>();
-    private merging = false;
     newest = ObservableProperty.init<BaseShare>(null);
+    synced = false;
     oldest: BaseShare;
 
     private constructor() {
@@ -63,7 +64,6 @@ export default class Sharechain extends Event {
     }
 
     private onNewestPropertyChanged(oldValue: BaseShare, newValue: BaseShare) {
-        if (this.merging) return;
         this.trigger(Sharechain.Events.newestChanged, this, newValue);
     }
 
@@ -87,6 +87,10 @@ export default class Sharechain extends Event {
         super.register(Sharechain.Events.gapsFound, callback);
     }
 
+    onSyncCompleted(callback: (sender: Sharechain, verified: number) => void) {
+        super.register(Sharechain.Events.chainSynced, callback);
+    }
+
     has(hash: string) {
         return this.hashIndexer.has(hash);
     }
@@ -107,7 +111,9 @@ export default class Sharechain extends Event {
         if (shares.some(s => s.hash === share.hash)) return false;
         shares.push(share);
         this.hashIndexer.set(share.hash, share.info.absheight);
+
         if (this.oldest && share.info.absheight < this.oldest.info.absheight) this.oldest = share;
+        if (!this.synced) this.verify();
 
         if (this.newest.hasValue() && share.info.absheight > this.newest.value.info.absheight) {
             let last = this.newest.value;
@@ -224,7 +230,7 @@ export default class Sharechain extends Event {
     verify() {
         if (!this.newest.hasValue()) return false;
 
-        let count = 0;
+        let verified = 0;
         let hash = this.newest.value.hash;
         let absheight = this.newest.value.info.absheight;
 
@@ -235,13 +241,16 @@ export default class Sharechain extends Event {
             let share = shares[0];
             if (hash != share.hash) break;
 
-            count++;
+            verified++;
             absheight = share.info.absheight - 1;
             hash = share.info.data.previousShareHash;
         }
 
-        logger.info(`verifying ${count}, ${this.length}, ${this.size}`);
-        return count === this.length;
+        this.synced = verified == this.length && verified > Sharechain.BASE_CHAIN_LENGTH;
+        if (this.synced) super.trigger(Sharechain.Events.chainSynced, this, verified);
+
+        logger.info(`sharechain verified: ${verified}, length: ${this.length}, size: ${this.size}`);
+        return verified === this.length;
     }
 
     checkGaps() {
