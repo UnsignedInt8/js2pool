@@ -165,7 +165,7 @@ export default class Sharechain extends Event {
                 let orphans = previousShares.except([verified], (i1, i2) => i1.hash === i2.hash).toArray();
                 if (orphans.length > 0) this.trigger(Sharechain.Events.orphansFound, this, orphans);
 
-                // always keep the first element on the main chain
+                // always keep the first element in the main chain
                 this.absheightIndexer.set(share.info.absheight - 1, [verified].concat(orphans));
             } else {
                 super.trigger(Sharechain.Events.gapsFound, this, [{ descendent: share.hash, descendentHeight: share.info.absheight, length: 1 }])
@@ -200,7 +200,7 @@ export default class Sharechain extends Event {
             let orphans = shares.except([share], (i1, i2) => i1.hash === i2.hash).toArray();
             if (orphans.length > 0) this.trigger(Sharechain.Events.orphansFound, this, orphans);
 
-            // keep the first element is on the main chain
+            // keep the first element is in the main chain
             this.absheightIndexer.set(share.info.absheight, [share].concat(orphans));
             return false;
         }
@@ -254,7 +254,7 @@ export default class Sharechain extends Event {
         return this.absheightIndexer.size;
     }
 
-    // check all first elements are on the main chain
+    // check all first elements are in the main chain
     verify() {
         if (!this.newest.hasValue()) return false;
 

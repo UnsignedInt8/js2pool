@@ -118,7 +118,7 @@ export class Peer {
         if (<any>version.bestShareHash == 0) return;
         if (this.sharechain.has(version.bestShareHash)) return;
 
-        sender.sendSharereqAsync({ id: new Bignum(Math.random() * 1000000 | 0), hashes: [version.bestShareHash], parents: 1 });
+        sender.sendSharereqAsync({ id: new Bignum(Math.random() * 1000000 | 0), hashes: [version.bestShareHash], parents: 0 });
     }
 
     private handleRemember_tx(sender: Node, txHashes: string[], txs: Transaction[]) {

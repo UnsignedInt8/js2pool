@@ -18,6 +18,7 @@ import { SharechainHelper } from "../p2pool/p2p/shares/SharechainHelper";
 import * as path from 'path';
 import Sharechain from "../p2pool/p2p/shares/Sharechain";
 import * as readline from 'readline';
+import { bitsToTarget } from "../core/Algos";
 
 kinq.enable();
 
@@ -53,7 +54,7 @@ SharechainHelper.dataDir = __dirname;
 function testShares() {
     BaseShare.IDENTIFIER = Bitcoin.IDENTIFIER;
     BaseShare.POWFUNC = Utils.sha256d;
-    BaseShare.MAX_TARGET = 2 ** 256 / 2 ** 32 - 1;
+    BaseShare.MAX_TARGET = Bitcoin.MAX_TARGET;
     // let str = BufferWriter.writeVarString('6a28' + '0000000000000000000000000000000000000000000000000000000000000000' + '0000000000000000', 'hex');
 
     // let array = str.take(3).toArray();
@@ -74,6 +75,11 @@ function testShares() {
     // peer.handleShares(new Node(), shares.shares);
     // fs.writeFileSync('/tmp/bad_shares', binary);
 
+    console.log('2**256>2**128', new Bignum(2 ** 256).ge(2 ** 128));
+    let bits = Bignum.fromBuffer(Buffer.from('1801f6a7', 'hex')).toNumber();
+    let targetbignum = bitsToTarget(bits);
+    let targetnumber = (bits & 0x00ffffff) * Math.pow(2, 8 * ((bits >> 24) - 3));
+
     SharechainHelper.init('bitcoin');
 
     let chain = Sharechain.Instance;
@@ -81,6 +87,11 @@ function testShares() {
     SharechainHelper.loadSharesAsync().then(shares => {
         console.log(shares.length);
         chain.add(shares);
+        let previous = chain.get(chain.newest.value.info.data.previousShareHash);
+        let farShareHash = previous.info.farShareHash;
+        console.log(farShareHash);
+        console.log('previous', previous.info.timestamp);
+        console.log('far', chain.get(farShareHash).info.timestamp)
     });
     // console.log(chain.length);
     // // let gaps = chain.checkGaps();

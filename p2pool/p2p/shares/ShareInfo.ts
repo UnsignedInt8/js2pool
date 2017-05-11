@@ -18,7 +18,7 @@ type Segwit = {
 };
 
 type ShareData = {
-    previousShareHash: string, // 256 bytes
+    previousShareHash: string, // 256 bits
     coinbase: string, // var string
     nonce: number, // 32 bits
     pubkeyHash: string, // 160 bits

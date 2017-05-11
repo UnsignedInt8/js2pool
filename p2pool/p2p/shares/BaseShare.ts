@@ -21,7 +21,7 @@ export abstract class BaseShare {
     static SEGWIT_ACTIVATION_VERSION = 0
     static IDENTIFIER: Buffer;
     static POWFUNC: (data: Buffer) => Buffer;
-    static MAX_TARGET = 0;
+    static MAX_TARGET: Bignum;
 
     VERSION = 0;
     VOTING_VERSION = 0;
@@ -38,10 +38,12 @@ export abstract class BaseShare {
 
     hash: string; // share hash
     newScript: Buffer;
-    target: number;
-    maxTarget: number;
+    target: Bignum;
+    maxTarget: Bignum;
     gentxHash: Buffer;
     validity = false;
+    work: Bignum;
+    minWork: Bignum;
 
     constructor(minHeader: SmallBlockHeader = null, info: ShareInfo = null, hashLink: HashLink = null, merkleLink: Buffer[] = null) {
         this.minHeader = minHeader;
@@ -65,6 +67,8 @@ export abstract class BaseShare {
         this.newScript = utils.hash160ToScript(this.info.data.pubkeyHash); // script Pub Key
         this.target = bitsToTarget(this.info.bits);
         this.maxTarget = bitsToTarget(this.info.maxBits);
+        this.work = targetToAverageAttempts(this.target);
+        this.minWork = targetToAverageAttempts(this.maxTarget);
 
         this.gentxHash = this.hashLink.check(Buffer.concat([
             BaseShare.getRefHash(this.info, this.refMerkleLink), // the last txout share info which is written in coinbase 
@@ -76,8 +80,8 @@ export abstract class BaseShare {
         let headerHash = this.minHeader.calculateHash(merkleRoot);
         this.hash = utils.hexFromReversedBuffer(headerHash);
 
-        if (this.target > BaseShare.MAX_TARGET) return false;
-        if (Bignum.fromBuffer(BaseShare.POWFUNC(this.minHeader.buildHeader(merkleRoot)), { endian: 'little', size: 32 }).toNumber() > this.target) return false;
+        if (this.target.ge(BaseShare.MAX_TARGET)) return false;
+        if ( Bignum.fromBuffer(BaseShare.POWFUNC(this.minHeader.buildHeader(merkleRoot)), { endian: 'little', size: 32 }).ge(this.target)) return false;
 
         this.validity = true;
         return true;
@@ -92,14 +96,6 @@ export abstract class BaseShare {
             this.hashLink.toBuffer(),
             BufferWriter.writeList(this.merkleLink)
         ]);
-    }
-
-    get work() {
-        return targetToAverageAttempts(this.target);
-    }
-
-    get minWork() {
-        return targetToAverageAttempts(this.maxTarget);
     }
 
     static fromTemplate(template: TypeShares) {

@@ -5,10 +5,11 @@
 
 import Sharechain from "../p2p/shares/Sharechain";
 import * as Utils from '../../misc/Utils';
+import * as Bignum from 'bignum';
 
 export class ShareGenerator {
 
-    static MAX_TARGET = 0;
+    static MAX_TARGET: Bignum;
     static TARGET_LOOKBEHIND = 0;
 
     readonly sharechain = Sharechain.Instance;
@@ -18,7 +19,7 @@ export class ShareGenerator {
     }
 
     generateTx() {
-        let preTarget, preTarget2, preTarget3 = 0;
+        let preTarget, preTarget2, preTarget3: Bignum;
         let previousShare = this.sharechain.newest.hasValue() ? this.sharechain.get(this.sharechain.newest.value.info.data.previousShareHash) : null;
 
         if (previousShare.info.absheight < ShareGenerator.TARGET_LOOKBEHIND) {
@@ -32,6 +33,6 @@ export class ShareGenerator {
         let near = this.sharechain.get(hash);
         let far = this.sharechain.get(near.info.absheight - length - 1);
 
-        
+
     }
 }

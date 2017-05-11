@@ -62,6 +62,10 @@ export class SharechainHelper {
             obj.newScript = <any>share.newScript.toString('hex');
             obj.gentxHash = <any>share.gentxHash.toString('hex');
             obj.lastTxoutNonce = <any>share.lastTxoutNonce.toBuffer().toString('hex');
+            obj.target = <any>share.target.toBuffer().toString('hex');
+            obj.maxTarget = <any>share.maxTarget.toBuffer().toString('hex');
+            obj.work = <any>share.work.toBuffer().toString('hex');
+            obj.minWork = <any>share.minWork.toBuffer().toString('hex');
             obj.info.data.subsidy = <any>share.info.data.subsidy.toBuffer().toString('hex');
 
             if (obj.info.segwit) {
@@ -138,6 +142,10 @@ export class SharechainHelper {
                     share.merkleLink = obj.merkleLink.map(l => Buffer.from(<any>l, 'hex'));
                     share.newScript = Buffer.from(<any>obj.newScript, 'hex');
                     share.gentxHash = Buffer.from(<any>obj.gentxHash, 'hex');
+                    share.target = Bignum.fromBuffer(Buffer.from(<any>obj.target, 'hex'));
+                    share.work = Bignum.fromBuffer(Buffer.from(<any>obj.work, 'hex'));
+                    share.maxTarget = Bignum.fromBuffer(Buffer.from(<any>obj.maxTarget, 'hex'));
+                    share.minWork = Bignum.fromBuffer(Buffer.from(<any>obj.minWork, 'hex'));
                     share.lastTxoutNonce = Bignum.fromBuffer(Buffer.from(<any>obj.lastTxoutNonce, 'hex'));
                     share.target = obj.target;
                     share.validity = obj.validity;

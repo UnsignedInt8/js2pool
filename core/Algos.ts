@@ -1,15 +1,19 @@
-import * as bignum from 'bignum';
+import * as Bignum from 'bignum';
 import * as multiHashing from 'node-multi-hashing';
 import * as util from '../misc/Utils';
 
 export const BaseTarget = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
 
+const POW2_256 = new Bignum(2).pow(256);
+const POW2_256_SUB_1 = POW2_256.sub(1);
+const POW2_256_64 = new Bignum(2).pow(256 - 64);
+
 export function bitsToTarget(bits: number) {
-    return (bits & 0x00ffffff) * Math.pow(2, 8 * ((bits >> 24) - 3));
+    return new Bignum(bits & 0x00ffffff).mul(new Bignum(2).pow(8 * ((bits >> 24) - 3)));    // return (bits & 0x00ffffff) * Math.pow(2, 8 * ((bits >> 24) - 3));
 }
 
-export function targetToDifficulty(target: number) {
-    return (0xffff0000 * Math.pow(2, 256 - 64) + 1) / (target + 1)
+export function targetToDifficulty(target: Bignum) {
+    return new Bignum(0xffff0000).mul(POW2_256_64).add(1).div(target.add(1));    // return (0xffff0000 * Math.pow(2, 256 - 64) + 1) / (target + 1)
 }
 
 export function difficultyToTarget(diff: number) {
@@ -21,12 +25,13 @@ export function bitsToDifficulty(bits: number) {
     return targetToDifficulty(bitsToTarget(bits));
 }
 
-export function targetToAverageAttempts(target: number) {
-    return 2 ** 256 / (target + 1);
+export function targetToAverageAttempts(target: Bignum) {
+    return POW2_256.div(target.add(1));
 }
 
-export function averageAttemptsToTarget(attempts: number) {
-    return Math.min((2 ** 256 / attempts - 1 + 0.5) | 0, 2 ** 256 - 1);
+export function averageAttemptsToTarget(attempts: Bignum) {
+    let target = POW2_256.div(attempts).sub(1).add(0.5).or(0);
+    return target.ge(POW2_256_SUB_1) ? POW2_256_SUB_1 : target;// return Math.min((2 ** 256 / attempts - 1 + 0.5) | 0, 2 ** 256 - 1);
 }
 
 export const Algos = {
