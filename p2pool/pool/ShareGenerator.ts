@@ -38,9 +38,9 @@ export class ShareGenerator {
         }
 
         let maxBits = targetToBits(preTarget3);
-        console.log('maxbits', maxBits);
+        console.log('maxbits', maxBits.toString(16));
         let bits = targetToBits(MathEx.clip(desiredTarget, preTarget3.div(30), preTarget3));
-        console.log('bits', bits);
+        console.log('bits', bits.toString(16));
     }
 
     calcGlobalAttemptsPerSecond(hash: string, length: number, minWork = false, interger = false) {

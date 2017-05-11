@@ -50,34 +50,40 @@ export class SharechainHelper {
         let filename = path.resolve(SharechainHelper.dataDir, basename);
 
         let seralizableObjs = shares.where(s => s.validity).select(share => {
-            let obj = <BaseShare>Object.assign({}, share);
-            obj.info = Object.assign({}, share.info);
-            obj.info.data = Object.assign({}, share.info.data);
+            try {
+                let obj = <BaseShare>Object.assign({}, share);
+                obj.info = Object.assign({}, share.info);
+                obj.info.data = Object.assign({}, share.info.data);
 
-            obj.minHeader = Object.assign({}, share.minHeader);
-            obj.hashLink = Object.assign({}, share.hashLink);
-            obj.SUCCESSOR = null;
-            obj.refMerkleLink = <any>share.refMerkleLink.map(l => l.toString('hex'));
-            obj.merkleLink = <any>share.merkleLink.map(l => l.toString('hex'));
-            obj.newScript = <any>share.newScript.toString('hex');
-            obj.gentxHash = <any>share.gentxHash.toString('hex');
-            obj.lastTxoutNonce = <any>share.lastTxoutNonce.toBuffer().toString('hex');
-            obj.target = <any>share.target.toBuffer().toString('hex');
-            obj.maxTarget = <any>share.maxTarget.toBuffer().toString('hex');
-            obj.work = <any>share.work.toBuffer().toString('hex');
-            obj.minWork = <any>share.minWork.toBuffer().toString('hex');
-            obj.info.data.subsidy = <any>share.info.data.subsidy.toBuffer().toString('hex');
+                obj.minHeader = Object.assign({}, share.minHeader);
+                obj.hashLink = Object.assign({}, share.hashLink);
+                obj.SUCCESSOR = null;
+                obj.refMerkleLink = <any>share.refMerkleLink.map(l => l.toString('hex'));
+                obj.merkleLink = <any>share.merkleLink.map(l => l.toString('hex'));
+                obj.newScript = <any>share.newScript.toString('hex');
+                obj.gentxHash = <any>share.gentxHash.toString('hex');
+                obj.lastTxoutNonce = <any>share.lastTxoutNonce.toBuffer().toString('hex');
+                obj.target = <any>share.target.toBuffer().toString('hex');
+                obj.maxTarget = <any>share.maxTarget.toBuffer().toString('hex');
+                obj.work = <any>share.work.toBuffer().toString('hex');
+                obj.minWork = <any>share.minWork.toBuffer().toString('hex');
+                obj.info.data.subsidy = <any>share.info.data.subsidy.toBuffer().toString('hex');
 
-            if (obj.info.segwit) {
-                obj.info.segwit = Object.assign({}, share.info.segwit);
-                obj.info.segwit.txidMerkleLink.branch = <any>share.info.segwit.txidMerkleLink.branch.map(b => b.toString('hex'));
-                obj.info.segwit.wtxidMerkleRoot = <any>share.info.segwit.wtxidMerkleRoot.toString('hex');
+                if (obj.info.segwit) {
+                    obj.info.segwit = Object.assign({}, share.info.segwit);
+                    obj.info.segwit.txidMerkleLink.branch = <any>share.info.segwit.txidMerkleLink.branch.map(b => b.toString('hex'));
+                    obj.info.segwit.wtxidMerkleRoot = <any>share.info.segwit.wtxidMerkleRoot.toString('hex');
+                }
+
+                obj.hashLink.state = <any>share.hashLink.state.toString('hex');
+                obj.hashLink.extra = <any>share.hashLink.extra.toString('hex');
+
+                return JSON.stringify(obj);
+            } catch (err) {
+                logger.error(err.message);
+                logger.error(share);
+                return '';
             }
-
-            obj.hashLink.state = <any>share.hashLink.state.toString('hex');
-            obj.hashLink.extra = <any>share.hashLink.extra.toString('hex');
-
-            return JSON.stringify(obj);
         }).toArray();
 
         let file = fs.createWriteStream(filename, <any>{ flags: 'a' });

@@ -6,6 +6,7 @@ import { BaseShare } from "../p2p/shares/index";
 import { Algos } from "../../core/Algos";
 import logger from '../../misc/Logger';
 import * as Bignum from 'bignum';
+import * as kinq from 'kinq';
 import Sharechain from "../p2p/shares/Sharechain";
 import { SharechainHelper } from "../p2p/shares/SharechainHelper";
 import { ShareGenerator } from "./ShareGenerator";
@@ -40,7 +41,7 @@ export class Js2Pool {
     private onNewestShareChanged(sender: Sharechain, share: BaseShare) {
         this.daemonWatcher.refreshBlockTemplateAsync();
         if (sender.size % 5 === 0)
-            SharechainHelper.saveShares(Array.from(sender.subchain(share.hash, 10, 'backward')).skip(5));
+            SharechainHelper.saveShares(kinq.toLinqable(sender.subchain(share.hash, 10, 'backward')).skip(5));
         this.generator.generateTx(sender.newest.value.info.data.previousShareHash, new Bignum(0));
     }
 
