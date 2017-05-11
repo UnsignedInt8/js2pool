@@ -5,8 +5,10 @@ import Bitcoin from '../coins/Bitcoin';
 import { BaseShare } from "../p2p/shares/index";
 import { Algos } from "../../core/Algos";
 import logger from '../../misc/Logger';
+import * as Bignum from 'bignum';
 import Sharechain from "../p2p/shares/Sharechain";
 import { SharechainHelper } from "../p2p/shares/SharechainHelper";
+import { ShareGenerator } from "./ShareGenerator";
 
 export type Js2PoolOptions = {
     daemon: DaemonOptions,
@@ -18,6 +20,7 @@ export type Js2PoolOptions = {
 export class Js2Pool {
 
     private daemonWatcher: DaemonWatcher;
+    private generator = new ShareGenerator('');
     private readonly blocks = new Array<string>();
     peer: Peer;
 
@@ -38,6 +41,7 @@ export class Js2Pool {
         this.daemonWatcher.refreshBlockTemplateAsync();
         if (sender.size % 5 === 0)
             SharechainHelper.saveShares(Array.from(sender.subchain(share.hash, 10, 'backward')).skip(5));
+        this.generator.generateTx(sender.newest.value.info.data.previousShareHash, new Bignum(0));
     }
 
     private onMiningTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
@@ -48,7 +52,7 @@ export class Js2Pool {
     private async onBlockNotified(sender: DaemonWatcher, hash: string) {
         if (this.blocks.includes(hash)) return;
         Sharechain.Instance.checkGaps(); // check gaps when new blocks be found
-        
+
         this.blocks.push(hash);
         if (this.blocks.length < 4) return;
 

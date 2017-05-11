@@ -40,6 +40,7 @@ export class ShareGenerator {
         let maxBits = targetToBits(preTarget3);
         console.log('maxbits', maxBits);
         let bits = targetToBits(MathEx.clip(desiredTarget, preTarget3.div(30), preTarget3));
+        console.log('bits', bits);
     }
 
     calcGlobalAttemptsPerSecond(hash: string, length: number, minWork = false, interger = false) {
@@ -50,7 +51,8 @@ export class ShareGenerator {
 
         let near = this.sharechain.get(hash);
         let far = shares[shares.length - 1];
-        let attepmts = shares.aggregate<BaseShare, Bignum>((c, n) => c instanceof BaseShare ? (minWork ? c.minWork.add(n.minWork) : c.work.add(n.work)) : c.add(minWork ? n.minWork : n.work));
+
+        let attepmts = shares.aggregate<BaseShare, Bignum>((c, n) => c instanceof BaseShare ? (minWork ? c.minWork.add(n.minWork) : c.work.add(n.work)) : c.add(minWork ? n.minWork : n.work)).sub(minWork ? far.minWork : far.work);
 
         let elapsedTime = near.info.timestamp - far.info.timestamp;
         elapsedTime = elapsedTime <= 0 ? 1 : elapsedTime;

@@ -202,7 +202,7 @@ export class Peer {
     }
 
     private handleSharereq(sender: Node, request: TypeSharereq) {
-        let parents = Math.min(Math.min(request.parents, 500 / request.hashes.length | 0), 500);
+        let parents = Math.min(Math.min(request.parents, 500 / request.hashes.length | 0), 100);
         let stops = new Set(request.stops);
         let shares = new Array<BaseShare>();
 
