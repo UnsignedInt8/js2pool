@@ -11,6 +11,7 @@ import { Message } from "./p2p/Message";
 import { SharechainHelper } from "./p2p/shares/SharechainHelper";
 import Sharechain from "./p2p/shares/Sharechain";
 import logger from '../misc/Logger';
+import { ShareGenerator } from "./pool/ShareGenerator";
 
 export type AppOptions = {
     coin: { name: string, },
@@ -32,6 +33,9 @@ export class App {
         BaseShare.SEGWIT_ACTIVATION_VERSION = coin.SEGWIT_ACTIVATION_VERSION;
         BaseShare.POWFUNC = coin.POWFUNC;
         Message.MAGIC = coin.MSGPREFIX;
+        ShareGenerator.MAX_TARGET = Bitcoin.MAX_TARGET;
+        ShareGenerator.TARGET_LOOKBEHIND = Bitcoin.TARGET_LOOKBEHIND;
+        ShareGenerator.PERIOD = Bitcoin.SHARE_PERIOD;
 
         logger.info('|-------------- BOOTING JS2POOL --------------|');
         logger.info('|                                             |');
