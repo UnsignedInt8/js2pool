@@ -99,6 +99,7 @@ export class DaemonWatcher extends Event {
             let template = values.first();
             this.blockHeight = template.height - 1;
             super.trigger(DaemonWatcher.Events.blockTemplateUpdate, this, template);
+            return template ? template : null;
         } catch (error) {
             logger.error(error);
             this.trigger(DaemonWatcher.Events.error, this, error);

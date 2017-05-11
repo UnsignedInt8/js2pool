@@ -23,11 +23,12 @@ export class Js2Pool {
     private daemonWatcher: DaemonWatcher;
     private generator = new ShareGenerator('');
     private readonly blocks = new Array<string>();
+    private sharechain = Sharechain.Instance;
     peer: Peer;
 
     constructor(opts: Js2PoolOptions) {
-        Sharechain.Instance.onNewestChanged(this.onNewestShareChanged.bind(this));
-        Sharechain.Instance.onCandidateArrived(this.onNewestShareChanged.bind(this));
+        this.sharechain.onNewestChanged(this.onNewestShareChanged.bind(this));
+        this.sharechain.onCandidateArrived(this.onNewestShareChanged.bind(this));
 
         this.daemonWatcher = new DaemonWatcher(opts.daemon);
         this.daemonWatcher.onBlockTemplateUpdated(this.onMiningTemplateUpdated.bind(this));
@@ -42,17 +43,20 @@ export class Js2Pool {
         this.daemonWatcher.refreshBlockTemplateAsync();
         if (sender.size % 5 === 0)
             SharechainHelper.saveShares(kinq.toLinqable(sender.subchain(share.hash, 10, 'backward')).skip(5));
-        this.generator.generateTx(sender.newest.value.info.data.previousShareHash, new Bignum(0));
+
     }
 
     private onMiningTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
-        logger.info('update mining template');
         this.peer.updateMiningTemplate(template);
+
+        let newestShare = this.sharechain.newest;
+        if (!newestShare.hasValue()) return;
+        this.generator.generateTx(template, newestShare.value.info.data.previousShareHash, new Bignum(0));
     }
 
     private async onBlockNotified(sender: DaemonWatcher, hash: string) {
         if (this.blocks.includes(hash)) return;
-        Sharechain.Instance.checkGaps(); // check gaps when new blocks be found
+        this.sharechain.checkGaps(); // check gaps when new blocks be found
 
         this.blocks.push(hash);
         if (this.blocks.length < 4) return;

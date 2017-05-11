@@ -57,7 +57,7 @@ export abstract class BaseShare {
         let segwitActivated = BaseShare.isSegwitActivated(this.VERSION);
 
         let n = new Set<number>();
-        this.info.extractTransactionHashRefs().forEach(tuple => {
+        this.info.extractTxHashRefs().forEach(tuple => {
             let { shareCount, txCount } = tuple;
             assert.equal(shareCount < 110, true);
             if (shareCount > 0) return;

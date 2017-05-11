@@ -108,7 +108,7 @@ function testShares() {
 
         let begin = Date.now();
         let g = new ShareGenerator('');
-        g.generateTx(targetShare.info.data.previousShareHash, new Bignum(0));
+        g.generateTx(null, targetShare.info.data.previousShareHash, new Bignum(0));
         console.log(`${Date.now() - begin}ms`);
     });
     // console.log(chain.length);

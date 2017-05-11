@@ -8,6 +8,7 @@ import * as Bignum from 'bignum';
 import * as utils from '../../../misc/Utils';
 import BufferWriter from "../../../misc/BufferWriter";
 import { bitsToTarget } from "../../../core/Algos";
+import { BaseShare } from "./BaseShare";
 
 type Segwit = {
     txidMerkleLink: {
@@ -73,12 +74,29 @@ export default class ShareInfo {
         ]);
     }
 
-    extractTransactionHashRefs() {
+    extractTxHashRefs() {
         let tuples = new Array<{ shareCount: number, txCount: number }>();
         for (let i = 0; i < this.transactionHashRefs.length; i += 2) {
             tuples.push({ shareCount: this.transactionHashRefs[i], txCount: this.transactionHashRefs[i + 1] });
         }
         return tuples;
+    }
+
+    static packTxHashRefs(shares: BaseShare[]) {
+        let txsPackage = new Map<string, number[]>();
+
+        for (let i = 0; i < shares.length; i++) {
+            let txHashes = shares[i].info.newTransactionHashes;
+
+            for (let j = 0; j < txHashes.length; j++) {
+                let txHash = txHashes[j];
+                if (txsPackage.has(txHash)) continue;
+
+                txsPackage.set(txHash, [i + 1, j]); // shareCount, txCount
+            }
+        }
+
+        return txsPackage;
     }
 
     static fromObject(obj: any) {
