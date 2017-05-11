@@ -75,10 +75,13 @@ function testShares() {
     // peer.handleShares(new Node(), shares.shares);
     // fs.writeFileSync('/tmp/bad_shares', binary);
 
-    console.log('2**256>2**128', new Bignum(2 ** 256).ge(2 ** 128));
-    let bits = Bignum.fromBuffer(Buffer.from('1801f6a7', 'hex')).toNumber();
-    let targetbignum = bitsToTarget(bits);
-    let targetnumber = (bits & 0x00ffffff) * Math.pow(2, 8 * ((bits >> 24) - 3));
+    // console.log('2**256>2**128', new Bignum(2 ** 256).ge(2 ** 128));
+    // let bits = Bignum.fromBuffer(Buffer.from('1801f6a7', 'hex')).toNumber();
+    // let targetbignum = bitsToTarget(bits);
+    // let targetnumber = (bits & 0x00ffffff) * Math.pow(2, 8 * ((bits >> 24) - 3));
+
+    let b = new Bignum(0.5).add(0.5);
+    console.log(b, b.or(0));
 
     SharechainHelper.init('bitcoin');
 

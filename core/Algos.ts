@@ -19,8 +19,8 @@ export function targetToDifficulty(target: Bignum) {
 
 export function difficultyToTarget(diff: Bignum) {
     if (diff.eq(0)) return POW2_256_SUB_1; //if (diff === 0) return 2 ** 256 - 1;
-    let target = FFFF0000_MUL_POW2_256_64_ADD_1.div(diff).sub(1).add(0.5).or(0);
-    return target.ge(POW2_256_SUB_1) ? POW2_256_SUB_1 : target; // return Math.min(((0xffff0000 * 2 ** (256 - 64) + 1) / diff - 1 + 0.5) | 0, 2 ** 256 - 1)
+    let target = FFFF0000_MUL_POW2_256_64_ADD_1.div(diff).sub(1);
+    return target.gt(POW2_256_SUB_1) ? POW2_256_SUB_1 : target; // return Math.min(((0xffff0000 * 2 ** (256 - 64) + 1) / diff - 1 + 0.5) | 0, 2 ** 256 - 1)
 }
 
 export function bitsToDifficulty(bits: number) {
@@ -32,7 +32,7 @@ export function targetToAverageAttempts(target: Bignum) {
 }
 
 export function averageAttemptsToTarget(attempts: Bignum) {
-    let target = POW2_256.div(attempts).sub(1).add(0.5).or(0);
+    let target = POW2_256.div(attempts).sub(1);
     return target.ge(POW2_256_SUB_1) ? POW2_256_SUB_1 : target;// return Math.min((2 ** 256 / attempts - 1 + 0.5) | 0, 2 ** 256 - 1);
 }
 
