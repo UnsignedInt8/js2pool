@@ -15,7 +15,7 @@ export default class Bitcoin {
     static readonly IDENTIFIER = Buffer.from('fc70035c7a81bc6f', 'hex');
     static readonly MSGPREFIX = Buffer.from('2472ef181efcd37b', 'hex');
     static readonly P2P_PORT = 9333;
-    static readonly MIN_TARGET = 0;
+    static readonly MIN_TARGET = new Bignum(0);
     static readonly MAX_TARGET = new Bignum(2).pow(256).div(new Bignum(2).pow(32)).sub(1); // 2 ** 256 / 2 ** 32 - 1
     static readonly PERSIST = true;
     static readonly WORKER_PORT = 9332;

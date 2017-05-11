@@ -29,6 +29,7 @@ export class App {
         if (!coin) throw Error(`${opts.coin.name} not be supported`);
 
         BaseShare.MAX_TARGET = coin.MAX_TARGET;
+        ShareGenerator.MIN_TARGET = Bitcoin.MIN_TARGET;
         BaseShare.IDENTIFIER = coin.IDENTIFIER;
         BaseShare.SEGWIT_ACTIVATION_VERSION = coin.SEGWIT_ACTIVATION_VERSION;
         BaseShare.POWFUNC = coin.POWFUNC;

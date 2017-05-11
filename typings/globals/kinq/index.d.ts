@@ -20,12 +20,12 @@ declare interface _Linqable<T> extends Iterable<T> {
   /**
     * @see _Linqable<T>.aggregate
     */
-  aggregate<T, TResult>(seed: T, transform: (current: T, next: T) => TResult): TResult;
+  aggregate<T, TResult>(seed: T | TResult, transform: (current: T | TResult, next: T) => TResult): TResult;
 
   /**
   * @see _Linqable<T>.aggregate
   */
-  aggregate<T, TResult>(transform: (current: T, next: T) => TResult): TResult;
+  aggregate<T, TResult>(transform: (current: T | TResult, next: T) => TResult): TResult;
 
 
   /**

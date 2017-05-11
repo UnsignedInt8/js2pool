@@ -77,7 +77,7 @@ export abstract class BaseShare {
             Buffer.alloc(4, 0) // lock time, 4 bytes
         ]), GENTX_BEFORE_REFHASH);
 
-        let merkleRoot = (segwitActivated && this.info.segwit.txidMerkleLink.branch ? this.info.segwit.txidMerkleLink.branch : this.merkleLink).aggregate(this.gentxHash, (c, n) => utils.sha256d(Buffer.concat([c, n])));
+        let merkleRoot = (segwitActivated && this.info.segwit.txidMerkleLink.branch ? this.info.segwit.txidMerkleLink.branch : this.merkleLink).aggregate<Buffer, Buffer>(this.gentxHash, (c, n) => utils.sha256d(Buffer.concat([c, n])));
         let headerHash = this.minHeader.calculateHash(merkleRoot);
         this.hash = utils.hexFromReversedBuffer(headerHash);
 
@@ -127,7 +127,7 @@ export abstract class BaseShare {
 
     static getRefHash(shareInfo: ShareInfo, refMerkleLink: Buffer[]) {
         let ref = Buffer.concat([BaseShare.IDENTIFIER, shareInfo.toBuffer()]);
-        return refMerkleLink.aggregate(utils.sha256d(ref), (c, n) => utils.sha256d(Buffer.concat([c, n])));
+        return refMerkleLink.aggregate<Buffer, Buffer>(utils.sha256d(ref), (c, n) => utils.sha256d(Buffer.concat([c, n])));
     }
 }
 

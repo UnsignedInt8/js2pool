@@ -47,9 +47,10 @@ async function run() {
     Message.MAGIC = Bitcoin.MSGPREFIX;
 
     ShareGenerator.MAX_TARGET = Bitcoin.MAX_TARGET;
+    ShareGenerator.MIN_TARGET = Bitcoin.MIN_TARGET;
     ShareGenerator.TARGET_LOOKBEHIND = Bitcoin.TARGET_LOOKBEHIND;
     ShareGenerator.PERIOD = Bitcoin.SHARE_PERIOD;
-    
+
     SharechainHelper.init('bitcoin');
     let shares = await SharechainHelper.loadSharesAsync();
     Sharechain.Instance.add(shares);

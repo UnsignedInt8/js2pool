@@ -13,6 +13,16 @@ export function bitsToTarget(bits: number) {
     return new Bignum(bits & 0x00ffffff).mul(new Bignum(2).pow(8 * ((bits >> 24) - 3)));    // return (bits & 0x00ffffff) * Math.pow(2, 8 * ((bits >> 24) - 3));
 }
 
+export function targetToBits(target: Bignum) {
+    if (target.lt(BaseTarget)) return 0x20010000;
+
+    let buf = target.toBuffer();
+    let exponent = buf.length > 15 ? buf.length.toString(16) : '0' + buf.length;
+    let coefficient = Array.from(buf.take(3)).map(c => c > 15 ? c.toString(16) : '0' + c.toString(16));
+    
+    return Number.parseInt([exponent].concat(coefficient).reduce((p, c) => p + c), 16);
+}
+
 export function targetToDifficulty(target: Bignum) {
     return FFFF0000_MUL_POW2_256_64_ADD_1.div(target.add(1));    // return (0xffff0000 * Math.pow(2, 256 - 64) + 1) / (target + 1)
 }

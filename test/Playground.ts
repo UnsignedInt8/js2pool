@@ -18,7 +18,8 @@ import { SharechainHelper } from "../p2pool/p2p/shares/SharechainHelper";
 import * as path from 'path';
 import Sharechain from "../p2pool/p2p/shares/Sharechain";
 import * as readline from 'readline';
-import { bitsToTarget } from "../core/Algos";
+import { bitsToTarget, targetToBits, BaseTarget, targetToDifficulty } from "../core/Algos";
+import { ShareGenerator } from "../p2pool/pool/ShareGenerator";
 
 kinq.enable();
 
@@ -55,6 +56,11 @@ function testShares() {
     BaseShare.IDENTIFIER = Bitcoin.IDENTIFIER;
     BaseShare.POWFUNC = Utils.sha256d;
     BaseShare.MAX_TARGET = Bitcoin.MAX_TARGET;
+
+    ShareGenerator.MAX_TARGET = Bitcoin.MAX_TARGET;
+    ShareGenerator.MIN_TARGET = Bitcoin.MIN_TARGET;
+    ShareGenerator.TARGET_LOOKBEHIND = Bitcoin.TARGET_LOOKBEHIND;
+    ShareGenerator.PERIOD = Bitcoin.SHARE_PERIOD;
     // let str = BufferWriter.writeVarString('6a28' + '0000000000000000000000000000000000000000000000000000000000000000' + '0000000000000000', 'hex');
 
     // let array = str.take(3).toArray();
@@ -75,14 +81,13 @@ function testShares() {
     // peer.handleShares(new Node(), shares.shares);
     // fs.writeFileSync('/tmp/bad_shares', binary);
 
-    // console.log('2**256>2**128', new Bignum(2 ** 256).ge(2 ** 128));
-    // let bits = Bignum.fromBuffer(Buffer.from('1801f6a7', 'hex')).toNumber();
-    // let targetbignum = bitsToTarget(bits);
-    // let targetnumber = (bits & 0x00ffffff) * Math.pow(2, 8 * ((bits >> 24) - 3));
+    let bits = Bignum.fromBuffer(Buffer.from('1801f6a7', 'hex')).toNumber();
+    let targetbignum = bitsToTarget(bits);
+    let targetnumber = (bits & 0x00ffffff) * Math.pow(2, 8 * ((bits >> 24) - 3));
+    let bits2 = targetToBits(targetbignum);
 
-    let b = new Bignum(0.5).add(0.5);
-    console.log(b, b.or(0));
-
+    let target = bitsToTarget(0x20012e00);
+    let bits3 = targetToBits(target);
     SharechainHelper.init('bitcoin');
 
     let chain = Sharechain.Instance;
@@ -90,11 +95,21 @@ function testShares() {
     SharechainHelper.loadSharesAsync().then(shares => {
         console.log(shares.length);
         chain.add(shares);
-        let previous = chain.get(chain.newest.value.info.data.previousShareHash);
-        let farShareHash = previous.info.farShareHash;
+        chain.verify();
+
+        let absheight = chain.newest.value.info.absheight - 10;
+        let targetShare = chain.get(absheight);
+        let farShareHash = targetShare.info.farShareHash;
+
+        // chain.newest.set(chain.get(chain.newest.value.info.absheight - 1));
         console.log(farShareHash);
-        console.log('previous', previous.info.timestamp);
-        console.log('far', chain.get(farShareHash).info.timestamp)
+        console.log('target', targetShare.info.maxBits);
+        console.log('far', chain.get(farShareHash).info.maxBits)
+
+        let begin = Date.now();
+        let g = new ShareGenerator('');
+        g.generateTx(targetShare.info.data.previousShareHash, new Bignum(0));
+        console.log(`${Date.now() - begin}ms`);
     });
     // console.log(chain.length);
     // // let gaps = chain.checkGaps();

@@ -56,7 +56,7 @@ export default class SharesManager {
         ]);
 
         let coinbaseTxid = this.txHasher(coinbaseTx);
-        let merkleRoot = Utils.reverseBuffer(task.merkleLink.aggregate(coinbaseTxid, (prev, curr) => Utils.sha256d(Buffer.concat([prev, curr])))).toString('hex');
+        let merkleRoot = Utils.reverseBuffer(task.merkleLink.aggregate<Buffer, Buffer>(coinbaseTxid, (prev, curr) => Utils.sha256d(Buffer.concat([prev, curr])))).toString('hex');
         let header = this.buildHeader(nonce, nTime, merkleRoot);
         let headerHashBuf = this.headerHasher(header);
         let shareHash = Utils.reverseBuffer(headerHashBuf).toString('hex');
