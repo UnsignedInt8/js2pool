@@ -36,6 +36,7 @@ export abstract class BaseShare {
     hashLink: HashLink;
     merkleLink: Buffer[];
 
+    // runtime fields
     hash: string; // share hash
     newScript: Buffer;
     target: Bignum;
@@ -80,8 +81,8 @@ export abstract class BaseShare {
         let headerHash = this.minHeader.calculateHash(merkleRoot);
         this.hash = utils.hexFromReversedBuffer(headerHash);
 
-        if (this.target.ge(BaseShare.MAX_TARGET)) return false;
-        if ( Bignum.fromBuffer(BaseShare.POWFUNC(this.minHeader.buildHeader(merkleRoot)), { endian: 'little', size: 32 }).ge(this.target)) return false;
+        if (this.target.gt(BaseShare.MAX_TARGET)) return false;
+        if (Bignum.fromBuffer(BaseShare.POWFUNC(this.minHeader.buildHeader(merkleRoot)), { endian: 'little', size: 32 }).gt(this.target)) return false;
 
         this.validity = true;
         return true;
@@ -134,21 +135,12 @@ export class Share extends BaseShare {
     readonly VERSION = 16;
     readonly VOTING_VERSION = 16;
     readonly SUCCESSOR = NewShare;
-
-    // constructor(blockHeader: SmallBlockHeader = null, info: ShareInfo = null, hashLink: HashLink = null, merkleLink: Buffer[] = null) {
-    //     super(blockHeader, info, hashLink, merkleLink);
-
-    // }
 }
 
 export class NewShare extends BaseShare {
     readonly VERSION = 17;
     readonly VOTING_VERSION = 17;
     readonly MAX_NEW_TXS_SIZE = 100000;
-
-    // constructor(blockHeader: SmallBlockHeader, info: ShareInfo = null, hashLink: HashLink = null, merkleLink: Buffer[] = null) {
-    //     super(blockHeader, info, hashLink, merkleLink);
-    // }
 }
 
 export const ShareVersionMapper = { 16: Share, 17: NewShare };

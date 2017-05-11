@@ -7,18 +7,20 @@ export const BaseTarget = 0x00000000ffff0000000000000000000000000000000000000000
 const POW2_256 = new Bignum(2).pow(256);
 const POW2_256_SUB_1 = POW2_256.sub(1);
 const POW2_256_64 = new Bignum(2).pow(256 - 64);
+const FFFF0000_MUL_POW2_256_64_ADD_1 = new Bignum(0xffff0000).mul(POW2_256_64).add(1);
 
 export function bitsToTarget(bits: number) {
     return new Bignum(bits & 0x00ffffff).mul(new Bignum(2).pow(8 * ((bits >> 24) - 3)));    // return (bits & 0x00ffffff) * Math.pow(2, 8 * ((bits >> 24) - 3));
 }
 
 export function targetToDifficulty(target: Bignum) {
-    return new Bignum(0xffff0000).mul(POW2_256_64).add(1).div(target.add(1));    // return (0xffff0000 * Math.pow(2, 256 - 64) + 1) / (target + 1)
+    return FFFF0000_MUL_POW2_256_64_ADD_1.div(target.add(1));    // return (0xffff0000 * Math.pow(2, 256 - 64) + 1) / (target + 1)
 }
 
-export function difficultyToTarget(diff: number) {
-    if (diff === 0) return 2 ** 256 - 1;
-    return Math.min(((0xffff0000 * 2 ** (256 - 64) + 1) / diff - 1 + 0.5) | 0, 2 ** 256 - 1)
+export function difficultyToTarget(diff: Bignum) {
+    if (diff.eq(0)) return POW2_256_SUB_1; //if (diff === 0) return 2 ** 256 - 1;
+    let target = FFFF0000_MUL_POW2_256_64_ADD_1.div(diff).sub(1).add(0.5).or(0);
+    return target.ge(POW2_256_SUB_1) ? POW2_256_SUB_1 : target; // return Math.min(((0xffff0000 * 2 ** (256 - 64) + 1) / diff - 1 + 0.5) | 0, 2 ** 256 - 1)
 }
 
 export function bitsToDifficulty(bits: number) {
