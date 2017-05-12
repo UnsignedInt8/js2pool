@@ -77,13 +77,13 @@ export abstract class BaseShare {
             Buffer.alloc(4, 0) // lock time, 4 bytes
         ]), GENTX_BEFORE_REFHASH);
 
-        let merkleRoot = (segwitActivated && this.info.segwit.txidMerkleLink.branch ? this.info.segwit.txidMerkleLink.branch : this.merkleLink).aggregate<Buffer, Buffer>(this.gentxHash, (c, n) => utils.sha256d(Buffer.concat([c, n])));
+        let merkleRoot = (segwitActivated && this.info.segwit.txidMerkleLink.branch ? this.info.segwit.txidMerkleLink.branch : this.merkleLink).reduce((p, c) => utils.sha256d(Buffer.concat([p, c])), this.gentxHash);  //aggregate<Buffer, Buffer>(this.gentxHash, (c, n) => utils.sha256d(Buffer.concat([c, n])));
         let headerHash = this.minHeader.calculateHash(merkleRoot);
         this.hash = utils.hexFromReversedBuffer(headerHash);
 
         if (this.target.gt(BaseShare.MAX_TARGET)) return false;
         if (Bignum.fromBuffer(BaseShare.POWFUNC(this.minHeader.buildHeader(merkleRoot)), { endian: 'little', size: 32 }).gt(this.target)) return false;
-
+        
         this.validity = true;
         return true;
     }

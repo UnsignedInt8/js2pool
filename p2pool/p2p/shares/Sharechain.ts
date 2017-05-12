@@ -221,7 +221,7 @@ export default class Sharechain extends Event {
         for (let ds of deprecatedShares) this.hashIndexer.delete(ds.hash);
     }
 
-    *subchain(startHash: string, length: number = Number.MAX_SAFE_INTEGER, direction: 'backward' | 'forward' = 'forward') {
+    *subchain(startHash: string, length: number = Number.MAX_SAFE_INTEGER, direction: 'backward' | 'forward' = 'backward') {
         let absheight = this.hashIndexer.get(startHash);
         if (!absheight) return;
 

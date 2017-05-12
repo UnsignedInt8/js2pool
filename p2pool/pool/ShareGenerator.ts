@@ -20,6 +20,7 @@ export class ShareGenerator {
     static TARGET_LOOKBEHIND = 0;
     static PERIOD = 0;
     static BLOCKSPREAD = 1;
+    static CALC_SHARES_LENGTH = 24 * 60 * 6;
 
     readonly sharechain = Sharechain.Instance;
 
@@ -41,8 +42,9 @@ export class ShareGenerator {
         }
 
         let maxBits = Algos.targetToBits(preTarget3);
+        console.log('maxbits', maxBits.toString(16));
         let bits = Algos.targetToBits(MathEx.clip(desiredTarget, preTarget3.div(30), preTarget3));
-        console.log('bits', bits.toString(16));
+
 
         let recentShares = Array.from(this.sharechain.subchain(previousHash, 100, 'backward'));
 
@@ -81,7 +83,8 @@ export class ShareGenerator {
             for (let item of tuple) txHashRefs.push(item);// transaction_hash_refs.extend(this)
         }
 
-
+        let payableShares = Array.from(this.sharechain.subchain(previousHash, Math.max(0, Math.min(this.sharechain.length, ShareGenerator.CALC_SHARES_LENGTH))));
+        payableShares.reduce<Bignum>((p, c) => p.add(c.work), new Bignum(0));
 
         // let coinbaseScriptSig1 = Buffer.concat([
         //     Utils.serializeScriptSigNumber(template.height),
@@ -98,7 +101,7 @@ export class ShareGenerator {
         let near = this.sharechain.get(hash);
         let far = shares[shares.length - 1];
 
-        let attepmts = shares.aggregate<BaseShare, Bignum>((c, n) => c instanceof BaseShare ? (minWork ? c.minWork.add(n.minWork) : c.work.add(n.work)) : c.add(minWork ? n.minWork : n.work)).sub(minWork ? far.minWork : far.work);
+        let attepmts = shares.reduce<Bignum>((p, c) => p.add(minWork ? c.minWork : c.work), new Bignum(0)).sub(minWork ? far.minWork : far.work);
 
         let elapsedTime = near.info.timestamp - far.info.timestamp;
         elapsedTime = elapsedTime <= 0 ? 1 : elapsedTime;
