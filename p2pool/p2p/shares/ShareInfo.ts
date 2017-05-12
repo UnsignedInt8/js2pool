@@ -83,43 +83,6 @@ export default class ShareInfo {
         return tuples;
     }
 
-    static packTxHashRefs(recentShares: BaseShare[], desiredTxHashes: Set<string>, knownTxs: Map<string, TransactionTemplate>) {
-        let newTxHashes = new Array<string>();
-        let newTxSize = 0;
-        let txHashRefs = new Array<number>();
-        let otherTxHashes = new Array<string>();
-
-        let txHashesToThis = new Map<string, number[]>();
-        for (let i = 0; i < recentShares.length; i++) {
-            let txHashes = recentShares[i].info.newTransactionHashes;
-
-            for (let j = 0; j < txHashes.length; j++) {
-                let txHash = txHashes[j];
-                if (txHashesToThis.has(txHash)) continue;
-
-                txHashesToThis.set(txHash, [i + 1, j]); // shareCount, txCount
-            }
-        }
-
-        for (let hash of desiredTxHashes) {
-            let tuple = txHashesToThis.get(hash);
-            if (!tuple) {
-                let size = knownTxs.get(hash).data.length / 2;
-                if (size + newTxSize > 50000) break;
-                newTxSize += size;
-                newTxHashes.push(hash);
-                tuple = [0, newTxHashes.length - 1];
-            }
-
-            for (let item of tuple) // transaction_hash_refs.extend(this)
-                txHashRefs.push(item);
-
-            otherTxHashes.push(hash);
-        }
-
-        
-    }
-
     static fromObject(obj: any) {
         let info = new ShareInfo();
         info = Object.assign(info, obj);

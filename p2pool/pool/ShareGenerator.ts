@@ -10,7 +10,8 @@ import * as Bignum from 'bignum';
 import * as MathEx from '../../misc/MathEx';
 import { BaseShare } from "../p2p/shares/index";
 import * as Algos from "../../core/Algos";
-import { GetBlockTemplate } from "../../core/DaemonWatcher";
+import { GetBlockTemplate, TransactionTemplate } from "../../core/DaemonWatcher";
+import * as assert from 'assert';
 
 export class ShareGenerator {
 
@@ -18,6 +19,7 @@ export class ShareGenerator {
     static MIN_TARGET: Bignum;
     static TARGET_LOOKBEHIND = 0;
     static PERIOD = 0;
+    static BLOCKSPREAD = 1;
 
     readonly sharechain = Sharechain.Instance;
 
@@ -25,7 +27,7 @@ export class ShareGenerator {
 
     }
 
-    generateTx(template: GetBlockTemplate, previousHash: string, desiredTarget: Bignum) {
+    generateTx(template: GetBlockTemplate, previousHash: string, desiredTarget: Bignum, desiredTxHashes: string[], knownTxs: Map<string, TransactionTemplate> = null) {
         let preTarget: Bignum, preTarget2: Bignum, preTarget3: Bignum;
         let lastShare = this.sharechain.get(previousHash);
 
@@ -42,12 +44,49 @@ export class ShareGenerator {
         let bits = Algos.targetToBits(MathEx.clip(desiredTarget, preTarget3.div(30), preTarget3));
         console.log('bits', bits.toString(16));
 
-        let recentShares = this.sharechain.subchain(previousHash, 100);
+        let recentShares = Array.from(this.sharechain.subchain(previousHash, 100, 'backward'));
 
-        let coinbaseScriptSig1 = Buffer.concat([
-            Utils.serializeScriptSigNumber(template.height),
-            Buffer.from(template.coinbaseaux.flags, 'hex'),
-        ]);
+        let newTxHashes = new Array<string>();
+        let newTxSize = 0;
+        let txHashRefs = new Array<number>();
+        let otherTxHashes = new Array<string>();
+
+        let txHashesToThis = new Map<string, number[]>();
+
+        for (let i = 0; i < recentShares.length; i++) {
+            let txHashes = recentShares[i].info.newTransactionHashes;
+
+            for (let j = 0; j < txHashes.length; j++) {
+                let txHash = txHashes[j];
+                if (txHashesToThis.has(txHash)) continue;
+
+                txHashesToThis.set(txHash, [i + 1, j]); // shareCount, txCount
+            }
+        }
+
+        for (let hash of desiredTxHashes) {
+            let tuple = txHashesToThis.get(hash);
+
+            if (!tuple && knownTxs) {
+                let size = knownTxs.get(hash).data.length / 2;
+                if (size + newTxSize > 50000) break;
+                newTxSize += size;
+                newTxHashes.push(hash);
+                tuple = [0, newTxHashes.length - 1];
+            }
+
+            otherTxHashes.push(hash);
+            if (!tuple) continue;
+
+            for (let item of tuple) txHashRefs.push(item);// transaction_hash_refs.extend(this)
+        }
+
+
+
+        // let coinbaseScriptSig1 = Buffer.concat([
+        //     Utils.serializeScriptSigNumber(template.height),
+        //     Buffer.from(template.coinbaseaux.flags, 'hex'),
+        // ]);
     }
 
     calcGlobalAttemptsPerSecond(hash: string, lookBehind: number, minWork = false) {

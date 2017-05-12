@@ -62,6 +62,7 @@ function testShares() {
     ShareGenerator.MIN_TARGET = Bitcoin.MIN_TARGET;
     ShareGenerator.TARGET_LOOKBEHIND = Bitcoin.TARGET_LOOKBEHIND;
     ShareGenerator.PERIOD = Bitcoin.SHARE_PERIOD;
+    ShareGenerator.BLOCKSPREAD = Bitcoin.SPREAD;
     // let str = BufferWriter.writeVarString('6a28' + '0000000000000000000000000000000000000000000000000000000000000000' + '0000000000000000', 'hex');
 
     // let array = str.take(3).toArray();
@@ -97,8 +98,12 @@ function testShares() {
         console.log(shares.length);
         chain.add(shares);
         chain.verify();
+        let gaps = chain.checkGaps();
+        console.log(gaps);
 
-        let absheight = chain.newest.value.info.absheight - 20;
+        console.log('max hashrefs', shares.max(s => s.info.transactionHashRefs.length).info.transactionHashRefs.length);
+
+        let absheight = chain.newest.value.info.absheight - 700;
         let targetShare = chain.get(absheight);
         let farShareHash = targetShare.info.farShareHash;
 
@@ -109,8 +114,25 @@ function testShares() {
 
         let begin = Date.now();
         let g = new ShareGenerator('');
-        console.log(targetShare.target);
-        g.generateTx(null, targetShare.info.data.previousShareHash, targetShare.target);
+        console.log(targetToBits(targetShare.target).toString(16));
+
+        let desiredTxHashes = new Array<string>();
+        for (let { shareCount, txCount } of targetShare.info.extractTxHashRefs()) {
+            // chain.get(targetShare.hash, shareCount, 'backward')
+            let parentHeight = targetShare.info.absheight - shareCount;
+            let parent = chain.get(parentHeight);
+            let txHash = parent.info.newTransactionHashes[txCount];
+            desiredTxHashes.push(txHash);
+        }
+        console.log(desiredTxHashes.length, ',', targetShare.info.transactionHashRefs.length);
+        console.log(targetShare.info.extractTxHashRefs().length);
+        console.log(targetShare.info.extractTxHashRefs().where(i => i.shareCount === 0).toArray());
+        // targetShare.info.extractTxHashRefs().select(ref => {
+
+        // });
+
+        // g.generateTx(null, targetShare.info.data.previousShareHash, targetShare.target, txHashes);
+        g.generateTx(null, targetShare.info.data.previousShareHash, targetShare.target, desiredTxHashes);
         console.log(`${Date.now() - begin}ms`);
     });
     // console.log(chain.length);

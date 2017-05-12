@@ -51,7 +51,7 @@ export class Js2Pool {
 
         let newestShare = this.sharechain.newest;
         if (!newestShare.hasValue()) return;
-        this.generator.generateTx(template, newestShare.value.info.data.previousShareHash, new Bignum(0));
+        this.generator.generateTx(template, newestShare.value.info.data.previousShareHash, new Bignum(0), []);
     }
 
     private async onBlockNotified(sender: DaemonWatcher, hash: string) {
