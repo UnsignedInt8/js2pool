@@ -16,6 +16,7 @@ import { TypeSharereply } from "./Messages/Sharereply";
 import * as Bignum from 'bignum';
 import { SharechainHelper } from "./shares/SharechainHelper";
 import * as Utils from '../../misc/Utils';
+import * as MathEx from '../../misc/MathEx';
 
 export type PeerOptions = {
     maxConn?: number,
@@ -77,7 +78,7 @@ export class Peer {
         if (!gaps.length) return;
 
         let peers = Array.from(this.peers.values());
-        let randomGaps = gaps.length > 1 ? Utils.shuffle(gaps) : gaps;
+        let randomGaps = gaps.length > 1 ? MathEx.shuffle(gaps) : gaps;
 
         for (let gap of randomGaps) {
             if (!peers.length) break;

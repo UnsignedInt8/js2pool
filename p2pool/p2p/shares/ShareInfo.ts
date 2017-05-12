@@ -9,6 +9,7 @@ import * as utils from '../../../misc/Utils';
 import BufferWriter from "../../../misc/BufferWriter";
 import { bitsToTarget } from "../../../core/Algos";
 import { BaseShare } from "./BaseShare";
+import { TransactionTemplate } from "../../../core/DaemonWatcher";
 
 type Segwit = {
     txidMerkleLink: {
@@ -82,21 +83,41 @@ export default class ShareInfo {
         return tuples;
     }
 
-    static packTxHashRefs(shares: BaseShare[]) {
-        let txsPackage = new Map<string, number[]>();
+    static packTxHashRefs(recentShares: BaseShare[], desiredTxHashes: Set<string>, knownTxs: Map<string, TransactionTemplate>) {
+        let newTxHashes = new Array<string>();
+        let newTxSize = 0;
+        let txHashRefs = new Array<number>();
+        let otherTxHashes = new Array<string>();
 
-        for (let i = 0; i < shares.length; i++) {
-            let txHashes = shares[i].info.newTransactionHashes;
+        let txHashesToThis = new Map<string, number[]>();
+        for (let i = 0; i < recentShares.length; i++) {
+            let txHashes = recentShares[i].info.newTransactionHashes;
 
             for (let j = 0; j < txHashes.length; j++) {
                 let txHash = txHashes[j];
-                if (txsPackage.has(txHash)) continue;
+                if (txHashesToThis.has(txHash)) continue;
 
-                txsPackage.set(txHash, [i + 1, j]); // shareCount, txCount
+                txHashesToThis.set(txHash, [i + 1, j]); // shareCount, txCount
             }
         }
 
-        return txsPackage;
+        for (let hash of desiredTxHashes) {
+            let tuple = txHashesToThis.get(hash);
+            if (!tuple) {
+                let size = knownTxs.get(hash).data.length / 2;
+                if (size + newTxSize > 50000) break;
+                newTxSize += size;
+                newTxHashes.push(hash);
+                tuple = [0, newTxHashes.length - 1];
+            }
+
+            for (let item of tuple) // transaction_hash_refs.extend(this)
+                txHashRefs.push(item);
+
+            otherTxHashes.push(hash);
+        }
+
+        
     }
 
     static fromObject(obj: any) {

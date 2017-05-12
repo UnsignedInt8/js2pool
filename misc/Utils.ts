@@ -481,14 +481,3 @@ export function convertBitsToBuff(bitsBuff: Buffer) {
 export function getTruncatedDiff(shift) {
     return convertBitsToBuff(bufferToCompactBits(shiftMax256Right(shift)));
 };
-
-export function shuffle<T>(a: Iterable<T>) {
-    let shuffled = Array.from(a);
-
-    for (let i = shuffled.length; i; i--) {
-        let j = Math.floor(Math.random() * i);
-        [shuffled[i - 1], shuffled[j]] = [shuffled[j], shuffled[i - 1]];
-    }
-
-    return shuffled;
-}

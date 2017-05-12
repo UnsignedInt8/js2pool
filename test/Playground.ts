@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 import { HashLink } from "../p2pool/p2p/shares/HashLink";
 import * as Utils from '../misc/Utils';
+import * as MathEx from '../misc/MathEx';
 import * as Bignum from 'bignum';
 import Bitcoin from "../p2pool/coins/Bitcoin";
 import { Peer } from "../p2pool/p2p/Peer";
@@ -97,7 +98,7 @@ function testShares() {
         chain.add(shares);
         chain.verify();
 
-        let absheight = chain.newest.value.info.absheight - 10;
+        let absheight = chain.newest.value.info.absheight - 20;
         let targetShare = chain.get(absheight);
         let farShareHash = targetShare.info.farShareHash;
 
@@ -108,7 +109,8 @@ function testShares() {
 
         let begin = Date.now();
         let g = new ShareGenerator('');
-        g.generateTx(null, targetShare.info.data.previousShareHash, new Bignum(0));
+        console.log(targetShare.target);
+        g.generateTx(null, targetShare.info.data.previousShareHash, targetShare.target);
         console.log(`${Date.now() - begin}ms`);
     });
     // console.log(chain.length);
@@ -120,7 +122,7 @@ function testShares() {
     //     input: fs.createReadStream('/Users/unsignedint8/.js2pool/data/bitcoin/shares_17296', { encoding: 'utf8' })
     // }).on('line', line => { console.log(line) });
 
-    let s = Utils.shuffle([1, 2, 3, 4, 5, 6, 7]);
+    let s = MathEx.shuffle([1, 2, 3, 4, 5, 6, 7]);
     console.log(s);
     process.stdin.resume();
 }

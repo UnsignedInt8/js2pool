@@ -12,3 +12,14 @@ export function clip<T extends Bignum | number>(value: T, min: T, max: T) {
 
     return (<Bignum>value).lt(min) ? min : ((<Bignum>value).gt(max) ? max : value);
 }
+
+export function shuffle<T>(a: Iterable<T>) {
+    let shuffled = Array.from(a);
+
+    for (let i = shuffled.length; i; i--) {
+        let j = Math.floor(Math.random() * i);
+        [shuffled[i - 1], shuffled[j]] = [shuffled[j], shuffled[i - 1]];
+    }
+
+    return shuffled;
+}

@@ -153,7 +153,6 @@ export class SharechainHelper {
                     share.maxTarget = Bignum.fromBuffer(Buffer.from(<any>obj.maxTarget, 'hex'));
                     share.minWork = Bignum.fromBuffer(Buffer.from(<any>obj.minWork, 'hex'));
                     share.lastTxoutNonce = Bignum.fromBuffer(Buffer.from(<any>obj.lastTxoutNonce, 'hex'));
-                    share.target = obj.target;
                     share.validity = obj.validity;
                     share.hash = obj.hash;
                     shares.push(share);
