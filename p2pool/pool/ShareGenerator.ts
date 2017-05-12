@@ -84,7 +84,15 @@ export class ShareGenerator {
         }
 
         let payableShares = Array.from(this.sharechain.subchain(previousHash, Math.max(0, Math.min(this.sharechain.length, ShareGenerator.CALC_SHARES_LENGTH))));
-        payableShares.reduce<Bignum>((p, c) => p.add(c.work), new Bignum(0));
+        payableShares.select(s => {
+            return {
+                pubkey: s.info.data.pubkeyHash,
+                weight: new Bignum(65535).sub(s.info.data.donation).mul(s.work),
+                total: new Bignum(65535).mul(s.work),
+                donation: s.work.mul(s.info.data.donation)
+            }
+        }).groupBy(item => item.pubkey).toArray();
+        // payableShares.reduce<Bignum>((p, c) => p.add(c.work), new Bignum(0));
 
         // let coinbaseScriptSig1 = Buffer.concat([
         //     Utils.serializeScriptSigNumber(template.height),

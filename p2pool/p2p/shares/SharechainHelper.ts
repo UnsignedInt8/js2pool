@@ -60,7 +60,7 @@ export class SharechainHelper {
                 obj.SUCCESSOR = null;
                 obj.refMerkleLink = <any>share.refMerkleLink.map(l => l.toString('hex'));
                 obj.merkleLink = <any>share.merkleLink.map(l => l.toString('hex'));
-                obj.newScript = <any>share.newScript.toString('hex');
+                // obj.newScript = <any>share.newScript.toString('hex');
                 obj.gentxHash = <any>share.gentxHash.toString('hex');
                 obj.lastTxoutNonce = <any>share.lastTxoutNonce.toBuffer().toString('hex');
                 obj.target = <any>share.target.toBuffer().toString('hex');
@@ -146,7 +146,7 @@ export class SharechainHelper {
                     let share = new ShareVersionMapper[obj.VERSION](header, info, hashlink) as BaseShare;
                     share.refMerkleLink = obj.refMerkleLink.map(l => Buffer.from(<any>l, 'hex'));
                     share.merkleLink = obj.merkleLink.map(l => Buffer.from(<any>l, 'hex'));
-                    share.newScript = Buffer.from(<any>obj.newScript, 'hex');
+                    // share.newScript = Buffer.from(<any>obj.newScript, 'hex');
                     share.gentxHash = Buffer.from(<any>obj.gentxHash, 'hex');
                     share.target = Bignum.fromBuffer(Buffer.from(<any>obj.target, 'hex'));
                     share.work = Bignum.fromBuffer(Buffer.from(<any>obj.work, 'hex'));

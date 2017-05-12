@@ -38,7 +38,7 @@ export abstract class BaseShare {
 
     // runtime fields
     hash: string; // share hash
-    newScript: Buffer;
+    // newScript: Buffer;
     target: Bignum;
     maxTarget: Bignum;
     gentxHash: Buffer;
@@ -65,7 +65,7 @@ export abstract class BaseShare {
         });
         if (n.size !== this.info.newTransactionHashes.length) return false;
 
-        this.newScript = utils.hash160ToScript(this.info.data.pubkeyHash); // script Pub Key
+        // this.newScript = utils.hash160ToScript(this.info.data.pubkeyHash); // script Pub Key
         this.target = bitsToTarget(this.info.bits);
         this.maxTarget = bitsToTarget(this.info.maxBits);
         this.work = targetToAverageAttempts(this.target);

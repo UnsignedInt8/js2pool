@@ -184,8 +184,8 @@ declare interface _Linqable<T> extends Iterable<T> {
     * @param resultTransform A function to create a result value from each group. (Optional)
     * @return Returns iterable grouped items. Each item is { key: key, value: [items] }
     */
-  groupBy<TKey, TElement, TResult>(keySelector: (item: T) => TKey, elementSelector: (item: T) => TElement, resultTransform: (groupKey: TKey, items: TElement[]) => TResult): _Linqable<TResult>;
-  groupBy<TKey>(keySelector: (item: T) => TKey): _Linqable<T>;
+  groupBy<TKey, TElement, TResult>(keySelector: (item: T) => TKey, elementSelector: (item: T) => TElement, resultTransform: (groupKey: TKey, items: TElement[]) => TResult): _Linqable<{ key: TKey, value: TResult[] }>;
+  groupBy<TKey>(keySelector: (item: T) => TKey): _Linqable<{ key: TKey, value: T[] }>;
 
   /**
     * Correlates the elements of two sequences based on equality of keys and groups the results. The default equality comparer is used to compare keys.
