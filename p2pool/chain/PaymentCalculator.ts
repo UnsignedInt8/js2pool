@@ -10,6 +10,8 @@ import * as kinq from 'kinq';
 import * as Algos from "../../core/Algos";
 import * as Utils from '../../misc/Utils';
 import { GetBlockTemplate } from "../../core/DaemonWatcher";
+import BufferWriter from '../../misc/BufferWriter';
+
 
 export class PaymentCalculator {
     static CALC_SHARES_LENGTH = 24 * 60 * 6;
@@ -33,40 +35,44 @@ export class PaymentCalculator {
         let payableShares = kinq.toLinqable(this.sharechain.subchain(previousShareHash, PaymentCalculator.CALC_SHARES_LENGTH)).skip(1);
         let totalWeight = new Bignum(0);
         let donationWeight = new Bignum(0);
-        let weights = new Map<string, Bignum>();
-
+        let weights = new Map<string, Bignum>(); // pubkey hash -> bignum
+        // console.log('payableshares:', payableShares.count())
         for (let share of payableShares) {
             let lastTotalWeight = totalWeight;
+
             totalWeight = totalWeight.add(share.totalWeight);
             donationWeight = donationWeight.add(share.donationWeight);
 
             let shareWeight = weights.get(share.info.data.pubkeyHash);
-
             if (shareWeight) {
                 weights.set(share.info.data.pubkeyHash, shareWeight.add(share.weight));
                 continue;
             }
 
             shareWeight = share.weight;
-
             if (totalWeight.gt(desiredWeight)) {
                 totalWeight = desiredWeight;
                 shareWeight = desiredWeight.sub(lastTotalWeight).div(65535).mul(share.weight).div(share.totalWeight.div(65535));
             }
-
             weights.set(share.info.data.pubkeyHash, shareWeight);
         }
 
-        let nodeWeight = weights.get(this.nodePubkey.toString()) || new Bignum(0);
-
-
+        let totalReward = template.coinbasevalue;
+        let totalProportion = totalWeight.mul(200);
+        let amount = new Map<string, Bignum>();
         for (let [pubkeyHash, weight] of weights) {
-
+            amount.set(Utils.hash160ToScript(pubkeyHash).toString('hex'), weight.mul(totalReward).mul(199).div(totalProportion))
         }
 
-        console.log('total', totalWeight);
-        console.log('donation', donationWeight, donationWeight.toNumber() / totalWeight.toNumber());
-        console.log('count:', weights.size, /*Array.from(weightList.values()).reduce((p, c) => p.add(c))*/);
-        console.log('desired', desiredWeight);
+        let nodePubkeyHash = this.nodePubkey.toString('hex');
+        let nodeReward = amount.get(nodePubkeyHash) || new Bignum(0);
+        nodeReward = nodeReward.add(totalReward / 200);
+        amount.set(nodePubkeyHash, nodeReward);
+
+        console.log(amount, nodeReward);
+
+        console.log('total', totalWeight, 'donation', donationWeight, donationWeight.toNumber() / totalWeight.toNumber());
+        console.log('weights:', weights.size, 'amounts:', amount.size + 1);
+        
     }
 }

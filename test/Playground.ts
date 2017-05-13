@@ -117,18 +117,18 @@ function testShares() {
 
         console.log('max hashrefs', shares.max(s => s.info.transactionHashRefs.length).info.transactionHashRefs.length);
 
-        let absheight = chain.newest.value.info.absheight - 700;
+        let absheight = chain.get('0000000000000000002b7b2cbedc39692ad7608acd0d1c518399bf059e74432c').info.absheight;// chain.newest.value.info.absheight - 700;
         let targetShare = chain.get(absheight);
         let farShareHash = targetShare.info.farShareHash;
 
         // chain.newest.set(chain.get(chain.newest.value.info.absheight - 1));
-        console.log(farShareHash);
+        // console.log('target share', targetShare);
+
         console.log('target', targetShare.info.maxBits);
         console.log('far', chain.get(farShareHash).info.maxBits)
 
         let begin = Date.now();
         let g = new ShareGenerator('');
-        console.log(targetToBits(targetShare.target).toString(16));
 
         let desiredTxHashes = new Array<string>();
         for (let { shareCount, txCount } of targetShare.info.extractTxHashRefs()) {
@@ -140,13 +140,13 @@ function testShares() {
         }
         console.log(desiredTxHashes.length, ',', targetShare.info.transactionHashRefs.length);
         console.log(targetShare.info.extractTxHashRefs().length);
-        console.log(targetShare.info.extractTxHashRefs().where(i => i.shareCount === 0).toArray());
+        // console.log(targetShare.info.extractTxHashRefs().where(i => i.shareCount === 0).toArray());
         // targetShare.info.extractTxHashRefs().select(ref => {
 
         // });
-
+        let preShare = chain.get(absheight - 1);
         // g.generateTx(null, targetShare.info.data.previousShareHash, targetShare.target, txHashes);
-        g.generateTx(<any>{ target: '00' }, targetShare.info.data.previousShareHash, targetShare.target, desiredTxHashes);
+        g.generateTx(<any>{ target: '000000000000000001f6a7000000000000000000000000000000000000000000', coinbasevalue: 1378384953 }, preShare.info.data.previousShareHash, targetShare.target, desiredTxHashes);
         console.log(`${Date.now() - begin}ms`);
     });
     // console.log(chain.length);

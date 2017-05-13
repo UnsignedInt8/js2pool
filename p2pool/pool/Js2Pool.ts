@@ -41,8 +41,10 @@ export class Js2Pool {
 
     private onNewestShareChanged(sender: Sharechain, share: BaseShare) {
         this.daemonWatcher.refreshBlockTemplateAsync();
-        if (sender.size % 5 === 0)
+        if (sender.size % 5 === 0) {
+            sender.checkGaps();
             SharechainHelper.saveShares(kinq.toLinqable(sender.subchain(share.hash, 10, 'backward')).skip(5));
+        }
     }
 
     private onMiningTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {

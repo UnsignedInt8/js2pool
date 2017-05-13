@@ -43,8 +43,8 @@ export class SharechainHelper {
             fs.mkdirSync(dataDir);
         }
 
-        let deprecatedFiles = fs.readdirSync(dataDir).where(name => Number.parseInt(name.split('_')[1]) < SharechainHelper.today - 2).select(name => path.resolve(dataDir, name)).toArray();
-        deprecatedFiles.each(path => fs.unlinkSync(path));
+        // let deprecatedFiles = fs.readdirSync(dataDir).where(name => Number.parseInt(name.split('_')[1]) < SharechainHelper.today - 2).select(name => path.resolve(dataDir, name)).toArray();
+        // deprecatedFiles.each(path => fs.unlinkSync(path));
     }
 
     static saveShares(shares: _Linqable<BaseShare>) {

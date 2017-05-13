@@ -208,13 +208,13 @@ export class Peer {
         let shares = new Array<BaseShare>();
 
         for (let hash of request.hashes) {
-            for (let share of this.sharechain.subchain(hash, parents + 1, 'backward')) {
+            for (let share of this.sharechain.subchain(hash, parents, 'backward')) {
                 if (stops.has(share.hash)) break;
                 shares.push(share);
             }
         }
 
-        if (shares.length === 0) {
+        if (shares.length <= 1) {
             sender.sendSharereplyAsync({ id: request.id, result: 2, wrapper: Shares.fromObject([]) })
             return;
         }

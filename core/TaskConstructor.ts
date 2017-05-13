@@ -22,7 +22,7 @@ export class TaskConstructor {
 
     constructor(poolAddr: string, fees?: { address: string, percent: number }[], proof: 'POW' | 'POS' = 'POW') {
         const me = this;
-        const addrToScript = proof === 'POW' ? Utils.addressToScript : Utils.pubkeyToScript;
+        const addrToScript = proof === 'POW' ? Utils.addressToScript : Utils.posPubkeyToScript;
 
         me.proof = proof;
         me.poolPubkeyScript = addrToScript(poolAddr);

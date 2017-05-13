@@ -348,7 +348,7 @@ export function range(start: number, stop: number, step: number) {
 /*
  For POS coins - used to format wallet address for use in generation transaction's output
  */
-export function pubkeyToScript(key: string) {
+export function posPubkeyToScript(key: string) {
     if (key.length !== 66) {
         console.error('Invalid pubkey: ' + key);
         throw new Error();
@@ -393,7 +393,6 @@ export function addressToPubkey(addr: string) {
     return decoded.slice(1, -4);
 }
 
-// import * as ripemd160 from 'ripemd160';
 export function pubkeyToAddress(pubkey: string, net = '00') {
     let checksum = sha256d(Buffer.from(net + pubkey, 'hex')).slice(0, 4).toString('hex');
     return base58.encode(Buffer.from(net + pubkey + checksum, 'hex'));
