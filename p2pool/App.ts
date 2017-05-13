@@ -11,7 +11,7 @@ import { Message } from "./p2p/Message";
 import { SharechainHelper } from "./chain/SharechainHelper";
 import Sharechain from "./chain/Sharechain";
 import logger from '../misc/Logger';
-import { ShareGenerator } from "./pool/ShareGenerator";
+import { ShareGenerator } from "./chain/ShareGenerator";
 
 export type AppOptions = {
     coin: { name: string, },

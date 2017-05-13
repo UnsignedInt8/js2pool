@@ -9,7 +9,7 @@ import * as Bignum from 'bignum';
 import * as kinq from 'kinq';
 import Sharechain from "../chain/Sharechain";
 import { SharechainHelper } from "../chain/SharechainHelper";
-import { ShareGenerator } from "./ShareGenerator";
+import { ShareGenerator } from "../chain/ShareGenerator";
 
 export type Js2PoolOptions = {
     daemon: DaemonOptions,

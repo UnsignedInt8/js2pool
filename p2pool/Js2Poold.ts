@@ -11,7 +11,7 @@ import { SharechainHelper } from "./chain/SharechainHelper";
 import Sharechain from "./chain/Sharechain";
 import { Peer } from "./p2p/Peer";
 import * as Bignum from 'bignum';
-import { ShareGenerator } from "./pool/ShareGenerator";
+import { ShareGenerator } from "./chain/ShareGenerator";
 import { Message } from "./p2p/Message";
 kinq.enable();
 

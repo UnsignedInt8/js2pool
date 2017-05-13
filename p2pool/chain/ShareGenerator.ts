@@ -3,7 +3,7 @@
  * Github: https://github.com/unsignedint8
  */
 
-import Sharechain from "../p2p/shares/Sharechain";
+import Sharechain from "./Sharechain";
 import * as Utils from '../../misc/Utils';
 import * as kinq from 'kinq';
 import * as Bignum from 'bignum';
