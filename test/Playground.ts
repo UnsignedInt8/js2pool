@@ -83,6 +83,10 @@ function testShares() {
     // peer.handleShares(new Node(), shares.shares);
     // fs.writeFileSync('/tmp/bad_shares', binary);
 
+    // let targetGbt = new Bignum('000000000000000001f6a7000000000000000000000000000000000000000000', 16);
+    
+    // return console.log(targetGbt, targetToBits(targetGbt).toString(16));
+
     let bits = Bignum.fromBuffer(Buffer.from('1801f6a7', 'hex')).toNumber();
     let targetbignum = bitsToTarget(bits);
     let targetnumber = (bits & 0x00ffffff) * Math.pow(2, 8 * ((bits >> 24) - 3));
@@ -146,7 +150,7 @@ function testShares() {
 
     let s = MathEx.shuffle([1, 2, 3, 4, 5, 6, 7]);
     console.log(s);
-    process.stdin.resume();
+    // process.stdin.resume();
 }
 
 testShares();

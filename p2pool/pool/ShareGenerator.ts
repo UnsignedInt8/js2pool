@@ -81,12 +81,35 @@ export class ShareGenerator {
         }
 
         let begin = Date.now();
-        let payableShares = kinq
-            .toLinqable(this.sharechain.subchain(previousHash, Math.max(0, Math.min(this.sharechain.length, ShareGenerator.CALC_SHARES_LENGTH))))
-            .groupBy(i => i.info.data.pubkeyHash)
-            .toArray();
+        let desiredWeight = new Bignum(65535).mul(ShareGenerator.BLOCKSPREAD).mul(Algos.targetToAverageAttempts(new Bignum(/*template.target*/'000000000000000001f6a7000000000000000000000000000000000000000000', 16)))
+        // let payableShares = kinq
+        //     .toLinqable(this.sharechain.subchain(previousHash, Math.max(0, Math.min(this.sharechain.length, ShareGenerator.CALC_SHARES_LENGTH))))
+        //     .groupBy(i => i.info.data.pubkeyHash)
+        //     .toArray();
+        let payableShares = Array.from(this.sharechain.subchain(previousHash, Math.max(0, Math.min(this.sharechain.length, ShareGenerator.CALC_SHARES_LENGTH))));
+        let totalWeight = payableShares[0].totalWeight;
+        let donationWeight = payableShares[0].donationWeight;// new Bignum(0);
+        let weightList = new Map<string, Bignum>();
+        weightList.set(payableShares[0].info.data.pubkeyHash, payableShares[0].weight);
+
+        for (let share of payableShares.skip(1)) {
+            totalWeight = totalWeight.add(share.totalWeight);
+            donationWeight = donationWeight.add(share.donationWeight);
+
+            let weight = weightList.get(share.info.data.pubkeyHash);
+            if (weight) {
+                weightList.set(share.info.data.pubkeyHash, weight.add(share.weight));
+                continue;
+            }
+
+            weightList.set(share.info.data.pubkeyHash, share.weight);
+        }
 
         console.log('elapse', Date.now() - begin);
+        console.log('total', totalWeight);
+        console.log('donation', donationWeight, donationWeight.toNumber() / totalWeight.toNumber());
+        console.log('count:', weightList.size, Array.from(weightList.values()).reduce((p, c) => p.add(c)));
+        console.log('desired', desiredWeight);
         // payableShares.reduce<Bignum>((p, c) => p.add(c.work), new Bignum(0));
 
         // let coinbaseScriptSig1 = Buffer.concat([

@@ -45,10 +45,6 @@ export abstract class BaseShare {
     work: Bignum;
     minWork: Bignum;
 
-    weight: Bignum;
-    totalWeight: Bignum;
-    donationWeight: Bignum;
-
     constructor(minHeader: SmallBlockHeader = null, info: ShareInfo = null, hashLink: HashLink = null, merkleLink: Buffer[] = null) {
         this.minHeader = minHeader;
         this.info = info;
@@ -87,9 +83,15 @@ export abstract class BaseShare {
         if (this.target.gt(BaseShare.MAX_TARGET)) return false;
         if (Bignum.fromBuffer(BaseShare.POWFUNC(this.minHeader.buildHeader(merkleRoot)), { endian: 'little', size: 32 }).gt(this.target)) return false;
 
+        this.calcWeights();
         this.validity = true;
+
         return true;
     }
+
+    weight: Bignum;
+    totalWeight: Bignum;
+    donationWeight: Bignum;
 
     calcWeights() {
         this.weight = this.work.mul(65535 - this.info.data.donation);
