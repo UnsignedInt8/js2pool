@@ -38,13 +38,16 @@ export abstract class BaseShare {
 
     // runtime fields
     hash: string; // share hash
-    // newScript: Buffer;
     target: Bignum;
     maxTarget: Bignum;
     gentxHash: Buffer;
     validity = false;
     work: Bignum;
     minWork: Bignum;
+
+    weight: Bignum;
+    totalWeight: Bignum;
+    donationWeight: Bignum;
 
     constructor(minHeader: SmallBlockHeader = null, info: ShareInfo = null, hashLink: HashLink = null, merkleLink: Buffer[] = null) {
         this.minHeader = minHeader;
@@ -83,9 +86,15 @@ export abstract class BaseShare {
 
         if (this.target.gt(BaseShare.MAX_TARGET)) return false;
         if (Bignum.fromBuffer(BaseShare.POWFUNC(this.minHeader.buildHeader(merkleRoot)), { endian: 'little', size: 32 }).gt(this.target)) return false;
-        
+
         this.validity = true;
         return true;
+    }
+
+    calcWeights() {
+        this.weight = this.work.mul(65535 - this.info.data.donation);
+        this.totalWeight = this.work.mul(65535);
+        this.donationWeight = this.work.mul(this.info.data.donation);
     }
 
     toBuffer(): Buffer {

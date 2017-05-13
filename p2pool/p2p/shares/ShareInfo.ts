@@ -95,7 +95,7 @@ export default class ShareInfo {
             previousShareHash: reader.readReversedFixedString(32),
             coinbase: reader.readVarString(),
             nonce: reader.readUInt32LE(),
-            pubkeyHash: reader.readReversedFixedString(20),
+            pubkeyHash: reader.readReversedFixedString(20).toLowerCase(),
             subsidy: reader.readNumber(8),
             donation: reader.readUInt16LE(),
             staleInfo: reader.readUInt8(),

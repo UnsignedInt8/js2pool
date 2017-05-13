@@ -43,14 +43,13 @@ export class Js2Pool {
         this.daemonWatcher.refreshBlockTemplateAsync();
         if (sender.size % 5 === 0)
             SharechainHelper.saveShares(kinq.toLinqable(sender.subchain(share.hash, 10, 'backward')).skip(5));
-
     }
 
     private onMiningTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
         this.peer.updateMiningTemplate(template);
 
         let newestShare = this.sharechain.newest;
-        if (!newestShare.hasValue()) return;
+        if (!newestShare.hasValue() || !this.sharechain.calculatable) return;
         this.generator.generateTx(template, newestShare.value.info.data.previousShareHash, new Bignum(0), []);
     }
 

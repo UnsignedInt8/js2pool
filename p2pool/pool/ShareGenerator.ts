@@ -45,14 +45,11 @@ export class ShareGenerator {
         console.log('maxbits', maxBits.toString(16));
         let bits = Algos.targetToBits(MathEx.clip(desiredTarget, preTarget3.div(30), preTarget3));
 
-
         let recentShares = Array.from(this.sharechain.subchain(previousHash, 100, 'backward'));
-
         let newTxHashes = new Array<string>();
         let newTxSize = 0;
         let txHashRefs = new Array<number>();
         let otherTxHashes = new Array<string>();
-
         let txHashesToThis = new Map<string, number[]>();
 
         for (let i = 0; i < recentShares.length; i++) {
@@ -83,15 +80,13 @@ export class ShareGenerator {
             for (let item of tuple) txHashRefs.push(item);// transaction_hash_refs.extend(this)
         }
 
-        let payableShares = Array.from(this.sharechain.subchain(previousHash, Math.max(0, Math.min(this.sharechain.length, ShareGenerator.CALC_SHARES_LENGTH))));
-        payableShares.select(s => {
-            return {
-                pubkey: s.info.data.pubkeyHash,
-                weight: new Bignum(65535).sub(s.info.data.donation).mul(s.work),
-                total: new Bignum(65535).mul(s.work),
-                donation: s.work.mul(s.info.data.donation)
-            }
-        }).groupBy(item => item.pubkey).toArray();
+        let begin = Date.now();
+        let payableShares = kinq
+            .toLinqable(this.sharechain.subchain(previousHash, Math.max(0, Math.min(this.sharechain.length, ShareGenerator.CALC_SHARES_LENGTH))))
+            .groupBy(i => i.info.data.pubkeyHash)
+            .toArray();
+
+        console.log('elapse', Date.now() - begin);
         // payableShares.reduce<Bignum>((p, c) => p.add(c.work), new Bignum(0));
 
         // let coinbaseScriptSig1 = Buffer.concat([

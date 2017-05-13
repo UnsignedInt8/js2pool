@@ -69,6 +69,10 @@ export class SharechainHelper {
                 obj.minWork = <any>share.minWork.toBuffer().toString('hex');
                 obj.info.data.subsidy = <any>share.info.data.subsidy.toBuffer().toString('hex');
 
+                delete obj.weight;
+                delete obj.totalWeight;
+                delete obj.donationWeight;
+
                 if (obj.info.segwit) {
                     obj.info.segwit = Object.assign({}, share.info.segwit);
                     obj.info.segwit.txidMerkleLink.branch = <any>share.info.segwit.txidMerkleLink.branch.map(b => b.toString('hex'));
@@ -146,7 +150,6 @@ export class SharechainHelper {
                     let share = new ShareVersionMapper[obj.VERSION](header, info, hashlink) as BaseShare;
                     share.refMerkleLink = obj.refMerkleLink.map(l => Buffer.from(<any>l, 'hex'));
                     share.merkleLink = obj.merkleLink.map(l => Buffer.from(<any>l, 'hex'));
-                    // share.newScript = Buffer.from(<any>obj.newScript, 'hex');
                     share.gentxHash = Buffer.from(<any>obj.gentxHash, 'hex');
                     share.target = Bignum.fromBuffer(Buffer.from(<any>obj.target, 'hex'));
                     share.work = Bignum.fromBuffer(Buffer.from(<any>obj.work, 'hex'));
@@ -155,6 +158,8 @@ export class SharechainHelper {
                     share.lastTxoutNonce = Bignum.fromBuffer(Buffer.from(<any>obj.lastTxoutNonce, 'hex'));
                     share.validity = obj.validity;
                     share.hash = obj.hash;
+
+                    share.calcWeights();
                     shares.push(share);
 
                     if (filestream.bytesRead === size) {
