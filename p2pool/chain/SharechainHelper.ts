@@ -12,6 +12,7 @@ import { HashLink } from "../p2p/shares/HashLink";
 import * as crypto from 'crypto';
 import * as readline from 'readline';
 import { CompleterResult } from "readline";
+import Sharechain from "./Sharechain";
 
 /**
  * Data files name convention
@@ -176,5 +177,23 @@ export class SharechainHelper {
         }
 
         return allShares;
+    }
+
+    static calcGlobalAttemptsPerSecond(hash: string, lookBehind: number, minWork = false) {
+        let chain = Sharechain.Instance;
+
+        let shares = Array.from(chain.subchain(hash, lookBehind, 'backward'));
+        if (shares.length === 1) return minWork ? shares[0].minWork : shares[0].work;
+        if (shares.length === 0) return new Bignum(0);
+
+        let near = chain.get(hash);
+        let far = shares[shares.length - 1];
+
+        let attepmts = shares.reduce<Bignum>((p, c) => p.add(minWork ? c.minWork : c.work), new Bignum(0)).sub(minWork ? far.minWork : far.work);
+
+        let elapsedTime = near.info.timestamp - far.info.timestamp;
+        elapsedTime = elapsedTime <= 0 ? 1 : elapsedTime;
+
+        return attepmts.div(elapsedTime);
     }
 }

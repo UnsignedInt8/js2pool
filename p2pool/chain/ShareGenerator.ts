@@ -12,6 +12,8 @@ import { BaseShare } from "../p2p/shares/index";
 import * as Algos from "../../core/Algos";
 import { GetBlockTemplate, TransactionTemplate } from "../../core/DaemonWatcher";
 import * as assert from 'assert';
+import { PaymentCalculator } from "./PaymentCalculator";
+import { SharechainHelper } from "./SharechainHelper";
 
 export class ShareGenerator {
 
@@ -23,10 +25,10 @@ export class ShareGenerator {
     static CALC_SHARES_LENGTH = 24 * 60 * 6;
 
     readonly sharechain = Sharechain.Instance;
-    nodePubkey: string;
+    paymentCalculator: PaymentCalculator;
 
     constructor(nodeAddress: string = '1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9') {
-        this.nodePubkey = Utils.addressToPubkey(nodeAddress).toString('hex');
+        this.paymentCalculator = new PaymentCalculator(nodeAddress);
     }
 
     generateTx(template: GetBlockTemplate, previousHash: string, desiredTarget: Bignum, desiredTxHashes: string[], knownTxs: Map<string, TransactionTemplate> = null) {
@@ -36,7 +38,7 @@ export class ShareGenerator {
         if (!lastShare || lastShare.info.absheight < ShareGenerator.TARGET_LOOKBEHIND) {
             preTarget3 = ShareGenerator.MAX_TARGET;
         } else {
-            let attemptsPerSecond = this.calcGlobalAttemptsPerSecond(previousHash, ShareGenerator.TARGET_LOOKBEHIND, true);
+            let attemptsPerSecond = SharechainHelper.calcGlobalAttemptsPerSecond(previousHash, ShareGenerator.TARGET_LOOKBEHIND, true);
             preTarget = attemptsPerSecond.gt(0) ? Algos.POW2_256.div(attemptsPerSecond.mul(ShareGenerator.PERIOD)).sub(1) : Algos.POW2_256_SUB_1;
             preTarget2 = MathEx.clip(preTarget, lastShare.maxTarget.mul(9).div(10), lastShare.maxTarget.mul(11).div(10));
             preTarget3 = MathEx.clip(preTarget2, ShareGenerator.MIN_TARGET, ShareGenerator.MAX_TARGET);
@@ -82,46 +84,42 @@ export class ShareGenerator {
         }
 
         let begin = Date.now();
-        let desiredWeight = new Bignum(65535).mul(ShareGenerator.BLOCKSPREAD).mul(Algos.targetToAverageAttempts(new Bignum(template.target, 16)));
-        let payableShares = kinq.toLinqable(this.sharechain.subchain(previousHash, ShareGenerator.CALC_SHARES_LENGTH)).skip(1);
-        let totalWeight = new Bignum(0); 
-        let donationWeight = new Bignum(0);
-        let weightList = new Map<string, Bignum>();
+        // let desiredWeight = new Bignum(65535).mul(ShareGenerator.BLOCKSPREAD).mul(Algos.targetToAverageAttempts(new Bignum(template.target, 16)));
+        // let payableShares = kinq.toLinqable(this.sharechain.subchain(previousHash, ShareGenerator.CALC_SHARES_LENGTH)).skip(1);
+        // let totalWeight = new Bignum(0);
+        // let donationWeight = new Bignum(0);
+        // let weights = new Map<string, Bignum>();
 
-        for (let share of payableShares) {
-            let lastTotalWeight = totalWeight;
-            totalWeight = totalWeight.add(share.totalWeight);
-            donationWeight = donationWeight.add(share.donationWeight);
+        // for (let share of payableShares) {
+        //     let lastTotalWeight = totalWeight;
+        //     totalWeight = totalWeight.add(share.totalWeight);
+        //     donationWeight = donationWeight.add(share.donationWeight);
 
-            let shareWeight = weightList.get(share.info.data.pubkeyHash);
+        //     let shareWeight = weights.get(share.info.data.pubkeyHash);
 
-            if (shareWeight) {
-                weightList.set(share.info.data.pubkeyHash, shareWeight.add(share.weight));
-                continue;
-            }
+        //     if (shareWeight) {
+        //         weights.set(share.info.data.pubkeyHash, shareWeight.add(share.weight));
+        //         continue;
+        //     }
 
-            shareWeight = share.weight;
+        //     shareWeight = share.weight;
 
-            if (totalWeight.gt(desiredWeight)) {
-                totalWeight = desiredWeight;
-                shareWeight = desiredWeight.sub(lastTotalWeight).div(65535).mul(share.weight).div(share.totalWeight.div(65535));
-            }
+        //     if (totalWeight.gt(desiredWeight)) {
+        //         totalWeight = desiredWeight;
+        //         shareWeight = desiredWeight.sub(lastTotalWeight).div(65535).mul(share.weight).div(share.totalWeight.div(65535));
+        //     }
 
-            weightList.set(share.info.data.pubkeyHash, shareWeight);
-        }
+        //     weights.set(share.info.data.pubkeyHash, shareWeight);
+        // }
 
-        // let nodeWeight = weightList.get()
-
-        for (let [pubkeyHash, weight] of weightList) {
-
-        }
+       this.paymentCalculator.calc(previousHash, template); 
 
         console.log('elapse', Date.now() - begin);
-        console.log('total', totalWeight);
-        console.log('donation', donationWeight, donationWeight.toNumber() / totalWeight.toNumber());
-        console.log('count:', weightList.size, /*Array.from(weightList.values()).reduce((p, c) => p.add(c))*/);
-        console.log('desired', desiredWeight);
-        // payableShares.reduce<Bignum>((p, c) => p.add(c.work), new Bignum(0));
+        // console.log('total', totalWeight);
+        // console.log('donation', donationWeight, donationWeight.toNumber() / totalWeight.toNumber());
+        // console.log('count:', weights.size, /*Array.from(weightList.values()).reduce((p, c) => p.add(c))*/);
+        // console.log('desired', desiredWeight);
+        // // payableShares.reduce<Bignum>((p, c) => p.add(c.work), new Bignum(0));
 
         // let coinbaseScriptSig1 = Buffer.concat([
         //     Utils.serializeScriptSigNumber(template.height),
@@ -129,20 +127,5 @@ export class ShareGenerator {
         // ]);
     }
 
-    calcGlobalAttemptsPerSecond(hash: string, lookBehind: number, minWork = false) {
-
-        let shares = Array.from(kinq.toLinqable(this.sharechain.subchain(hash, lookBehind, 'backward')));
-        if (shares.length === 1) return minWork ? shares[0].minWork : shares[0].work;
-        if (shares.length === 0) return new Bignum(0);
-
-        let near = this.sharechain.get(hash);
-        let far = shares[shares.length - 1];
-
-        let attepmts = shares.reduce<Bignum>((p, c) => p.add(minWork ? c.minWork : c.work), new Bignum(0)).sub(minWork ? far.minWork : far.work);
-
-        let elapsedTime = near.info.timestamp - far.info.timestamp;
-        elapsedTime = elapsedTime <= 0 ? 1 : elapsedTime;
-
-        return attepmts.div(elapsedTime);
-    }
+    
 }

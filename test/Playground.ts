@@ -90,11 +90,11 @@ function testShares() {
     // let script = Utils.addressToScript('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9').toString('hex');
     // console.log(script);
     // return;
-    '010966776006953D5567439E5E39F86A0D273BEE';
-    let addr = Utils.pubkeyToAddress('03db74c9b92b09cd46c131f97d869150c17e138d');
-    console.log(addr);
-    console.log(Utils.addressToPubkey(addr).toString('hex') === '03db74c9b92b09cd46c131f97d869150c17e138d')
-    return;
+    // '010966776006953D5567439E5E39F86A0D273BEE';
+    // let addr = Utils.pubkeyToAddress('03db74c9b92b09cd46c131f97d869150c17e138d');
+    // console.log(addr);
+    // console.log(Utils.addressToPubkey(addr).toString('hex') === '03db74c9b92b09cd46c131f97d869150c17e138d')
+    // return;
 
 
     let bits = Bignum.fromBuffer(Buffer.from('1801f6a7', 'hex')).toNumber();

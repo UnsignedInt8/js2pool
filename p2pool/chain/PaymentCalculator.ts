@@ -7,55 +7,66 @@ import { BaseShare } from "../p2p/shares";
 import Sharechain from "./Sharechain";
 import * as Bignum from 'bignum';
 import * as kinq from 'kinq';
+import * as Algos from "../../core/Algos";
+import * as Utils from '../../misc/Utils';
+import { GetBlockTemplate } from "../../core/DaemonWatcher";
 
 export class PaymentCalculator {
     static CALC_SHARES_LENGTH = 24 * 60 * 6;
+    static BLOCKSPREAD = 3;
     static readonly DELAY_LENGTH = 6;
-
 
     sharechain = Sharechain.Instance;
     recentTotalWeight: Bignum;
     recentDonationWeight: Bignum;
     recentWeightList = new Map<string, Bignum>();
-    
-    // calc(previousHash: string) {
 
-    //     if (!this.cachedShares) {
-    //         this.cachedShares = kinq.toLinqable(this.sharechain.subchain(previousHash, PaymentCalculator.CALC_SHARES_LENGTH)).skip(PaymentCalculator.DELAY_LENGTH).toArray();
+    nodePubkey: Buffer;
 
-    //         let first = this.cachedShares[0];
-    //         this.cachedTotalWeight = first.totalWeight;
-    //         this.cachedDonationWeight = first.donationWeight;
-    //         this.cachedWeightList.set(first.info.data.pubkeyHash, first.weight);
+    constructor(nodeAddress: string = '1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9') {
+        this.nodePubkey = Utils.addressToPubkey(nodeAddress);
+    }
 
-    //         this.calcWeights(this.cachedShares.skip(1));
-    //     }
+    calc(previousShareHash: string, template: GetBlockTemplate, ) {
 
-    //     let recentShares = Array.from(this.sharechain.subchain(previousHash, PaymentCalculator.DELAY_LENGTH));
-    //     this.calcWeights(recentShares);
+        let desiredWeight = new Bignum(65535).mul(PaymentCalculator.BLOCKSPREAD).mul(Algos.targetToAverageAttempts(new Bignum(template.target, 16)));
+        let payableShares = kinq.toLinqable(this.sharechain.subchain(previousShareHash, PaymentCalculator.CALC_SHARES_LENGTH)).skip(1);
+        let totalWeight = new Bignum(0);
+        let donationWeight = new Bignum(0);
+        let weights = new Map<string, Bignum>();
 
-    //     let recentLastShare = recentShares[recentShares.length - 1];
-    //     if (this.cachedShares.length >= PaymentCalculator.CALC_SHARES_LENGTH - PaymentCalculator.DELAY_LENGTH) {
-    //         let oldest = this.cachedShares.pop();
-    //         this.cachedDonationWeight = this.cachedDonationWeight.sub(oldest.donationWeight);
-    //         this.
-    //     }
-    //     this.cachedShares.pop()
-    //     let weightList = new Map<string, Bignum>();
-    // }
+        for (let share of payableShares) {
+            let lastTotalWeight = totalWeight;
+            totalWeight = totalWeight.add(share.totalWeight);
+            donationWeight = donationWeight.add(share.donationWeight);
 
-    // private calcWeights(shares: Iterable<BaseShare>) {
-    //     for (let share of shares) {
-    //         this.cachedTotalWeight = this.cachedTotalWeight.add(share.totalWeight);
-    //         this.cachedDonationWeight = this.cachedDonationWeight.add(share.donationWeight);
+            let shareWeight = weights.get(share.info.data.pubkeyHash);
 
-    //         let weight = this.cachedWeightList.get(share.info.data.pubkeyHash);
-    //         if (weight) {
-    //             this.cachedWeightList.set(share.info.data.pubkeyHash, weight.add(share.weight));
-    //             continue;
-    //         }
+            if (shareWeight) {
+                weights.set(share.info.data.pubkeyHash, shareWeight.add(share.weight));
+                continue;
+            }
 
-    //         this.cachedWeightList.set(share.info.data.pubkeyHash, share.weight);
-    //     }
-    // }
+            shareWeight = share.weight;
+
+            if (totalWeight.gt(desiredWeight)) {
+                totalWeight = desiredWeight;
+                shareWeight = desiredWeight.sub(lastTotalWeight).div(65535).mul(share.weight).div(share.totalWeight.div(65535));
+            }
+
+            weights.set(share.info.data.pubkeyHash, shareWeight);
+        }
+
+        let nodeWeight = weights.get(this.nodePubkey.toString()) || new Bignum(0);
+
+
+        for (let [pubkeyHash, weight] of weights) {
+
+        }
+
+        console.log('total', totalWeight);
+        console.log('donation', donationWeight, donationWeight.toNumber() / totalWeight.toNumber());
+        console.log('count:', weights.size, /*Array.from(weightList.values()).reduce((p, c) => p.add(c))*/);
+        console.log('desired', desiredWeight);
+    }
 }
