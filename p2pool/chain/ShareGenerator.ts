@@ -23,10 +23,10 @@ export class ShareGenerator {
     static CALC_SHARES_LENGTH = 24 * 60 * 6;
 
     readonly sharechain = Sharechain.Instance;
-    nodeAddress: string;
+    nodePubkey: string;
 
     constructor(nodeAddress: string = '1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9') {
-        this.nodeAddress = nodeAddress;
+        this.nodePubkey = Utils.addressToPubkey(nodeAddress).toString('hex');
     }
 
     generateTx(template: GetBlockTemplate, previousHash: string, desiredTarget: Bignum, desiredTxHashes: string[], knownTxs: Map<string, TransactionTemplate> = null) {
@@ -83,15 +83,10 @@ export class ShareGenerator {
 
         let begin = Date.now();
         let desiredWeight = new Bignum(65535).mul(ShareGenerator.BLOCKSPREAD).mul(Algos.targetToAverageAttempts(new Bignum(template.target, 16)));
-        // let payableShares = kinq
-        //     .toLinqable(this.sharechain.subchain(previousHash, Math.max(0, Math.min(this.sharechain.length, ShareGenerator.CALC_SHARES_LENGTH))))
-        //     .groupBy(i => i.info.data.pubkeyHash)
-        //     .toArray();
         let payableShares = kinq.toLinqable(this.sharechain.subchain(previousHash, ShareGenerator.CALC_SHARES_LENGTH)).skip(1);
-        let totalWeight = new Bignum(0); //payableShares[0].totalWeight;
-        let donationWeight = new Bignum(0); //payableShares[0].donationWeight;// new Bignum(0);
+        let totalWeight = new Bignum(0); 
+        let donationWeight = new Bignum(0);
         let weightList = new Map<string, Bignum>();
-        // weightList.set(payableShares[0].info.data.pubkeyHash, payableShares[0].weight);
 
         for (let share of payableShares) {
             let lastTotalWeight = totalWeight;
@@ -105,12 +100,14 @@ export class ShareGenerator {
                 continue;
             }
 
+            shareWeight = share.weight;
+
             if (totalWeight.gt(desiredWeight)) {
                 totalWeight = desiredWeight;
                 shareWeight = desiredWeight.sub(lastTotalWeight).div(65535).mul(share.weight).div(share.totalWeight.div(65535));
             }
 
-            weightList.set(share.info.data.pubkeyHash, share.weight);
+            weightList.set(share.info.data.pubkeyHash, shareWeight);
         }
 
         // let nodeWeight = weightList.get()

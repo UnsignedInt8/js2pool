@@ -393,6 +393,12 @@ export function addressToPubkey(addr: string) {
     return decoded.slice(1, -4);
 }
 
+// import * as ripemd160 from 'ripemd160';
+export function pubkeyToAddress(pubkey: string, net = '00') {
+    let checksum = sha256d(Buffer.from(net + pubkey, 'hex')).slice(0, 4).toString('hex');
+    return base58.encode(Buffer.from(net + pubkey + checksum, 'hex'));
+}
+
 
 export function getReadableHashRateString(hashrate: number) {
     let i = -1;

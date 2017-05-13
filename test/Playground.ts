@@ -84,12 +84,18 @@ function testShares() {
     // fs.writeFileSync('/tmp/bad_shares', binary);
 
     // let targetGbt = new Bignum('000000000000000001f6a7000000000000000000000000000000000000000000', 16);
-    
+
     // return console.log(targetGbt, targetToBits(targetGbt).toString(16));
 
-    let script = Utils.addressToScript('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9').toString('hex');
-    console.log(script);
+    // let script = Utils.addressToScript('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9').toString('hex');
+    // console.log(script);
+    // return;
+    '010966776006953D5567439E5E39F86A0D273BEE';
+    let addr = Utils.pubkeyToAddress('03db74c9b92b09cd46c131f97d869150c17e138d');
+    console.log(addr);
+    console.log(Utils.addressToPubkey(addr).toString('hex') === '03db74c9b92b09cd46c131f97d869150c17e138d')
     return;
+
 
     let bits = Bignum.fromBuffer(Buffer.from('1801f6a7', 'hex')).toNumber();
     let targetbignum = bitsToTarget(bits);
@@ -140,7 +146,7 @@ function testShares() {
         // });
 
         // g.generateTx(null, targetShare.info.data.previousShareHash, targetShare.target, txHashes);
-        g.generateTx(null, targetShare.info.data.previousShareHash, targetShare.target, desiredTxHashes);
+        g.generateTx(<any>{ target: '00' }, targetShare.info.data.previousShareHash, targetShare.target, desiredTxHashes);
         console.log(`${Date.now() - begin}ms`);
     });
     // console.log(chain.length);
