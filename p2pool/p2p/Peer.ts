@@ -9,12 +9,12 @@ import { DaemonWatcher, DaemonOptions, GetBlockTemplate, TransactionTemplate } f
 import ObservableProperty from "../../nodejs/ObservableProperty";
 import { Version } from "./Messages/Version";
 import { TypeShares, Shares } from "./Messages/Shares";
-import Sharechain, { Gap } from "./shares/Sharechain";
+import Sharechain, { Gap } from "../chain/Sharechain";
 import logger from '../../misc/Logger';
 import { TypeSharereq } from "./Messages/Sharereq";
 import { TypeSharereply } from "./Messages/Sharereply";
 import * as Bignum from 'bignum';
-import { SharechainHelper } from "./shares/SharechainHelper";
+import { SharechainHelper } from "../chain/SharechainHelper";
 import * as Utils from '../../misc/Utils';
 import * as MathEx from '../../misc/MathEx';
 

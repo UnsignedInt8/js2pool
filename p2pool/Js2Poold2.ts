@@ -2,8 +2,8 @@ require('../nodejs/AsyncSocket');
 
 import { Peer } from "./p2p/Peer";
 import * as Bignum from 'bignum';
-import Sharechain from "./p2p/shares/Sharechain";
-import { SharechainHelper } from "./p2p/shares/SharechainHelper";
+import Sharechain from "./chain/Sharechain";
+import { SharechainHelper } from "./chain/SharechainHelper";
 
 import * as kinq from 'kinq';
 import { BaseShare } from "./p2p/shares/BaseShare";

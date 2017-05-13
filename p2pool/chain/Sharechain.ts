@@ -3,10 +3,10 @@
  * Github: https://github.com/unsignedint8
  */
 
-import logger from '../../../misc/Logger';
-import { BaseShare } from "./index";
-import { Event } from "../../../nodejs/Event";
-import ObservableProperty from "../../../nodejs/ObservableProperty";
+import logger from '../../misc/Logger';
+import { BaseShare } from "../p2p/shares/index";
+import { Event } from "../../nodejs/Event";
+import ObservableProperty from "../../nodejs/ObservableProperty";
 
 type ShareNode = {
     next?: string;

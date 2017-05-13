@@ -1,14 +1,14 @@
 
-import { BaseShare } from "./index";
+import { BaseShare } from "../p2p/shares";
+import { ShareVersionMapper } from "../p2p/shares/BaseShare";
 import * as path from 'path';
 import * as fs from 'fs';
-import { Shares } from "../Messages/Shares";
-import logger from '../../../misc/Logger';
-import { ShareVersionMapper } from "./BaseShare";
+import { Shares } from "../p2p/messages/Shares";
+import logger from '../../misc/Logger';
 import * as Bignum from 'bignum';
-import SmallBlockHeader from "./Smallblockheader";
-import ShareInfo from "./Shareinfo";
-import { HashLink } from "./HashLink";
+import SmallBlockHeader from "../p2p/shares/Smallblockheader";
+import ShareInfo from "../p2p/shares/Shareinfo";
+import { HashLink } from "../p2p/shares/HashLink";
 import * as crypto from 'crypto';
 import * as readline from 'readline';
 import { CompleterResult } from "readline";

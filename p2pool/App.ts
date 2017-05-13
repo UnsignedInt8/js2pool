@@ -8,8 +8,8 @@ import { DaemonOptions } from "../core/DaemonWatcher";
 import { PeerOptions } from "./p2p/Peer";
 import { BaseShare } from "./p2p/shares";
 import { Message } from "./p2p/Message";
-import { SharechainHelper } from "./p2p/shares/SharechainHelper";
-import Sharechain from "./p2p/shares/Sharechain";
+import { SharechainHelper } from "./chain/SharechainHelper";
+import Sharechain from "./chain/Sharechain";
 import logger from '../misc/Logger';
 import { ShareGenerator } from "./pool/ShareGenerator";
 

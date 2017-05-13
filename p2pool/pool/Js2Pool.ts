@@ -7,8 +7,8 @@ import { Algos } from "../../core/Algos";
 import logger from '../../misc/Logger';
 import * as Bignum from 'bignum';
 import * as kinq from 'kinq';
-import Sharechain from "../p2p/shares/Sharechain";
-import { SharechainHelper } from "../p2p/shares/SharechainHelper";
+import Sharechain from "../chain/Sharechain";
+import { SharechainHelper } from "../chain/SharechainHelper";
 import { ShareGenerator } from "./ShareGenerator";
 
 export type Js2PoolOptions = {
