@@ -1,5 +1,5 @@
-import SmallBlockHeader from './Smallblockheader';
-import ShareInfo from './Shareinfo';
+import SmallBlockHeader from './SmallBlockHeader';
+import ShareInfo from './ShareInfo';
 import { HashLink } from './HashLink';
 import BufferReader from '../../../misc/BufferReader';
 import * as utils from '../../../misc/Utils';

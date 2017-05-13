@@ -4,11 +4,11 @@
  */
 
 import Addrs from "./Addrs";
-import Addrme from "./AddrMe";
+import Addrme from "./Addrme";
 import { Version } from './Version';
 import { Ping, Pong } from "./Ping";
 import { Payload } from "./Payload";
-import Getaddrs from "./GetAddrs";
+import Getaddrs from "./Getaddrs";
 import { Have_tx, Losing_tx, Forget_tx } from "./Have_tx";
 import Sharereq from "./Sharereq";
 import Sharereply from "./Sharereply";

@@ -1,6 +1,6 @@
 import * as kinq from 'kinq';
-import Sharechain from "../p2pool/p2p/shares/Sharechain";
-import { SharechainHelper } from "../p2pool/p2p/shares/SharechainHelper";
+import Sharechain from "../p2pool/chain/Sharechain";
+import { SharechainHelper } from "../p2pool/chain/SharechainHelper";
 import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
