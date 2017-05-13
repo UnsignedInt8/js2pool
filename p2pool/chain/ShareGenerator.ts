@@ -20,6 +20,7 @@ export class ShareGenerator {
     static TARGET_LOOKBEHIND = 0;
     static PERIOD = 0;
     static BLOCKSPREAD = 1;
+    static CALC_SHARES_LENGTH = 24 * 60 * 6;
 
     readonly sharechain = Sharechain.Instance;
     nodeAddress: string;
@@ -86,20 +87,27 @@ export class ShareGenerator {
         //     .toLinqable(this.sharechain.subchain(previousHash, Math.max(0, Math.min(this.sharechain.length, ShareGenerator.CALC_SHARES_LENGTH))))
         //     .groupBy(i => i.info.data.pubkeyHash)
         //     .toArray();
-        let payableShares = Array.from(this.sharechain.subchain(previousHash, Math.max(0, Math.min(this.sharechain.length, 24 * 60 * 6))));
-        let totalWeight = payableShares[0].totalWeight;
-        let donationWeight = payableShares[0].donationWeight;// new Bignum(0);
+        let payableShares = kinq.toLinqable(this.sharechain.subchain(previousHash, ShareGenerator.CALC_SHARES_LENGTH)).skip(1);
+        let totalWeight = new Bignum(0); //payableShares[0].totalWeight;
+        let donationWeight = new Bignum(0); //payableShares[0].donationWeight;// new Bignum(0);
         let weightList = new Map<string, Bignum>();
-        weightList.set(payableShares[0].info.data.pubkeyHash, payableShares[0].weight);
+        // weightList.set(payableShares[0].info.data.pubkeyHash, payableShares[0].weight);
 
-        for (let share of payableShares.skip(1)) {
+        for (let share of payableShares) {
+            let lastTotalWeight = totalWeight;
             totalWeight = totalWeight.add(share.totalWeight);
             donationWeight = donationWeight.add(share.donationWeight);
 
-            let weight = weightList.get(share.info.data.pubkeyHash);
-            if (weight) {
-                weightList.set(share.info.data.pubkeyHash, weight.add(share.weight));
+            let shareWeight = weightList.get(share.info.data.pubkeyHash);
+
+            if (shareWeight) {
+                weightList.set(share.info.data.pubkeyHash, shareWeight.add(share.weight));
                 continue;
+            }
+
+            if (totalWeight.gt(desiredWeight)) {
+                totalWeight = desiredWeight;
+                shareWeight = desiredWeight.sub(lastTotalWeight).div(65535).mul(share.weight).div(share.totalWeight.div(65535));
             }
 
             weightList.set(share.info.data.pubkeyHash, share.weight);

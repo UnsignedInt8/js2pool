@@ -103,7 +103,7 @@ export default class Node extends Event {
 
     initSocket(socket: Socket) {
         socket.setKeepAlive(true);
-        socket.setTimeout(30 * 1000);
+        socket.setTimeout(60 * 1000);
         this.socket = socket;
         this.peerAddress = socket.remoteAddress;
         this.peerPort = socket.remotePort;
@@ -384,7 +384,6 @@ export default class Node extends Event {
     }
 
     async sendSharereqAsync(sharereq: TypeSharereq) {
-        console.log('share req');
         let data = Message.fromObject({ command: 'sharereq', payload: sharereq });
         return await this.sendAsync(data.toBuffer());
     }
