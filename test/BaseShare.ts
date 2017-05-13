@@ -5,7 +5,7 @@
 
 import * as kinq from 'kinq';
 import * as assert from 'assert';
-import { Shares } from "../p2pool/p2p/Messages/Shares";
+import { Shares } from "../p2pool/p2p/messages/Shares";
 
 kinq.enable();
 

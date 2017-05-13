@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import Addrs from "../p2pool/p2p/Messages/Addrs";
+import Addrs from "../p2pool/p2p/messages/Addrs";
 
 describe('Test Addrs', () => {
     it('should be a address', () => {

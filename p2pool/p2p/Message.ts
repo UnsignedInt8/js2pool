@@ -2,19 +2,19 @@
  * Created on Fri Apr 07 2017 UnsignedInt8
  */
 
-import { Payloads } from './Messages';
-import { TypePing } from "./Messages/Ping";
-import { Version, TypeVersion } from "./Messages/Version";
+import { Payloads } from './messages';
+import { TypePing } from "./messages/Ping";
+import { Version, TypeVersion } from "./messages/Version";
 import * as utils from '../../misc/Utils';
-import { Payload } from "./Messages/Payload";
-import { TypeAddrme } from "./Messages/Addrme";
-import { TypeGetaddrs } from "./Messages/Getaddrs";
-import { TypeAddrs } from "./Messages/Addrs";
-import { TypeSharereq } from "./Messages/Sharereq";
-import { TypeSharereply } from "./Messages/Sharereply";
-import { TypeHave_tx } from "./Messages/Have_tx";
-import { TypeRemember_tx } from "./Messages/Remember_tx";
-import { TypeShares } from "./Messages/Shares";
+import { Payload } from "./messages/Payload";
+import { TypeAddrme } from "./messages/Addrme";
+import { TypeGetaddrs } from "./messages/Getaddrs";
+import { TypeAddrs } from "./messages/Addrs";
+import { TypeSharereq } from "./messages/Sharereq";
+import { TypeSharereply } from "./messages/Sharereply";
+import { TypeHave_tx } from "./messages/Have_tx";
+import { TypeRemember_tx } from "./messages/Remember_tx";
+import { TypeShares } from "./messages/Shares";
 
 type TypeMessage = {
     command: 'version' | 'ping' | 'pong' | 'addrme' | 'getaddrs' | 'addrs' | 'sharereq' | 'sharereply' | 'have_tx' | 'losing_tx' | 'remember_tx' | 'forget_tx' | 'shares',

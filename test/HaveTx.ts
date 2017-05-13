@@ -5,7 +5,7 @@
 
 import * as assert from 'assert';
 import * as utils from '../Misc/Utils';
-import { Have_tx } from "../p2pool/p2p/Messages/Have_tx";
+import { Have_tx } from "../p2pool/p2p/messages/Have_tx";
 
 describe('Have_tx Test', () => {
 

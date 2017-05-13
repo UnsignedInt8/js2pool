@@ -1,7 +1,7 @@
 
 
 import * as assert from 'assert';
-import Addrme from "../p2pool/p2p/Messages/AddrMe";
+import Addrme from "../p2pool/p2p/messages/AddrMe";
 
 describe('Test AddrMe', () => {
     it('should be 9333', () => {

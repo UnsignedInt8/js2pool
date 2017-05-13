@@ -8,17 +8,17 @@ import * as assert from 'assert';
 import * as utils from '../../misc/Utils';
 import { Event } from "../../nodejs/Event";
 import { Message, PROTOCOL_HEAD_LENGTH } from "./Message";
-import { Version, TypeVersion } from "./Messages/Version";
-import Addrs, { TypeAddrs } from "./Messages/Addrs";
-import Addrme from "./Messages/AddrMe";
-import Getaddrs from "./Messages/GetAddrs";
-import { Have_tx, Losing_tx, Forget_tx } from "./Messages/Have_tx";
-import { Remember_tx, TypeRemember_tx } from "./Messages/Remember_tx";
+import { Version, TypeVersion } from "./messages/Version";
+import Addrs, { TypeAddrs } from "./messages/Addrs";
+import Addrme from "./messages/AddrMe";
+import Getaddrs from "./messages/GetAddrs";
+import { Have_tx, Losing_tx, Forget_tx } from "./messages/Have_tx";
+import { Remember_tx, TypeRemember_tx } from "./messages/Remember_tx";
 import { Block, Transaction } from "bitcoinjs-lib";
-import { Shares, TypeShares } from "./Messages/Shares";
+import { Shares, TypeShares } from "./messages/Shares";
 import { Share, NewShare, BaseShare } from "./Shares";
-import { TypeSharereq, default as Sharereq } from "./Messages/Sharereq";
-import { TypeSharereply, default as Sharereply } from "./Messages/Sharereply";
+import { TypeSharereq, default as Sharereq } from "./messages/Sharereq";
+import { TypeSharereply, default as Sharereply } from "./messages/Sharereply";
 import { TransactionTemplate } from "../../core/DaemonWatcher";
 import logger from '../../misc/Logger';
 import * as fs from 'fs';
@@ -47,7 +47,7 @@ export default class Node extends Event {
         shareReply: 'ShareReply',
     }
 
-    private static readonly Messages = {
+    private static readonly messages = {
         version: 'version',
         ping: 'ping',
         pong: 'pong',
@@ -83,20 +83,20 @@ export default class Node extends Event {
     constructor() {
         super();
 
-        this.msgHandlers.set(Node.Messages.version, this.handleVersion.bind(this));
-        this.msgHandlers.set(Node.Messages.ping, this.handlePing.bind(this));
-        this.msgHandlers.set(Node.Messages.pong, this.handlePong.bind(this));
-        this.msgHandlers.set(Node.Messages.addrs, this.handleAddrs.bind(this));
-        this.msgHandlers.set(Node.Messages.addrme, this.handleAddrme.bind(this));
-        this.msgHandlers.set(Node.Messages.getaddrs, this.handleGetaddrs.bind(this));
-        this.msgHandlers.set(Node.Messages.have_tx, this.handleHave_tx.bind(this));
-        this.msgHandlers.set(Node.Messages.losing_tx, this.handleLosing_tx.bind(this));
-        this.msgHandlers.set(Node.Messages.forget_tx, this.handleForget_tx.bind(this));
-        this.msgHandlers.set(Node.Messages.remember_tx, this.handleRemember_tx.bind(this));
-        this.msgHandlers.set(Node.Messages.bestblock, this.handleBestBlock.bind(this));
-        this.msgHandlers.set(Node.Messages.shares, this.handleShares.bind(this));
-        this.msgHandlers.set(Node.Messages.sharereq, this.handleSharereq.bind(this));
-        this.msgHandlers.set(Node.Messages.sharereply, this.handleSharereply.bind(this));
+        this.msgHandlers.set(Node.messages.version, this.handleVersion.bind(this));
+        this.msgHandlers.set(Node.messages.ping, this.handlePing.bind(this));
+        this.msgHandlers.set(Node.messages.pong, this.handlePong.bind(this));
+        this.msgHandlers.set(Node.messages.addrs, this.handleAddrs.bind(this));
+        this.msgHandlers.set(Node.messages.addrme, this.handleAddrme.bind(this));
+        this.msgHandlers.set(Node.messages.getaddrs, this.handleGetaddrs.bind(this));
+        this.msgHandlers.set(Node.messages.have_tx, this.handleHave_tx.bind(this));
+        this.msgHandlers.set(Node.messages.losing_tx, this.handleLosing_tx.bind(this));
+        this.msgHandlers.set(Node.messages.forget_tx, this.handleForget_tx.bind(this));
+        this.msgHandlers.set(Node.messages.remember_tx, this.handleRemember_tx.bind(this));
+        this.msgHandlers.set(Node.messages.bestblock, this.handleBestBlock.bind(this));
+        this.msgHandlers.set(Node.messages.shares, this.handleShares.bind(this));
+        this.msgHandlers.set(Node.messages.sharereq, this.handleSharereq.bind(this));
+        this.msgHandlers.set(Node.messages.sharereply, this.handleSharereply.bind(this));
     }
 
     /// ---------------------- sockets ----------------------------
