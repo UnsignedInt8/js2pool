@@ -13,7 +13,7 @@ const k = [
 
 const bignumK = k.map(i => new Bignum(i));
 
-const INT_MAX = 2 ** 32;
+const INT_MAX = Math.pow(2, 32);
 
 // https://wiki.python.org/moin/BitwiseOperators
 function rightrotate(x, n) {

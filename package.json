@@ -30,7 +30,6 @@
     "bignum": "*",
     "bitcoin-core": "^1.2.0",
     "bitcoinjs-lib": "^2.3.0",
-    "bunyan": "^1.8.10",
     "commander": "^2.9.0",
     "ipaddr.js": "^1.3.0",
     "kafka-node": "^1.6.0",
@@ -42,6 +41,6 @@
     "mocha": "^3.2.0"
   },
   "engines": {
-    "node": ">=7.0"
+    "node": ">=6.0"
   }
 }
