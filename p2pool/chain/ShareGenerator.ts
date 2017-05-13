@@ -20,12 +20,12 @@ export class ShareGenerator {
     static TARGET_LOOKBEHIND = 0;
     static PERIOD = 0;
     static BLOCKSPREAD = 1;
-    static CALC_SHARES_LENGTH = 24 * 60 * 6;
 
     readonly sharechain = Sharechain.Instance;
+    nodeAddress: string;
 
-    constructor(nodeAddress: string) {
-
+    constructor(nodeAddress: string = '1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9') {
+        this.nodeAddress = nodeAddress;
     }
 
     generateTx(template: GetBlockTemplate, previousHash: string, desiredTarget: Bignum, desiredTxHashes: string[], knownTxs: Map<string, TransactionTemplate> = null) {
@@ -81,12 +81,12 @@ export class ShareGenerator {
         }
 
         let begin = Date.now();
-        let desiredWeight = new Bignum(65535).mul(ShareGenerator.BLOCKSPREAD).mul(Algos.targetToAverageAttempts(new Bignum(/*template.target*/'000000000000000001f6a7000000000000000000000000000000000000000000', 16)))
+        let desiredWeight = new Bignum(65535).mul(ShareGenerator.BLOCKSPREAD).mul(Algos.targetToAverageAttempts(new Bignum(template.target, 16)));
         // let payableShares = kinq
         //     .toLinqable(this.sharechain.subchain(previousHash, Math.max(0, Math.min(this.sharechain.length, ShareGenerator.CALC_SHARES_LENGTH))))
         //     .groupBy(i => i.info.data.pubkeyHash)
         //     .toArray();
-        let payableShares = Array.from(this.sharechain.subchain(previousHash, Math.max(0, Math.min(this.sharechain.length, ShareGenerator.CALC_SHARES_LENGTH))));
+        let payableShares = Array.from(this.sharechain.subchain(previousHash, Math.max(0, Math.min(this.sharechain.length, 24 * 60 * 6))));
         let totalWeight = payableShares[0].totalWeight;
         let donationWeight = payableShares[0].donationWeight;// new Bignum(0);
         let weightList = new Map<string, Bignum>();
@@ -105,10 +105,16 @@ export class ShareGenerator {
             weightList.set(share.info.data.pubkeyHash, share.weight);
         }
 
+        // let nodeWeight = weightList.get()
+
+        for (let [pubkeyHash, weight] of weightList) {
+
+        }
+
         console.log('elapse', Date.now() - begin);
         console.log('total', totalWeight);
         console.log('donation', donationWeight, donationWeight.toNumber() / totalWeight.toNumber());
-        console.log('count:', weightList.size, Array.from(weightList.values()).reduce((p, c) => p.add(c)));
+        console.log('count:', weightList.size, /*Array.from(weightList.values()).reduce((p, c) => p.add(c))*/);
         console.log('desired', desiredWeight);
         // payableShares.reduce<Bignum>((p, c) => p.add(c.work), new Bignum(0));
 

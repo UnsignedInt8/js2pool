@@ -388,6 +388,11 @@ export function addressToScript(addr: string) {
     return Buffer.concat([new Buffer([0x76, 0xa9, 0x14]), pubkey, new Buffer([0x88, 0xac])]);
 };
 
+export function addressToPubkey(addr: string) {
+    let decoded: Buffer = base58.decode(addr);
+    return decoded.slice(1, -4);
+}
+
 
 export function getReadableHashRateString(hashrate: number) {
     let i = -1;

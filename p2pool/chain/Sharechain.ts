@@ -39,8 +39,8 @@ export type Gap = {
 export default class Sharechain extends Event {
 
     static readonly Instance = new Sharechain();
-    static readonly BASE_CHAIN_LENGTH = 24 * 60 * 60 / 10;
-    static readonly MAX_CHAIN_LENGTH = Sharechain.BASE_CHAIN_LENGTH * 2;
+    static readonly CALC_CHAIN_LENGTH = 24 * 60 * 60 / 10;
+    static readonly MAX_CHAIN_LENGTH = Sharechain.CALC_CHAIN_LENGTH * 2;
 
     static readonly Events = {
         newestChanged: 'NewestChanged',
@@ -275,7 +275,7 @@ export default class Sharechain extends Event {
         }
 
         if (!this.calculatable) {
-            this.calculatable = verified == this.length && verified >= Sharechain.BASE_CHAIN_LENGTH;
+            this.calculatable = verified == this.length && verified >= Sharechain.CALC_CHAIN_LENGTH;
             if (this.calculatable) super.trigger(Sharechain.Events.chainCalculatable, this, verified);
         }
 
@@ -302,11 +302,11 @@ export default class Sharechain extends Event {
             ancestorHash = shares[0].info.data.previousShareHash;
         }
 
-        if (this.oldest && this.newest.hasValue() && this.newest.value.info.absheight - this.oldest.info.absheight < Sharechain.BASE_CHAIN_LENGTH) {
+        if (this.oldest && this.newest.hasValue() && this.newest.value.info.absheight - this.oldest.info.absheight < Sharechain.CALC_CHAIN_LENGTH) {
             gaps.push({
                 descendent: this.oldest.hash,
                 descendentHeight: this.oldest.info.absheight,
-                length: Sharechain.BASE_CHAIN_LENGTH - (this.newest.value.info.absheight - this.oldest.info.absheight),
+                length: Sharechain.CALC_CHAIN_LENGTH - (this.newest.value.info.absheight - this.oldest.info.absheight),
             });
         }
 

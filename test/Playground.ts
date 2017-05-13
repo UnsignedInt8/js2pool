@@ -15,12 +15,12 @@ import * as Bignum from 'bignum';
 import Bitcoin from "../p2pool/coins/Bitcoin";
 import { Peer } from "../p2pool/p2p/Peer";
 import winston from '../misc/Logger';
-import { SharechainHelper } from "../p2pool/p2p/shares/SharechainHelper";
+import { SharechainHelper } from "../p2pool/chain/SharechainHelper";
 import * as path from 'path';
-import Sharechain from "../p2pool/p2p/shares/Sharechain";
+import Sharechain from "../p2pool/chain/Sharechain";
 import * as readline from 'readline';
 import { bitsToTarget, targetToBits, BaseTarget, targetToDifficulty } from "../core/Algos";
-import { ShareGenerator } from "../p2pool/pool/ShareGenerator";
+import { ShareGenerator } from "../p2pool/chain/ShareGenerator";
 
 kinq.enable();
 
@@ -86,6 +86,10 @@ function testShares() {
     // let targetGbt = new Bignum('000000000000000001f6a7000000000000000000000000000000000000000000', 16);
     
     // return console.log(targetGbt, targetToBits(targetGbt).toString(16));
+
+    let script = Utils.addressToScript('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9').toString('hex');
+    console.log(script);
+    return;
 
     let bits = Bignum.fromBuffer(Buffer.from('1801f6a7', 'hex')).toNumber();
     let targetbignum = bitsToTarget(bits);

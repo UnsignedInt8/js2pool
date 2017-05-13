@@ -103,7 +103,7 @@ export default class Node extends Event {
 
     initSocket(socket: Socket) {
         socket.setKeepAlive(true);
-
+        socket.setTimeout(30 * 1000);
         this.socket = socket;
         this.peerAddress = socket.remoteAddress;
         this.peerPort = socket.remotePort;
@@ -207,7 +207,7 @@ export default class Node extends Event {
             logger.warn(`unknown command: ${command}`);
             this.trigger(Node.Events.unknownCommand, this, command);
         }
-        
+
         let me = this;
         process.nextTick(async () => await me.beginReceivingMessagesAsync(remain));
     }
@@ -384,6 +384,7 @@ export default class Node extends Event {
     }
 
     async sendSharereqAsync(sharereq: TypeSharereq) {
+        console.log('share req');
         let data = Message.fromObject({ command: 'sharereq', payload: sharereq });
         return await this.sendAsync(data.toBuffer());
     }

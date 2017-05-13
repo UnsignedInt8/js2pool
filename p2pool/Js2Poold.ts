@@ -33,7 +33,15 @@ const opts = {
     bootstrapPeers: [{
         host: '123.163.48.115',
         port: 9333
-    }],
+    }, 
+    // {
+    //     host: '188.65.213.58',
+    //     port: 9333,
+    // }, {
+    //     host: ' 83.217.203.130',
+    //     port: 9333
+    // }
+    ],
     coin: {
         name: 'bitcoin',
         algo: 'sha256',

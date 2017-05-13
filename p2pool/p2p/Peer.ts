@@ -86,7 +86,7 @@ export class Peer {
             node.sendSharereqAsync({
                 id: new Bignum(Math.random() * 1000000 | 0),
                 hashes: [gap.descendent],
-                parents: Math.min(gap.length, 80),
+                parents: Math.min(gap.length, 79),
             });
         }
     }
