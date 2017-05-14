@@ -52,8 +52,9 @@ export class SharechainHelper {
             try {
                 let obj = <BaseShare>Object.assign({}, share);
                 obj.info = Object.assign({}, share.info);
+                obj.info.abswork = <any>share.info.abswork.toString(16);
                 obj.info.data = Object.assign({}, share.info.data);
-                obj.info.data.subsidy = <any>share.info.data.subsidy.toBuffer().toString('hex');
+                obj.info.data.subsidy = <any>share.info.data.subsidy.toString(16);
                 obj.info.data.pubkeyHash = <any>share.info.data.pubkeyHash.toString('hex');
 
                 obj.minHeader = Object.assign({}, share.minHeader);
@@ -62,11 +63,11 @@ export class SharechainHelper {
                 obj.refMerkleLink = <any>share.refMerkleLink.map(l => l.toString('hex'));
                 obj.merkleLink = <any>share.merkleLink.map(l => l.toString('hex'));
                 obj.gentxHash = <any>share.gentxHash.toString('hex');
-                obj.lastTxoutNonce = <any>share.lastTxoutNonce.toBuffer().toString('hex');
-                obj.target = <any>share.target.toBuffer().toString('hex');
-                obj.maxTarget = <any>share.maxTarget.toBuffer().toString('hex');
-                obj.work = <any>share.work.toBuffer().toString('hex');
-                obj.minWork = <any>share.minWork.toBuffer().toString('hex');
+                obj.lastTxoutNonce = <any>share.lastTxoutNonce.toString(16);
+                obj.target = <any>share.target.toString(16);
+                obj.maxTarget = <any>share.maxTarget.toString(16);
+                obj.work = <any>share.work.toString(16);
+                obj.minWork = <any>share.minWork.toString(16);
 
                 delete obj.weight;
                 delete obj.totalWeight;
@@ -142,9 +143,10 @@ export class SharechainHelper {
                     obj.hashLink.state = Buffer.from(<any>obj.hashLink.state, 'hex');
                     obj.hashLink.extra = Buffer.from(<any>obj.hashLink.extra, 'hex');
 
-                    obj.info.data.subsidy = Bignum.fromBuffer(Buffer.from(<any>obj.info.data.subsidy, 'hex'));
+                    obj.info.data.subsidy = new Bignum(obj.info.data.subsidy, 16);
                     obj.info.data.pubkeyHash = Buffer.from(obj.info.data.pubkeyHash, 'hex');
-                    
+                    obj.info.abswork = new Bignum(obj.info.abswork, 16);
+
                     let info = ShareInfo.fromObject(obj.info);
                     let hashlink = HashLink.fromObject(obj.hashLink);
 
@@ -152,9 +154,9 @@ export class SharechainHelper {
                     share.refMerkleLink = obj.refMerkleLink.map(l => Buffer.from(<any>l, 'hex'));
                     share.merkleLink = obj.merkleLink.map(l => Buffer.from(<any>l, 'hex'));
                     share.gentxHash = Buffer.from(<any>obj.gentxHash, 'hex');
-                    share.target = Bignum.fromBuffer(Buffer.from(<any>obj.target, 'hex'));
-                    share.work = Bignum.fromBuffer(Buffer.from(<any>obj.work, 'hex'));
-                    share.maxTarget = Bignum.fromBuffer(Buffer.from(<any>obj.maxTarget, 'hex'));
+                    share.target = new Bignum(obj.target, 16);
+                    share.work = new Bignum(obj.work,16);
+                    share.maxTarget = new Bignum(obj.maxTarget, 16);
                     share.minWork = Bignum.fromBuffer(Buffer.from(<any>obj.minWork, 'hex'));
                     share.lastTxoutNonce = Bignum.fromBuffer(Buffer.from(<any>obj.lastTxoutNonce, 'hex'));
                     share.validity = obj.validity;

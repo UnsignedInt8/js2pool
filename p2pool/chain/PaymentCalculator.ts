@@ -25,19 +25,24 @@ export class PaymentCalculator {
     recentWeightList = new Map<string, Bignum>();
 
     nodePubkeyScript: Buffer;
+    nodePubkey: Buffer;
 
     constructor(nodeAddress: string) {
+        this.nodePubkey = Utils.addressToPubkey(nodeAddress);
         this.nodePubkeyScript = Utils.addressToScript(nodeAddress);
     }
 
-    calc(previousShareHash: string, template: GetBlockTemplate, ) {
+    /**
+     * Return ordered amount list
+     */
+    calc(previousShareHash: string, template: GetBlockTemplate, ): Array<{ script: Buffer, amount: Bignum }> {
 
         let desiredWeight = new Bignum(65535).mul(PaymentCalculator.BLOCKSPREAD).mul(Algos.targetToAverageAttempts(new Bignum(template.target, 16)));
         let payableShares = kinq.toLinqable(this.sharechain.subchain(previousShareHash, PaymentCalculator.CALC_SHARES_LENGTH)).skip(1);
         let totalWeight = new Bignum(0);
         let donationWeight = new Bignum(0);
         let weights = new Map<string, Bignum>(); // pubkey hash -> bignum
-        
+
         for (let share of payableShares) {
             let lastTotalWeight = totalWeight;
 
@@ -74,12 +79,14 @@ export class PaymentCalculator {
         nodeReward = nodeReward.add(totalReward / 200);
         amount.set(nodeScript, nodeReward);
 
+
+
         if (amount.has(DONATION_SCRIPT)) {
             console.log(DONATION_SCRIPT, amount.get(DONATION_SCRIPT));
         }
 
         console.log('total', totalWeight, 'donation', donationWeight, donationWeight.toNumber() / totalWeight.toNumber());
         console.log('weights:', weights.size, 'amounts:', amount.size);
-
+        return new Array();
     }
 }

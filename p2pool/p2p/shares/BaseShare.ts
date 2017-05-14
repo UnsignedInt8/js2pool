@@ -12,7 +12,7 @@ import { Block } from "bitcoinjs-lib";
 import { TypeShares } from "../messages/Shares";
 
 export const DONATION_SCRIPT = '4104ffd03de44a6e11b9917f3a29f9443283d9871c9d743ef30d5eddcd37094b64d1b3d8090496b53256786bf5c82932ec23c3b74d9f05a6f95a8b5529352656664bac';
-const DONATION_SCRIPT_BUF = Buffer.from(DONATION_SCRIPT, 'hex')
+export const DONATION_SCRIPT_BUF = Buffer.from(DONATION_SCRIPT, 'hex')
 const GENTX_BEFORE_REFHASH = Buffer.concat([BufferWriter.writeVarNumber(DONATION_SCRIPT_BUF.length), DONATION_SCRIPT_BUF, Buffer.alloc(8, 0), BufferWriter.writeVarString('6a28' + '0000000000000000000000000000000000000000000000000000000000000000' + '0000000000000000', 'hex').slice(0, 3)]);
 assert.equal(GENTX_BEFORE_REFHASH.toString('hex'), '434104ffd03de44a6e11b9917f3a29f9443283d9871c9d743ef30d5eddcd37094b64d1b3d8090496b53256786bf5c82932ec23c3b74d9f05a6f95a8b5529352656664bac00000000000000002a6a28');
 
@@ -158,8 +158,8 @@ export class Share extends BaseShare {
 
 export class NewShare extends BaseShare {
     readonly VERSION = 17;
-    readonly VOTING_VERSION = 17;
     readonly MAX_NEW_TXS_SIZE = 100000;
+    static readonly VOTING_VERSION = 17;
 }
 
 export const ShareVersionMapper = { 16: Share, 17: NewShare };

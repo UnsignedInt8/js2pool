@@ -19,7 +19,7 @@ type Segwit = {
     wtxidMerkleRoot: Buffer,// 'ffffffffffffffffffffffffffffffff', // 256 bytes
 };
 
-type ShareData = {
+export type ShareData = {
     previousShareHash: string, // 256 bits
     coinbase: string, // var string
     nonce: number, // 32 bits
@@ -41,7 +41,7 @@ export default class ShareInfo {
     bits: number; // 32 bits
     timestamp: number; // 32 bits
     absheight: number; // 32 bits
-    abswork: string; // 128 bits
+    abswork: Bignum; // 128 bits
 
     toBuffer() {
         let dataBuf = Buffer.concat([
@@ -72,7 +72,7 @@ export default class ShareInfo {
             BufferWriter.writeUInt32LE(this.bits),
             BufferWriter.writeUInt32LE(this.timestamp),
             BufferWriter.writeUInt32LE(this.absheight),
-            BufferWriter.writeReversedFixedString(this.abswork),
+            this.abswork.toBuffer({ endian: 'little', size: 16 }),// BufferWriter.writeReversedFixedString(this.abswork),
         ]);
     }
 
@@ -120,7 +120,7 @@ export default class ShareInfo {
         info.bits = reader.readUInt32LE();
         info.timestamp = reader.readUInt32LE();
         info.absheight = reader.readUInt32LE();
-        info.abswork = reader.readReversedFixedString(16); // reader.read(16).toString('hex');
+        info.abswork = reader.readNumber(16); //reader.readReversedFixedString(16); // reader.read(16).toString('hex');
         return info;
     }
 }
