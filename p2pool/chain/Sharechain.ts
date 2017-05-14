@@ -141,7 +141,10 @@ export default class Sharechain extends Event {
         shares.push(share);
         this.hashIndexer.set(share.hash, share.info.absheight);
 
-        if (this.oldest && share.info.absheight < this.oldest.info.absheight) this.oldest = share;
+        if (this.oldest && share.info.absheight < this.oldest.info.absheight) {
+            console.log('update the oldest share');
+            this.oldest = share;
+        }
 
         if (this.newest.hasValue() && share.info.absheight > this.newest.value.info.absheight) {
 
