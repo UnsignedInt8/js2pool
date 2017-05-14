@@ -23,7 +23,7 @@ type ShareData = {
     previousShareHash: string, // 256 bits
     coinbase: string, // var string
     nonce: number, // 32 bits
-    pubkeyHash: string, // 160 bits
+    pubkeyHash: Buffer, // 160 bits
     subsidy: Bignum, // 64 bits
     donation: number, // 16 bits
     staleInfo: number, // 8 bits {0: None, 253: 'orphan', 254: 'doa'}
@@ -48,7 +48,8 @@ export default class ShareInfo {
             BufferWriter.writeReversedFixedString(this.data.previousShareHash),
             BufferWriter.writeVarString(this.data.coinbase, 'hex'),
             BufferWriter.writeUInt32LE(this.data.nonce),
-            BufferWriter.writeFixedString(this.data.pubkeyHash),
+            // BufferWriter.writeReversedFixedString(this.data.pubkeyHash),
+            this.data.pubkeyHash,
             this.data.subsidy.toBuffer({ size: 8, endian: 'little' }),
             BufferWriter.writeUInt16LE(this.data.donation),
             BufferWriter.writeUInt8(this.data.staleInfo),
@@ -95,7 +96,7 @@ export default class ShareInfo {
             previousShareHash: reader.readReversedFixedString(32),
             coinbase: reader.readVarString(),
             nonce: reader.readUInt32LE(),
-            pubkeyHash: reader.readFixedString(20).toLowerCase(),
+            pubkeyHash: reader.read(20),
             subsidy: reader.readNumber(8),
             donation: reader.readUInt16LE(),
             staleInfo: reader.readUInt8(),

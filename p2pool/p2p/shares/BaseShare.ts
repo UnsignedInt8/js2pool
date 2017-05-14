@@ -114,7 +114,7 @@ export abstract class BaseShare {
     private _pubkeyScript: Buffer;
     get pubkeyScript() {
         if (this._pubkeyScript) return this._pubkeyScript;
-        this._pubkeyScript = utils.posPubkeyToScript(this.info.data.pubkeyHash);
+        this._pubkeyScript = utils.hash160ToScript(this.info.data.pubkeyHash);
         return this._pubkeyScript;
     }
 

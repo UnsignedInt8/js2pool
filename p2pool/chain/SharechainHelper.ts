@@ -53,20 +53,20 @@ export class SharechainHelper {
                 let obj = <BaseShare>Object.assign({}, share);
                 obj.info = Object.assign({}, share.info);
                 obj.info.data = Object.assign({}, share.info.data);
+                obj.info.data.subsidy = <any>share.info.data.subsidy.toBuffer().toString('hex');
+                obj.info.data.pubkeyHash = <any>share.info.data.pubkeyHash.toString('hex');
 
                 obj.minHeader = Object.assign({}, share.minHeader);
                 obj.hashLink = Object.assign({}, share.hashLink);
                 obj.SUCCESSOR = null;
                 obj.refMerkleLink = <any>share.refMerkleLink.map(l => l.toString('hex'));
                 obj.merkleLink = <any>share.merkleLink.map(l => l.toString('hex'));
-                // obj.newScript = <any>share.newScript.toString('hex');
                 obj.gentxHash = <any>share.gentxHash.toString('hex');
                 obj.lastTxoutNonce = <any>share.lastTxoutNonce.toBuffer().toString('hex');
                 obj.target = <any>share.target.toBuffer().toString('hex');
                 obj.maxTarget = <any>share.maxTarget.toBuffer().toString('hex');
                 obj.work = <any>share.work.toBuffer().toString('hex');
                 obj.minWork = <any>share.minWork.toBuffer().toString('hex');
-                obj.info.data.subsidy = <any>share.info.data.subsidy.toBuffer().toString('hex');
 
                 delete obj.weight;
                 delete obj.totalWeight;
@@ -143,6 +143,8 @@ export class SharechainHelper {
                     obj.hashLink.extra = Buffer.from(<any>obj.hashLink.extra, 'hex');
 
                     obj.info.data.subsidy = Bignum.fromBuffer(Buffer.from(<any>obj.info.data.subsidy, 'hex'));
+                    obj.info.data.pubkeyHash = Buffer.from(obj.info.data.pubkeyHash, 'hex');
+                    
                     let info = ShareInfo.fromObject(obj.info);
                     let hashlink = HashLink.fromObject(obj.hashLink);
 

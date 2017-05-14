@@ -361,8 +361,8 @@ export function posPubkeyToScript(key: string) {
 };
 
 
-export function hash160ToScript(key: string) {
-    let keyBuffer = Buffer.from(key, 'hex');
+export function hash160ToScript(key: string | Buffer) {
+    let keyBuffer = typeof key === 'string' ? Buffer.from(key, 'hex') : key;
     return Buffer.concat([Buffer.from([0x76, 0xa9, 0x14]), keyBuffer, Buffer.from([0x88, 0xac])]);
 };
 

@@ -44,9 +44,11 @@ export class PaymentCalculator {
             totalWeight = totalWeight.add(share.totalWeight);
             donationWeight = donationWeight.add(share.donationWeight);
 
-            let shareWeight = weights.get(share.info.data.pubkeyHash);
+            let pubkeyScript = share.pubkeyScript.toString();
+
+            let shareWeight = weights.get(pubkeyScript);
             if (shareWeight) {
-                weights.set(share.info.data.pubkeyHash, shareWeight.add(share.weight));
+                weights.set(pubkeyScript, shareWeight.add(share.weight));
                 continue;
             }
 
@@ -55,7 +57,7 @@ export class PaymentCalculator {
                 totalWeight = desiredWeight;
                 shareWeight = desiredWeight.sub(lastTotalWeight).div(65535).mul(share.weight).div(share.totalWeight.div(65535));
             }
-            weights.set(share.info.data.pubkeyHash, shareWeight);
+            weights.set(pubkeyScript, shareWeight);
         }
 
         let totalReward = template.coinbasevalue;
