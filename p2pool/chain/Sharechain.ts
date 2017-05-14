@@ -140,16 +140,11 @@ export default class Sharechain extends Event {
 
         shares.push(share);
         this.hashIndexer.set(share.hash, share.info.absheight);
-
-        if (this.oldest && share.info.absheight < this.oldest.info.absheight) {
-            console.log('update the oldest share', share.info.absheight);
-            this.oldest = share;
-        }
+        if (this.oldest && share.info.absheight < this.oldest.info.absheight) this.oldest = share;
 
         if (this.newest.hasValue() && share.info.absheight > this.newest.value.info.absheight) {
 
             this.newest.set(share);
-
             this.cleanDeprecations();
 
             // check the previous share array whether has multiple items or not
@@ -167,9 +162,7 @@ export default class Sharechain extends Event {
             if (verified) {
                 let orphans = previousShares.except([verified], (i1, i2) => i1.hash === i2.hash).toArray();
                 if (orphans.length > 0) this.trigger(Sharechain.Events.orphansFound, this, orphans);
-
-                // always keep the first element on the main chain
-                this.absheightIndexer.set(share.info.absheight - 1, [verified].concat(orphans));
+                this.absheightIndexer.set(share.info.absheight - 1, [verified].concat(orphans)); // always keep the first element on the main chain
             } else {
                 super.trigger(Sharechain.Events.gapsFound, this, [{ descendent: share.hash, descendentHeight: share.info.absheight, length: 1 }])
             }
@@ -307,7 +300,6 @@ export default class Sharechain extends Event {
         }
 
         if (this.oldest && this.newest.hasValue() && this.newest.value.info.absheight - this.oldest.info.absheight < Sharechain.CALC_CHAIN_LENGTH) {
-            console.log('gaps oldest height', this.oldest.info.absheight);
             gaps.push({
                 descendent: this.oldest.hash,
                 descendentHeight: this.oldest.info.absheight,

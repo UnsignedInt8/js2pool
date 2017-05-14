@@ -37,7 +37,7 @@ export class PaymentCalculator {
         let totalWeight = new Bignum(0);
         let donationWeight = new Bignum(0);
         let weights = new Map<string, Bignum>(); // pubkey hash -> bignum
-        // console.log('payableshares:', payableShares.count())
+        
         for (let share of payableShares) {
             let lastTotalWeight = totalWeight;
 
@@ -60,6 +60,8 @@ export class PaymentCalculator {
             weights.set(pubkeyScript, shareWeight);
         }
 
+        Array.from(weights.orderBy(w => w[0])).forEach(w => console.log(w[0], w[1]));
+
         let totalReward = template.coinbasevalue;
         let totalProportion = totalWeight.mul(200);
         let amount = new Map<string, Bignum>();
@@ -75,8 +77,6 @@ export class PaymentCalculator {
         if (amount.has(DONATION_SCRIPT)) {
             console.log(DONATION_SCRIPT, amount.get(DONATION_SCRIPT));
         }
-
-        console.log(amount, nodeReward);
 
         console.log('total', totalWeight, 'donation', donationWeight, donationWeight.toNumber() / totalWeight.toNumber());
         console.log('weights:', weights.size, 'amounts:', amount.size);
