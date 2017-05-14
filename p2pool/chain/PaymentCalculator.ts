@@ -63,7 +63,7 @@ export class PaymentCalculator {
         let totalReward = template.coinbasevalue;
         let totalProportion = totalWeight.mul(200);
         let amount = new Map<string, Bignum>();
-        for (let [pubkeyHash, weight] of weights) {
+        for (let [pubkeyHash, weight] of weights.orderBy(tuple => tuple[0])) {
             amount.set(pubkeyHash, weight.mul(totalReward).mul(199).div(totalProportion))
         }
 
@@ -80,6 +80,6 @@ export class PaymentCalculator {
 
         console.log('total', totalWeight, 'donation', donationWeight, donationWeight.toNumber() / totalWeight.toNumber());
         console.log('weights:', weights.size, 'amounts:', amount.size);
-        
+
     }
 }
