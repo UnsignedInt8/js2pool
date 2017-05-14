@@ -296,7 +296,7 @@ export default class Sharechain extends Event {
             if (!(ancestorHeight + 1 === descendentHeight && shares[0].hash === ancestorHash)) {
                 let length = descendentHeight - ancestorHeight;
                 let descendents = this.absheightIndexer.get(descendentHeight + 1) || this.absheightIndexer.get(descendentHeight);
-                gaps.push({ descendent: descendents[0].hash, length, descendentHeight });
+                gaps.push({ descendent: descendents[0].hash, length: length + 1, descendentHeight });
             }
 
             descendentHeight = ancestorHeight;
