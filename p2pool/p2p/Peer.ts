@@ -231,13 +231,13 @@ export class Peer {
             return;
         }
 
-        let shares = reply.wrapper.shares.map(s => s.contents);
+        let shares = reply.wrapper.shares.map(s => s.contents).where(share => !this.sharechain.has(share.hash)).toArray();
         this.sharechain.add(shares);
         this.sharechain.checkGaps();
         this.sharechain.verify();
         SharechainHelper.saveShares(shares);
 
-        logger.info(`received ${shares.length} shares from ${sender.tag}`);
+        logger.info(`received ${reply.wrapper.shares.length} shares from ${sender.tag}`);
     }
 
     // ----------------- Peer work ---------------------

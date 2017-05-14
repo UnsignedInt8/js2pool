@@ -112,7 +112,7 @@ export default class Sharechain extends Event {
         return shares[0];
     }
 
-    add(shares: BaseShare[]) {
+    add(shares: Iterable<BaseShare>) {
         for (let share of shares) {
             this.append(share);
         }
