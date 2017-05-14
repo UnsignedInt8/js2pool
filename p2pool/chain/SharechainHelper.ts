@@ -34,7 +34,7 @@ export class SharechainHelper {
         SharechainHelper.appDir = appDir;
         SharechainHelper.dataDir = dataDir;
 
-        if (!fs.existsSync(appDir)) {
+        if (!fs.existsSync(appDir) || !fs.existsSync(path.resolve(appDir, 'data'))) {
             fs.mkdirSync(appDir);
             fs.mkdirSync(path.resolve(appDir, 'data'));
         }
