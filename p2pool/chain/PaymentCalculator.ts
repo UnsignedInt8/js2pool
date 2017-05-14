@@ -44,7 +44,7 @@ export class PaymentCalculator {
             totalWeight = totalWeight.add(share.totalWeight);
             donationWeight = donationWeight.add(share.donationWeight);
 
-            let pubkeyScript = share.pubkeyScript.toString();
+            let pubkeyScript = share.pubkeyScript.toString('hex');
 
             let shareWeight = weights.get(pubkeyScript);
             if (shareWeight) {

@@ -68,7 +68,7 @@ export class Peer {
     private onChainCalculatable(sender: Sharechain) {
         if (this.server) return;
         this.server = net.createServer(this.onSocketConnected.bind(this)).listen(this.port);
-        this.server.on('error', error => { logger.error(error.message); throw error; });
+        this.server.on('error', error => { logger.error(error.message); });
         logger.info('Sharechain downloading completed');
     }
 
@@ -119,7 +119,7 @@ export class Peer {
         if (<any>version.bestShareHash == 0) return;
         if (this.sharechain.has(version.bestShareHash)) return;
 
-        sender.sendSharereqAsync({ id: new Bignum(Math.random() * 1000000 | 0), hashes: [version.bestShareHash], parents: 0 });
+        sender.sendSharereqAsync({ id: new Bignum(Math.random() * 1000000 | 0), hashes: [version.bestShareHash], parents: 1 });
     }
 
     private handleRemember_tx(sender: Node, txHashes: string[], txs: Transaction[]) {
@@ -294,13 +294,15 @@ export class Peer {
         logger.info(`mining txs changed, added: ${added.length}, removed: ${removed.length}`, );
     }
 
-    async initPeersAsync(peers: { host: string, port: number }[]) {
+    initPeersAsync(peers: { host: string, port: number }[]) {
         for (let peer of peers) {
             let node = new Node();
-            if (!await node.connectAsync(peer.host, peer.port)) continue;
-            this.registerNode(node);
-            node.sendVersionAsync(this.sharechain.newest.hasValue() ? this.sharechain.newest.value.hash : null);
-            logger.info(`${node.tag} connected ${node.connectionTime}ms`);
+            node.connectAsync(peer.host, peer.port).then(result => {
+                if (!result) return;
+                this.registerNode(node);
+                node.sendVersionAsync(this.sharechain.newest.hasValue() ? this.sharechain.newest.value.hash : null);
+                logger.info(`${node.tag} connected ${node.connectionTime}ms`);
+            });
         }
     }
 

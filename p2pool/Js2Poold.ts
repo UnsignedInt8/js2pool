@@ -30,18 +30,19 @@ const opts = {
     server: {
         port: 9777,
     },
-    bootstrapPeers: [{
-        host: '123.163.48.115',
-        port: 9333
-    }, 
-    {
-        host: '123.163.48.115',
-        port: 9777,
-    }, 
-    //{
-    //     host: ' 83.217.203.130',
-    //     port: 9333
-    // }
+    bootstrapPeers: [
+        {
+            host: '123.163.48.115',
+            port: 9777,
+        },
+        {
+            host: '123.163.48.115',
+            port: 9333
+        },
+        //{
+        //     host: ' 83.217.203.130',
+        //     port: 9333
+        // }
     ],
     coin: {
         name: 'bitcoin',

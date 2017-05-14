@@ -92,7 +92,9 @@ function testShares() {
 
     console.log(Utils.pubkeyToAddress('f54e8b762ff17c06a71f2a523dbe51238d523cfd'));
     console.log(Utils.pubkeyToAddress('acb511a1c36234192b6f9b22a0e18bdcb82289f0'));
-    // return;
+    console.log(Utils.pubkeyToAddress('038bcb403710baf971c9b6a73ffd0623c2ba099b'));
+    
+    return;
     // '010966776006953D5567439E5E39F86A0D273BEE';
     // let addr = Utils.pubkeyToAddress('03db74c9b92b09cd46c131f97d869150c17e138d');
     // console.log(addr);
@@ -113,7 +115,7 @@ function testShares() {
     // chain.onGapsFound((s, gs) => console.log(gs));
     SharechainHelper.loadSharesAsync().then(shares => {
         if (shares.length === 0) return;
-        
+
         console.log(shares.length);
         chain.add(shares);
         chain.verify();
