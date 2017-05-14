@@ -21,7 +21,7 @@ export type Js2PoolOptions = {
 export class Js2Pool {
 
     private daemonWatcher: DaemonWatcher;
-    private generator = new ShareGenerator('');
+    private generator = new ShareGenerator('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9');
     private readonly blocks = new Array<string>();
     private sharechain = Sharechain.Instance;
     peer: Peer;

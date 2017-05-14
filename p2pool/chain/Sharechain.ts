@@ -295,7 +295,7 @@ export default class Sharechain extends Event {
 
             if (!(ancestorHeight + 1 === descendentHeight && shares[0].hash === ancestorHash)) {
                 let length = descendentHeight - ancestorHeight;
-                gaps.push({ descendent: this.absheightIndexer.get(descendentHeight)[0].hash, length, descendentHeight });
+                gaps.push({ descendent: this.absheightIndexer.get(descendentHeight)[0].hash, length: length + 1, descendentHeight });
             }
 
             descendentHeight = ancestorHeight;
@@ -306,7 +306,7 @@ export default class Sharechain extends Event {
             gaps.push({
                 descendent: this.oldest.hash,
                 descendentHeight: this.oldest.info.absheight,
-                length: Sharechain.CALC_CHAIN_LENGTH - (this.newest.value.info.absheight - this.oldest.info.absheight),
+                length: Sharechain.CALC_CHAIN_LENGTH - (this.newest.value.info.absheight - this.oldest.info.absheight) + 1,
             });
         }
 

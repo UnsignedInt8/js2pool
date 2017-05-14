@@ -87,8 +87,11 @@ function testShares() {
 
     // return console.log(targetGbt, targetToBits(targetGbt).toString(16));
 
-    // let script = Utils.addressToScript('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9').toString('hex');
-    // console.log(script);
+    let script = Utils.addressToScript('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9').toString('hex');
+    console.log(script);
+
+    console.log(Utils.pubkeyToAddress('f54e8b762ff17c06a71f2a523dbe51238d523cfd'));
+    console.log(Utils.pubkeyToAddress('acb511a1c36234192b6f9b22a0e18bdcb82289f0'));
     // return;
     // '010966776006953D5567439E5E39F86A0D273BEE';
     // let addr = Utils.pubkeyToAddress('03db74c9b92b09cd46c131f97d869150c17e138d');
@@ -117,6 +120,7 @@ function testShares() {
 
         console.log('max hashrefs', shares.max(s => s.info.transactionHashRefs.length).info.transactionHashRefs.length);
 
+        
         let absheight = chain.get('0000000000000000002b7b2cbedc39692ad7608acd0d1c518399bf059e74432c').info.absheight;// chain.newest.value.info.absheight - 700;
         let targetShare = chain.get(absheight);
         let farShareHash = targetShare.info.farShareHash;

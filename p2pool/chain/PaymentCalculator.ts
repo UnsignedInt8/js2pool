@@ -11,6 +11,7 @@ import * as Algos from "../../core/Algos";
 import * as Utils from '../../misc/Utils';
 import { GetBlockTemplate } from "../../core/DaemonWatcher";
 import BufferWriter from '../../misc/BufferWriter';
+import { DONATION_SCRIPT } from "../p2p/shares/BaseShare";
 
 
 export class PaymentCalculator {
@@ -23,10 +24,10 @@ export class PaymentCalculator {
     recentDonationWeight: Bignum;
     recentWeightList = new Map<string, Bignum>();
 
-    nodePubkey: Buffer;
+    nodePubkeyScript: Buffer;
 
-    constructor(nodeAddress: string = '1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9') {
-        this.nodePubkey = Utils.addressToPubkey(nodeAddress);
+    constructor(nodeAddress: string) {
+        this.nodePubkeyScript = Utils.addressToScript(nodeAddress);
     }
 
     calc(previousShareHash: string, template: GetBlockTemplate, ) {
@@ -64,15 +65,19 @@ export class PaymentCalculator {
             amount.set(Utils.hash160ToScript(pubkeyHash).toString('hex'), weight.mul(totalReward).mul(199).div(totalProportion))
         }
 
-        let nodePubkeyHash = this.nodePubkey.toString('hex');
-        let nodeReward = amount.get(nodePubkeyHash) || new Bignum(0);
+        let nodeScript = this.nodePubkeyScript.toString('hex');
+        let nodeReward = amount.get(nodeScript) || new Bignum(0);
         nodeReward = nodeReward.add(totalReward / 200);
-        amount.set(nodePubkeyHash, nodeReward);
+        amount.set(nodeScript, nodeReward);
+
+        if (amount.has(DONATION_SCRIPT)) {
+            console.log(DONATION_SCRIPT, amount.get(DONATION_SCRIPT));
+        }
 
         console.log(amount, nodeReward);
 
         console.log('total', totalWeight, 'donation', donationWeight, donationWeight.toNumber() / totalWeight.toNumber());
-        console.log('weights:', weights.size, 'amounts:', amount.size + 1);
+        console.log('weights:', weights.size, 'amounts:', amount.size);
         
     }
 }

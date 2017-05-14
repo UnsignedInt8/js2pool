@@ -27,7 +27,7 @@ export class ShareGenerator {
     readonly sharechain = Sharechain.Instance;
     paymentCalculator: PaymentCalculator;
 
-    constructor(nodeAddress: string = '1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9') {
+    constructor(nodeAddress: string) {
         this.paymentCalculator = new PaymentCalculator(nodeAddress);
     }
 

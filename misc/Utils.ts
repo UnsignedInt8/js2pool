@@ -374,13 +374,11 @@ export function addressToScript(addr: string) {
     let decoded: Buffer = base58.decode(addr);
 
     if (decoded.length != 25) {
-        console.error('invalid address length for ' + addr);
-        throw new Error();
+        throw new Error('invalid address length for ' + addr);
     }
 
     if (!decoded) {
-        console.error('base58 decode failed for ' + addr);
-        throw new Error();
+        throw new Error('base58 decode failed for ' + addr);
     }
 
     let pubkey = decoded.slice(1, -4);
@@ -393,7 +391,7 @@ export function addressToPubkey(addr: string) {
     return decoded.slice(1, -4);
 }
 
-export function pubkeyToAddress(pubkey: string, net = '00') {
+export function pubkeyToAddress(pubkey: string, net = '00'): string {
     let checksum = sha256d(Buffer.from(net + pubkey, 'hex')).slice(0, 4).toString('hex');
     return base58.encode(Buffer.from(net + pubkey + checksum, 'hex'));
 }
