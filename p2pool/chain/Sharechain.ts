@@ -142,7 +142,7 @@ export default class Sharechain extends Event {
         this.hashIndexer.set(share.hash, share.info.absheight);
 
         if (this.oldest && share.info.absheight < this.oldest.info.absheight) {
-            console.log('update the oldest share');
+            console.log('update the oldest share', share.info.absheight);
             this.oldest = share;
         }
 
@@ -307,6 +307,7 @@ export default class Sharechain extends Event {
         }
 
         if (this.oldest && this.newest.hasValue() && this.newest.value.info.absheight - this.oldest.info.absheight < Sharechain.CALC_CHAIN_LENGTH) {
+            console.log('gaps oldest height', this.oldest.info.absheight);
             gaps.push({
                 descendent: this.oldest.hash,
                 descendentHeight: this.oldest.info.absheight,
