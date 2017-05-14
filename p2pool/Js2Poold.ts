@@ -15,6 +15,9 @@ import { ShareGenerator } from "./chain/ShareGenerator";
 import { Message } from "./p2p/Message";
 kinq.enable();
 
+process.on('uncaughtException', (err) => console.error(err));
+process.on('error', (err)=> console.error(err));
+
 const opts = {
     daemon: {
         blocknotifylistener: {
