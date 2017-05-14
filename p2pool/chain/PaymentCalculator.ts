@@ -64,7 +64,7 @@ export class PaymentCalculator {
         let totalProportion = totalWeight.mul(200);
         let amount = new Map<string, Bignum>();
         for (let [pubkeyHash, weight] of weights) {
-            amount.set(Utils.hash160ToScript(pubkeyHash).toString('hex'), weight.mul(totalReward).mul(199).div(totalProportion))
+            amount.set(pubkeyHash, weight.mul(totalReward).mul(199).div(totalProportion))
         }
 
         let nodeScript = this.nodePubkeyScript.toString('hex');
