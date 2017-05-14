@@ -142,7 +142,7 @@ export class ShareGenerator {
         shareinfo.newTransactionHashes = newTxHashes;
         shareinfo.transactionHashRefs = txHashRefs;
         shareinfo.absheight = lastShare ? (lastShare.info.absheight + 1) % 4294967296 : 0
-        shareinfo.abswork = new Bignum()
+        shareinfo.abswork = (lastShare ? lastShare.info.abswork : new Bignum(0)).add(Algos.targetToAverageAttempts(Algos.bitsToTarget(bits))).mod(Algos.POW2_128);
         shareinfo.data = <ShareData>{
             previousShareHash: shareHash,
             coinbase: coinbaseScriptSig1.toString('hex'),

@@ -90,8 +90,6 @@ function testShares() {
 
     let script = Utils.addressToScript('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9').toString('hex');
     console.log(script);
-    console.log('16  ' + new Bignum(18402586730485022).toString(16));
-    return;
     // console.log(Utils.pubkeyToAddress('f54e8b762ff17c06a71f2a523dbe51238d523cfd'));
     // console.log(Utils.pubkeyToAddress('acb511a1c36234192b6f9b22a0e18bdcb82289f0'));
     // console.log(Utils.pubkeyToAddress('038bcb403710baf971c9b6a73ffd0623c2ba099b'));

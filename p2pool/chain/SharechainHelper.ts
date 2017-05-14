@@ -53,6 +53,7 @@ export class SharechainHelper {
                 let obj = <BaseShare>Object.assign({}, share);
                 obj.info = Object.assign({}, share.info);
                 obj.info.abswork = <any>share.info.abswork.toString(16);
+                
                 obj.info.data = Object.assign({}, share.info.data);
                 obj.info.data.subsidy = <any>share.info.data.subsidy.toString(16);
                 obj.info.data.pubkeyHash = <any>share.info.data.pubkeyHash.toString('hex');
@@ -157,8 +158,8 @@ export class SharechainHelper {
                     share.target = new Bignum(obj.target, 16);
                     share.work = new Bignum(obj.work,16);
                     share.maxTarget = new Bignum(obj.maxTarget, 16);
-                    share.minWork = Bignum.fromBuffer(Buffer.from(<any>obj.minWork, 'hex'));
-                    share.lastTxoutNonce = Bignum.fromBuffer(Buffer.from(<any>obj.lastTxoutNonce, 'hex'));
+                    share.minWork = new Bignum(obj.minWork, 16);
+                    share.lastTxoutNonce = new Bignum(obj.lastTxoutNonce, 16);
                     share.validity = obj.validity;
                     share.hash = obj.hash;
 

@@ -5,6 +5,7 @@ import * as util from '../misc/Utils';
 export const BaseTarget = 0x00000000ffff0000000000000000000000000000000000000000000000000000;
 
 export const POW2_256 = new Bignum(2).pow(256);
+export const POW2_128 = new Bignum(2).pow(128);
 export const POW2_256_SUB_1 = POW2_256.sub(1);
 const POW2_256_64 = new Bignum(2).pow(256 - 64);
 const FFFF0000_MUL_POW2_256_64_ADD_1 = new Bignum(0xffff0000).mul(POW2_256_64).add(1);

@@ -48,7 +48,6 @@ export default class ShareInfo {
             BufferWriter.writeReversedFixedString(this.data.previousShareHash),
             BufferWriter.writeVarString(this.data.coinbase, 'hex'),
             BufferWriter.writeUInt32LE(this.data.nonce),
-            // BufferWriter.writeReversedFixedString(this.data.pubkeyHash),
             this.data.pubkeyHash,
             this.data.subsidy.toBuffer({ size: 8, endian: 'little' }),
             BufferWriter.writeUInt16LE(this.data.donation),
