@@ -11,7 +11,7 @@ import * as Algos from "../../core/Algos";
 import * as Utils from '../../misc/Utils';
 import { GetBlockTemplate } from "../../core/DaemonWatcher";
 import BufferWriter from '../../misc/BufferWriter';
-import { DONATION_SCRIPT } from "../p2p/shares/BaseShare";
+import { DONATION_SCRIPT, DONATION_SCRIPT_BUF } from "../p2p/shares/BaseShare";
 
 
 export class PaymentCalculator {
@@ -35,9 +35,9 @@ export class PaymentCalculator {
     /**
      * Return ordered amount list
      */
-    calc(previousShareHash: string, template: GetBlockTemplate, ): Array<{ script: Buffer, amount: Bignum }> {
+    calc(previousShareHash: string, gbtCoinbaseValue: number, gbtBlockTarget: string): Array<(Buffer | Bignum)[]> {
 
-        let desiredWeight = new Bignum(65535).mul(PaymentCalculator.BLOCKSPREAD).mul(Algos.targetToAverageAttempts(new Bignum(template.target, 16)));
+        let desiredWeight = new Bignum(65535).mul(PaymentCalculator.BLOCKSPREAD).mul(Algos.targetToAverageAttempts(new Bignum(gbtBlockTarget, 16)));
         let payableShares = kinq.toLinqable(this.sharechain.subchain(previousShareHash, PaymentCalculator.CALC_SHARES_LENGTH)).skip(1);
         let totalWeight = new Bignum(0);
         let donationWeight = new Bignum(0);
@@ -66,37 +66,37 @@ export class PaymentCalculator {
         }
 
         console.log('totalweight', weights.size, totalWeight, donationWeight);
-        // Array.from(weights.orderBy(w => w[1])).forEach(w => console.log(w[0], w[1]));
 
-        let coinbaseValue = new Bignum(template.coinbasevalue);
+        let coinbaseValue = new Bignum(gbtCoinbaseValue);
         let totalProportion = totalWeight.mul(200);
         let totalPayouts = new Bignum(0);
         let amounts = new Map<string, Bignum>();
         for (let [pubkeyScript, weight] of weights) {
-            let payout = weight.mul(coinbaseValue).mul(199).div(totalProportion);
+            let payout = weight.mul(coinbaseValue).mul(199).div(totalProportion); // 99.5% to miners
             amounts.set(pubkeyScript, payout);
             totalPayouts = totalPayouts.add(payout);
         }
 
         let nodeScript = this.nodePubkeyScript.toString('hex');
         let nodeReward = amounts.get(nodeScript) || new Bignum(0);
-        nodeReward = nodeReward.add(coinbaseValue.div(200));
+        nodeReward = nodeReward.add(coinbaseValue.div(200)); // 0.5% to block finder
         amounts.set(nodeScript, nodeReward);
         totalPayouts = totalPayouts.add(nodeReward);
 
         let donationReward = amounts.get(DONATION_SCRIPT) || new Bignum(0);
         let donationAmount = coinbaseValue.sub(totalPayouts);
         donationReward = donationReward.add(donationAmount);
-        amounts.set(DONATION_SCRIPT, donationReward);
         totalPayouts = totalPayouts.add(donationAmount);
 
         if (!totalPayouts.eq(coinbaseValue)) return [];
 
-        console.log(totalPayouts, coinbaseValue);
-        console.log(DONATION_SCRIPT, amounts.get(DONATION_SCRIPT));
+        let paymentList = Array.from(amounts.orderBy(i => i[1], (i1, i2) => i1.sub(i2).toNumber()).select(i => [Buffer.from(i[0]), i[1]]));
+        paymentList.push([DONATION_SCRIPT_BUF, donationReward]);
+
+        Array.from(weights.orderBy(w => w[1], (i1, i2) => i1.sub(i2).toNumber())).forEach(w => console.log(w[0], w[1]));
 
         console.log('total', totalWeight, 'donation', donationWeight, donationWeight.toNumber() / totalWeight.toNumber());
-        console.log('weights:', weights.size, 'amounts:', amounts.size);
-        return new Array();
+        console.log('weights:', weights.size, 'amounts:', amounts.size, paymentList.length);
+        return paymentList;
     }
 }

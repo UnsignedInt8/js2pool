@@ -275,7 +275,7 @@ declare interface _Linqable<T> extends Iterable<T> {
     * @param comparer An comparer to compare keys.
     * @return A sequence whose elements are sorted according to a key.
     */
-  orderBy<TKey>(keySelector: (item: T) => TKey, comparer: (item1: T, item2: T) => number): _Linqable<T>;
+  orderBy<TKey>(keySelector: (item: T) => TKey, comparer: (item1: TKey, item2: TKey) => number): _Linqable<T>;
   orderBy<TKey>(keySelector: (item: T) => TKey): _Linqable<T>;
   orderBy(): _Linqable<T>;
 
