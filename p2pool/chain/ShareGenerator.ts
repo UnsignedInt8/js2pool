@@ -16,6 +16,7 @@ import { PaymentCalculator } from "./PaymentCalculator";
 import { SharechainHelper } from "./SharechainHelper";
 import ShareInfo, { ShareData } from "../p2p/shares/ShareInfo";
 import * as crypto from 'crypto';
+import BufferWriter from "../../misc/BufferWriter";
 
 export class ShareGenerator {
 
@@ -24,6 +25,7 @@ export class ShareGenerator {
     static TARGET_LOOKBEHIND = 0;
     static PERIOD = 0;
     static BLOCKSPREAD = 1;
+    static readonly COINBASE_NONCE_LENGTH = 8
 
     readonly sharechain = Sharechain.Instance;
     paymentCalculator: PaymentCalculator;
@@ -51,7 +53,7 @@ export class ShareGenerator {
         return { maxBits, bits };
     }
 
-    generateTx(template: GetBlockTemplate, shareHash: string, desiredTarget: Bignum, desiredTxHashes: string[], knownTxs: Map<string, TransactionTemplate> = null) {
+    generateShare(template: GetBlockTemplate, shareHash: string, desiredTarget: Bignum, desiredTxHashes: string[], knownTxs: Map<string, TransactionTemplate> = null) {
         let lastShare = this.sharechain.get(shareHash);
         let { maxBits, bits } = this.generateBits(lastShare, desiredTarget);
 
@@ -91,48 +93,15 @@ export class ShareGenerator {
         }
 
         let begin = Date.now();
-        // let desiredWeight = new Bignum(65535).mul(ShareGenerator.BLOCKSPREAD).mul(Algos.targetToAverageAttempts(new Bignum(template.target, 16)));
-        // let payableShares = kinq.toLinqable(this.sharechain.subchain(previousHash, ShareGenerator.CALC_SHARES_LENGTH)).skip(1);
-        // let totalWeight = new Bignum(0);
-        // let donationWeight = new Bignum(0);
-        // let weights = new Map<string, Bignum>();
-
-        // for (let share of payableShares) {
-        //     let lastTotalWeight = totalWeight;
-        //     totalWeight = totalWeight.add(share.totalWeight);
-        //     donationWeight = donationWeight.add(share.donationWeight);
-
-        //     let shareWeight = weights.get(share.info.data.pubkeyHash);
-
-        //     if (shareWeight) {
-        //         weights.set(share.info.data.pubkeyHash, shareWeight.add(share.weight));
-        //         continue;
-        //     }
-
-        //     shareWeight = share.weight;
-
-        //     if (totalWeight.gt(desiredWeight)) {
-        //         totalWeight = desiredWeight;
-        //         shareWeight = desiredWeight.sub(lastTotalWeight).div(65535).mul(share.weight).div(share.totalWeight.div(65535));
-        //     }
-
-        //     weights.set(share.info.data.pubkeyHash, shareWeight);
-        // }
 
         let payments = this.paymentCalculator.calc(shareHash, template.coinbasevalue, template.target);
         if (payments.length === 0) { }
         console.log('elapse', Date.now() - begin);
 
 
-        let coinbaseScriptSig1 = Buffer.concat([
-            Utils.serializeScriptSigNumber(template.height),
-            Buffer.from(template.coinbaseaux.flags, 'hex'),
-        ]);
 
 
-
-
-
+        let { coinbaseScriptSig1 } = this.generateCoinbaseTx(template, payments);
 
 
         let shareinfo = new ShareInfo();
@@ -158,5 +127,57 @@ export class ShareGenerator {
 
     }
 
+    generateCoinbaseTx(template: GetBlockTemplate, payouts: Array<(Buffer | Bignum)[]>) {
 
+        let coinbaseScriptSig1 = Buffer.concat([
+            Utils.serializeScriptSigNumber(template.height),
+            Buffer.from(template.coinbaseaux.flags, 'hex'),
+        ]);
+
+        let outputs = new Array<Buffer>();
+        for (let [script, value] of payouts) {
+            outputs.push(Buffer.concat([
+                (<Bignum>value).toBuffer({ endian: 'little', size: 8 }),
+                Utils.varIntBuffer((<Buffer>script).length),
+                (<Buffer>script)
+            ]));
+        }
+
+        // https://bitcointalk.org/index.php?topic=1676471.0;prev_next=prev
+        if (template.default_witness_commitment !== undefined) {
+            let witness_commitment = Buffer.from(template.default_witness_commitment, 'hex');
+            outputs.unshift(Buffer.concat([
+                Utils.packInt64LE(0),
+                Utils.varIntBuffer(witness_commitment.length),
+                witness_commitment
+            ]));
+        }
+
+        let txOutput = BufferWriter.writeList(outputs);
+
+        let tx1 = Buffer.concat([
+            Utils.packUInt32LE(1),
+
+            // Tx Inputs
+            Utils.varIntBuffer(1), // input count
+            Utils.uint256BufferFromHash('00'), // previous tx hash
+            Utils.packUInt32LE(Math.pow(2, 32) - 1), // previous tx output index 
+            Utils.varIntBuffer(coinbaseScriptSig1.length + ShareGenerator.COINBASE_NONCE_LENGTH), // P2Pool always uses 8 bytes nonce
+            coinbaseScriptSig1,
+        ]);
+
+        // extra nonce here
+
+        let tx2 = Buffer.concat([
+            Utils.packUInt32LE(0),  // Tx input sequence
+            // Tx inputs end
+
+            txOutput,
+
+            Utils.packUInt32LE(0), // Tx lock time
+        ]);
+
+
+        return { coinbaseScriptSig1, }
+    }
 }

@@ -69,6 +69,9 @@ export default class BufferWriter {
         return Buffer.concat([countBuf, Buffer.concat(items)]);
     }
 
+    /**
+     * Just for p2pool tx refs array
+     */
     static writeVarIntList(items: number[], mul = 1) {
         let buf = items.map(i => utils.varIntBuffer(i));
         buf.unshift(utils.varIntBuffer(items.length / mul));
