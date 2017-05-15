@@ -17,6 +17,7 @@ import * as Bignum from 'bignum';
 import { SharechainHelper } from "../chain/SharechainHelper";
 import * as Utils from '../../misc/Utils';
 import * as MathEx from '../../misc/MathEx';
+import * as crypto from 'crypto';
 
 export type PeerOptions = {
     maxConn?: number,
@@ -31,6 +32,7 @@ export class Peer {
     private readonly knownTxsCaches = new Array<Map<string, TransactionTemplate>>();
     private readonly miningTxs = ObservableProperty.init(new Map<string, TransactionTemplate>());
     private readonly sharechain = Sharechain.Instance;
+    private readonly shareReplies = new Set<string>();
     readonly peers = new Map<string, Node>(); // ip:port -> Node
 
     bestShare: BaseShare;
@@ -84,7 +86,7 @@ export class Peer {
             if (!peers.length) break;
             let node = peers.shift();
             node.sendSharereqAsync({
-                id: new Bignum(Math.random() * 1000000 | 0),
+                id: Bignum.fromBuffer(crypto.randomBytes(8)),
                 hashes: [gap.descendent],
                 parents: Math.min(gap.length, node.isJs2PoolPeer ? 1000 : 79),
             });
@@ -231,11 +233,16 @@ export class Peer {
             return;
         }
 
+        if (this.shareReplies.has(reply.id.toString())) return;
+
         let shares = reply.wrapper.shares.map(s => s.contents).where(share => !this.sharechain.has(share.hash)).toArray();
         this.sharechain.add(shares);
         this.sharechain.checkGaps();
         this.sharechain.verify();
         SharechainHelper.saveShares(shares);
+
+        this.shareReplies.add(reply.id.toString());
+        if (this.shareReplies.size > 10) this.shareReplies.delete(this.shareReplies.first());
 
         logger.info(`received ${reply.wrapper.shares.length} shares from ${sender.tag}`);
     }

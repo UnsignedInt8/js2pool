@@ -119,7 +119,8 @@ export class ShareGenerator {
         //     weights.set(share.info.data.pubkeyHash, shareWeight);
         // }
 
-        let amounts = this.paymentCalculator.calc(shareHash, template.coinbasevalue, template.target);
+        let payments = this.paymentCalculator.calc(shareHash, template.coinbasevalue, template.target);
+        if (payments.length === 0) { }
         console.log('elapse', Date.now() - begin);
 
 

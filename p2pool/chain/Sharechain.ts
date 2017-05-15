@@ -172,6 +172,8 @@ export default class Sharechain extends Event {
 
         // as expereince, this share is verified by other nodes
         if (this.newest.hasValue() && share.info.absheight === this.newest.value.info.absheight) {
+            shares.pop();
+            this.absheightIndexer.set(share.info.absheight, [share].concat(shares))
             this.trigger(Sharechain.Events.candidateArrived, this, share);
             return true;
         }
