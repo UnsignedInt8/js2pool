@@ -396,6 +396,9 @@ export function pubkeyToAddress(pubkey: string, net = '00'): string {
     return base58.encode(Buffer.from(net + pubkey + checksum, 'hex'));
 }
 
+export function scriptToPubkey(script: Buffer){
+    return script.slice(3, -2);
+}
 
 export function getReadableHashRateString(hashrate: number) {
     let i = -1;

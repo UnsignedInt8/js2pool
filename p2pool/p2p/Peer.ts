@@ -203,7 +203,7 @@ export class Peer {
     }
 
     private handleSharereq(sender: Node, request: TypeSharereq) {
-        let parents = Math.min(Math.min(request.parents, 1000 / request.hashes.length | 0), sender.isJs2PoolPeer ? 1000 : 100);
+        let parents = Math.min(Math.min(request.parents, 1000 / request.hashes.length | 0), sender.isJs2PoolPeer ? 1000 : 100) + 1;
         let stops = new Set(request.stops);
         let shares = new Array<BaseShare>();
 
@@ -214,7 +214,7 @@ export class Peer {
             }
         }
 
-        if (shares.length <= 1) {
+        if (shares.length === 0) {
             sender.sendSharereplyAsync({ id: request.id, result: 2, wrapper: Shares.fromObject([]) })
             return;
         }

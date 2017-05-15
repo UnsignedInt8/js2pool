@@ -41,7 +41,7 @@ export class PaymentCalculator {
         let payableShares = kinq.toLinqable(this.sharechain.subchain(previousShareHash, PaymentCalculator.CALC_SHARES_LENGTH)).skip(1);
         let totalWeight = new Bignum(0);
         let donationWeight = new Bignum(0);
-        let weights = new Map<string, Bignum>(); // pubkey hash -> bignum
+        let weights = new Map<string, Bignum>(); // pubkey script -> bignum
 
         for (let share of payableShares) {
             let lastTotalWeight = totalWeight;
@@ -65,28 +65,38 @@ export class PaymentCalculator {
             weights.set(pubkeyScript, shareWeight);
         }
 
-        Array.from(weights.orderBy(w => w[0])).forEach(w => console.log(w[0], w[1]));
+        console.log('totalweight', weights.size, totalWeight, donationWeight);
+        // Array.from(weights.orderBy(w => w[1])).forEach(w => console.log(w[0], w[1]));
 
-        let totalReward = template.coinbasevalue;
+        let coinbaseValue = new Bignum(template.coinbasevalue);
         let totalProportion = totalWeight.mul(200);
-        let amount = new Map<string, Bignum>();
-        for (let [pubkeyHash, weight] of weights.orderBy(tuple => tuple[0])) {
-            amount.set(pubkeyHash, weight.mul(totalReward).mul(199).div(totalProportion))
+        let totalPayouts = new Bignum(0);
+        let amounts = new Map<string, Bignum>();
+        for (let [pubkeyScript, weight] of weights) {
+            let payout = weight.mul(coinbaseValue).mul(199).div(totalProportion);
+            amounts.set(pubkeyScript, payout);
+            totalPayouts = totalPayouts.add(payout);
         }
 
         let nodeScript = this.nodePubkeyScript.toString('hex');
-        let nodeReward = amount.get(nodeScript) || new Bignum(0);
-        nodeReward = nodeReward.add(totalReward / 200);
-        amount.set(nodeScript, nodeReward);
+        let nodeReward = amounts.get(nodeScript) || new Bignum(0);
+        nodeReward = nodeReward.add(coinbaseValue.div(200));
+        amounts.set(nodeScript, nodeReward);
+        totalPayouts = totalPayouts.add(nodeReward);
 
+        let donationReward = amounts.get(DONATION_SCRIPT) || new Bignum(0);
+        let donationAmount = coinbaseValue.sub(totalPayouts);
+        donationReward = donationReward.add(donationAmount);
+        amounts.set(DONATION_SCRIPT, donationReward);
+        totalPayouts = totalPayouts.add(donationAmount);
 
+        if (!totalPayouts.eq(coinbaseValue)) return [];
 
-        if (amount.has(DONATION_SCRIPT)) {
-            console.log(DONATION_SCRIPT, amount.get(DONATION_SCRIPT));
-        }
+        console.log(totalPayouts, coinbaseValue);
+        console.log(DONATION_SCRIPT, amounts.get(DONATION_SCRIPT));
 
         console.log('total', totalWeight, 'donation', donationWeight, donationWeight.toNumber() / totalWeight.toNumber());
-        console.log('weights:', weights.size, 'amounts:', amount.size);
+        console.log('weights:', weights.size, 'amounts:', amounts.size);
         return new Array();
     }
 }

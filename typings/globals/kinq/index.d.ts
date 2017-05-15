@@ -92,7 +92,7 @@ declare interface _Linqable<T> extends Iterable<T> {
     * @param {(Function)} predicate The condition for compute item counts
     * @return Return the count which satisfy a condition.
     */
-  count(predicate: (T) => boolean): number;
+  count(predicate: (item: T) => boolean): number;
 
   /**
   * 

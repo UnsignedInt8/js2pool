@@ -31,7 +31,7 @@ const opts = {
         username: 'testuser',
     },
     server: {
-        port: 9777,
+        port: 17951,
     },
     bootstrapPeers: [
         {

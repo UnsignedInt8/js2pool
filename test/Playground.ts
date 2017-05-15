@@ -90,6 +90,10 @@ function testShares() {
 
     let script = Utils.addressToScript('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9').toString('hex');
     console.log(script);
+    script = Utils.addressToScript('1J3nHXrL3XUixCUdWzs9VfE1EQCfsh8WYS').toString('hex');
+    console.log(script);
+    let ascpecialpubkey = Utils.addressToPubkey('1J3nHXrL3XUixCUdWzs9VfE1EQCfsh8WYS');
+    console.log(Utils.pubkeyToAddress(Utils.scriptToPubkey(Buffer.from('76a91463defa7682e7da328523148fc0c9db061fb2e08088ac', 'hex')).toString('hex')));
     // console.log(Utils.pubkeyToAddress('f54e8b762ff17c06a71f2a523dbe51238d523cfd'));
     // console.log(Utils.pubkeyToAddress('acb511a1c36234192b6f9b22a0e18bdcb82289f0'));
     // console.log(Utils.pubkeyToAddress('038bcb403710baf971c9b6a73ffd0623c2ba099b'));
@@ -114,6 +118,7 @@ function testShares() {
     // chain.onGapsFound((s, gs) => console.log(gs));
     SharechainHelper.loadSharesAsync().then(shares => {
         if (shares.length === 0) return;
+        console.log('aspecial count', shares.count(s => s.pubkeyScript.sequenceEqual(Buffer.from('76a91463defa7682e7da328523148fc0c9db061fb2e08088ac', 'hex'))));
 
         console.log(shares.length);
         chain.add(shares);
