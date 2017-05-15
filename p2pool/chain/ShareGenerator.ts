@@ -14,7 +14,7 @@ import { GetBlockTemplate, TransactionTemplate } from "../../core/DaemonWatcher"
 import * as assert from 'assert';
 import { PaymentCalculator } from "./PaymentCalculator";
 import { SharechainHelper } from "./SharechainHelper";
-import ShareInfo, { ShareData } from "../p2p/shares/Shareinfo";
+import ShareInfo, { ShareData } from "../p2p/shares/ShareInfo";
 import * as crypto from 'crypto';
 
 export class ShareGenerator {
