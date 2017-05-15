@@ -47,13 +47,12 @@ export class ShareGenerator {
         }
 
         let maxBits = Algos.targetToBits(preTarget3);
-        console.log('maxbits', maxBits.toString(16));
         let bits = Algos.targetToBits(MathEx.clip(desiredTarget, preTarget3.div(30), preTarget3));
 
         return { maxBits, bits };
     }
 
-    generateShare(template: GetBlockTemplate, shareHash: string, desiredTarget: Bignum, desiredTxHashes: string[], knownTxs: Map<string, TransactionTemplate> = null) {
+    generateNextShare(template: GetBlockTemplate, shareHash: string, desiredTarget: Bignum, desiredTxHashes: string[], knownTxs: Map<string, TransactionTemplate> = null) {
         let lastShare = this.sharechain.get(shareHash);
         let { maxBits, bits } = this.generateBits(lastShare, desiredTarget);
 
@@ -99,10 +98,10 @@ export class ShareGenerator {
         console.log('elapse', Date.now() - begin);
 
 
-
-
-        let { coinbaseScriptSig1 } = this.generateCoinbaseTx(template, payments);
-
+        let coinbaseScriptSig1 = Buffer.concat([
+            Utils.serializeScriptSigNumber(template.height),
+            Buffer.from(template.coinbaseaux.flags, 'hex'),
+        ]);
 
         let shareinfo = new ShareInfo();
         shareinfo.farShareHash = lastShare.info.absheight > 99 ? this.sharechain.get(lastShare.info.absheight - 99).hash : '0000000000000000000000000000000000000000000000000000000000000000';
@@ -124,15 +123,13 @@ export class ShareGenerator {
             desiredVersion: lastShare.SUCCESSOR ? (lastShare.SUCCESSOR.VOTING_VERSION || lastShare.VOTING_VERSION) : lastShare.VOTING_VERSION,
         }
 
+        let { tx1, tx2 } = this.generateCoinbaseTx(template, coinbaseScriptSig1, payments, BaseShare.getRefHash(shareinfo, []));
 
+        console.log('maxbits', maxBits.toString(16));
+        console.log('far share hash', new Bignum(shareinfo.farShareHash).toString(), );
     }
 
-    generateCoinbaseTx(template: GetBlockTemplate, payouts: Array<(Buffer | Bignum)[]>) {
-
-        let coinbaseScriptSig1 = Buffer.concat([
-            Utils.serializeScriptSigNumber(template.height),
-            Buffer.from(template.coinbaseaux.flags, 'hex'),
-        ]);
+    generateCoinbaseTx(template: GetBlockTemplate, coinbaseScriptSig1: Buffer, payouts: Array<(Buffer | Bignum)[]>, shareInfo: Buffer) {
 
         let outputs = new Array<Buffer>();
         for (let [script, value] of payouts) {
@@ -143,15 +140,12 @@ export class ShareGenerator {
             ]));
         }
 
-        // https://bitcointalk.org/index.php?topic=1676471.0;prev_next=prev
-        if (template.default_witness_commitment !== undefined) {
-            let witness_commitment = Buffer.from(template.default_witness_commitment, 'hex');
-            outputs.unshift(Buffer.concat([
-                Utils.packInt64LE(0),
-                Utils.varIntBuffer(witness_commitment.length),
-                witness_commitment
-            ]));
-        }
+        let shareFingerprint = Buffer.concat([Buffer.from('6a28', 'hex'), shareInfo, Buffer.alloc(8, 0)]); // 
+        outputs.push(Buffer.concat([
+            Utils.packInt64LE(0),
+            Utils.varIntBuffer(shareFingerprint.length),
+            shareFingerprint,
+        ]));
 
         let txOutput = BufferWriter.writeList(outputs);
 
@@ -166,18 +160,21 @@ export class ShareGenerator {
             coinbaseScriptSig1,
         ]);
 
+        //
         // extra nonce here
+        //
 
         let tx2 = Buffer.concat([
             Utils.packUInt32LE(0),  // Tx input sequence
             // Tx inputs end
 
+            // Tx outputs
             txOutput,
 
             Utils.packUInt32LE(0), // Tx lock time
         ]);
 
 
-        return { coinbaseScriptSig1, }
+        return { tx1, tx2 }
     }
 }

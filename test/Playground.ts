@@ -159,7 +159,7 @@ function testShares() {
         // });
         let preShare = chain.get(absheight - 1);
         // g.generateTx(null, targetShare.info.data.previousShareHash, targetShare.target, txHashes);
-        g.generateShare(rpc, preShare.info.data.previousShareHash, targetShare.target, desiredTxHashes);
+        g.generateNextShare(rpc, preShare.info.data.previousShareHash, targetShare.target, desiredTxHashes);
         console.log(`${Date.now() - begin}ms`);
     });
     // console.log(chain.length);
