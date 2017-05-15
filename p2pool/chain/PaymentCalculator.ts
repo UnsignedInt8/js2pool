@@ -93,7 +93,7 @@ export class PaymentCalculator {
         let paymentList = Array.from(amounts.orderBy(i => i[1], (i1, i2) => i1.sub(i2).toNumber()).select(i => [Buffer.from(i[0]), i[1]]).take(4000));
         paymentList.push([DONATION_SCRIPT_BUF, donationReward]);
 
-        Array.from(weights.orderBy(w => w[1], (i1, i2) => i1.sub(i2).toNumber())).forEach(w => console.log(w[0], w[1]));
+        // Array.from(weights.orderBy(w => w[1], (i1, i2) => i1.sub(i2).toNumber())).forEach(w => console.log(w[0], w[1]));
 
         console.log('total', totalWeight, 'donation', donationWeight, donationWeight.toNumber() / totalWeight.toNumber());
         console.log('weights:', weights.size, 'amounts:', amounts.size, paymentList.length);

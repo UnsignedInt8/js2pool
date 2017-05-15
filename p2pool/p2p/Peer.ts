@@ -86,7 +86,7 @@ export class Peer {
             if (!peers.length) break;
             let node = peers.shift();
             node.sendSharereqAsync({
-                id: Bignum.fromBuffer(crypto.randomBytes(8)),
+                id: Bignum.fromBuffer(Utils.sha256(gap.descendent + '-' + gap.length)),
                 hashes: [gap.descendent],
                 parents: Math.min(gap.length, node.isJs2PoolPeer ? 1000 : 79),
             });

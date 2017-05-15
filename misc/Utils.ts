@@ -26,7 +26,7 @@ export function getVersionByte(addr: string) {
     return versionByte;
 };
 
-export function sha256(buffer: Buffer) {
+export function sha256(buffer: Buffer | string) {
     let hash1 = crypto.createHash('sha256');
     hash1.update(buffer);
     return hash1.digest();
@@ -396,7 +396,7 @@ export function pubkeyToAddress(pubkey: string, net = '00'): string {
     return base58.encode(Buffer.from(net + pubkey + checksum, 'hex'));
 }
 
-export function scriptToPubkey(script: Buffer){
+export function scriptToPubkey(script: Buffer) {
     return script.slice(3, -2);
 }
 
