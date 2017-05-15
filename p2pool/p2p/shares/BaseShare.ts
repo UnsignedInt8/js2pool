@@ -73,7 +73,7 @@ export abstract class BaseShare {
 
         this.gentxHash = this.hashLink.check(Buffer.concat([
             BaseShare.getRefHash(this.info, this.refMerkleLink), // the last txout share info which is written in coinbase 
-            new Bignum(this.lastTxoutNonce).toBuffer({ endian: 'little', size: 8 }), // last txout nonce
+            this.lastTxoutNonce.toBuffer({ endian: 'little', size: 8 }), // last txout nonce
             Buffer.alloc(4, 0) // lock time, 4 bytes
         ]), GENTX_BEFORE_REFHASH);
 

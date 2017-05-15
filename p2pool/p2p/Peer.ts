@@ -242,6 +242,7 @@ export class Peer {
         SharechainHelper.saveShares(shares);
 
         this.shareReplies.add(reply.id.toString());
+        console.log(reply.id.toString());
         if (this.shareReplies.size > 10) this.shareReplies.delete(this.shareReplies.first());
 
         logger.info(`received ${reply.wrapper.shares.length} shares from ${sender.tag}`);

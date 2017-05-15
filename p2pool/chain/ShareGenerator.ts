@@ -126,7 +126,7 @@ export class ShareGenerator {
         let { tx1, tx2 } = this.generateCoinbaseTx(template, coinbaseScriptSig1, payments, BaseShare.getRefHash(shareinfo, []));
 
         console.log('maxbits', maxBits.toString(16));
-        console.log('far share hash', new Bignum(shareinfo.farShareHash).toString(), );
+        console.log('far share hash', new Bignum(shareinfo.farShareHash, 16), );
     }
 
     generateCoinbaseTx(template: GetBlockTemplate, coinbaseScriptSig1: Buffer, payouts: Array<(Buffer | Bignum)[]>, shareInfo: Buffer) {
