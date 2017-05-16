@@ -37,7 +37,7 @@ export class ShareGenerator {
         this.paymentCalculator = new PaymentCalculator(nodeAddress);
     }
 
-    private generateBits(fromShare: BaseShare, desiredTarget: Bignum) {
+    private estimateBits(fromShare: BaseShare, desiredTarget: Bignum) {
         let preTarget: Bignum, preTarget2: Bignum, preTarget3: Bignum;
 
         if (!fromShare || fromShare.info.absheight < ShareGenerator.TARGET_LOOKBEHIND) {
@@ -55,9 +55,9 @@ export class ShareGenerator {
         return { maxBits, bits };
     }
 
-    generateNextTask(template: GetBlockTemplate, shareHash: string, desiredTarget: Bignum, desiredTxHashes: string[], knownTxs: Map<string, TransactionTemplate> = null) {
+    buildTask(template: GetBlockTemplate, shareHash: string, desiredTarget: Bignum, desiredTxHashes: string[], knownTxs: Map<string, TransactionTemplate> = null) {
         let lastShare = this.sharechain.get(shareHash);
-        let { maxBits, bits } = this.generateBits(lastShare, desiredTarget);
+        let { maxBits, bits } = this.estimateBits(lastShare, desiredTarget);
         console.log('knowntxs:', desiredTxHashes.length, knownTxs.size);
         let recentShares = Array.from(this.sharechain.subchain(shareHash, 100, 'backward'));
         let newTxHashes = new Array<string>();
@@ -132,7 +132,7 @@ export class ShareGenerator {
             // TODO segwit
         }
 
-        let { tx1, tx2 } = this.generateCoinbaseTx(template, coinbaseScriptSig1, payments, shareInfo);
+        let { tx1, tx2 } = this.buildCoinbaseTx(template, coinbaseScriptSig1, payments, shareInfo);
         let merkleLink = (new MerkleTree([null].concat(desiredTxHashes.map(hash => Utils.uint256BufferFromHash(hash)))).steps);
 
         console.log('maxbits', maxBits.toString(16));
@@ -142,7 +142,7 @@ export class ShareGenerator {
     }
 
     // As SHA256 by js is so slow, delay this function calling
-    generateShare(version: number, shareInfo: ShareInfo, tx1: Buffer, tx2: Buffer, merkleLink: Buffer[]) {
+    buildShare(version: number, shareInfo: ShareInfo, tx1: Buffer, tx2: Buffer, merkleLink: Buffer[]) {
 
         let share = new ShareVersionMapper[version]() as BaseShare;
         share.info = shareInfo;
@@ -152,7 +152,7 @@ export class ShareGenerator {
 
     }
 
-    private generateCoinbaseTx(template: GetBlockTemplate, coinbaseScriptSig1: Buffer, payouts: Array<(Buffer | Bignum)[]>, shareInfo: ShareInfo) {
+    private buildCoinbaseTx(template: GetBlockTemplate, coinbaseScriptSig1: Buffer, payouts: Array<(Buffer | Bignum)[]>, shareInfo: ShareInfo) {
 
         let outputs = new Array<Buffer>();
         for (let [script, value] of payouts) {

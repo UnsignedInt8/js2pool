@@ -17723,7 +17723,7 @@ function testShares() {
     // });
     let preShare = chain.get(absheight - 1);
     // g.generateTx(null, targetShare.info.data.previousShareHash, targetShare.target, txHashes);
-    g.generateNextTask(rpc, preShare.info.data.previousShareHash, targetShare.target, rpc.transactions.map(tx => tx.txid), rpc.transactions.toMap(tx => tx.txid, tx => tx));
+    g.buildTask(rpc, preShare.info.data.previousShareHash, targetShare.target, rpc.transactions.map(tx => tx.txid), rpc.transactions.toMap(tx => tx.txid, tx => tx));
     console.log(`${Date.now() - begin}ms`);
   });
   // console.log(chain.length);
