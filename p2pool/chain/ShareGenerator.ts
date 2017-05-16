@@ -37,7 +37,7 @@ export class ShareGenerator {
         this.paymentCalculator = new PaymentCalculator(nodeAddress);
     }
 
-    generateBits(fromShare: BaseShare, desiredTarget: Bignum) {
+    private generateBits(fromShare: BaseShare, desiredTarget: Bignum) {
         let preTarget: Bignum, preTarget2: Bignum, preTarget3: Bignum;
 
         if (!fromShare || fromShare.info.absheight < ShareGenerator.TARGET_LOOKBEHIND) {
@@ -55,10 +55,10 @@ export class ShareGenerator {
         return { maxBits, bits };
     }
 
-    generateNextShare(template: GetBlockTemplate, shareHash: string, desiredTarget: Bignum, desiredTxHashes: string[], knownTxs: Map<string, TransactionTemplate> = null) {
+    generateNextTask(template: GetBlockTemplate, shareHash: string, desiredTarget: Bignum, desiredTxHashes: string[], knownTxs: Map<string, TransactionTemplate> = null) {
         let lastShare = this.sharechain.get(shareHash);
         let { maxBits, bits } = this.generateBits(lastShare, desiredTarget);
-
+        console.log('knowntxs:', desiredTxHashes.length, knownTxs.size);
         let recentShares = Array.from(this.sharechain.subchain(shareHash, 100, 'backward'));
         let newTxHashes = new Array<string>();
         let newTxSize = 0;
@@ -106,16 +106,16 @@ export class ShareGenerator {
             Buffer.from(template.coinbaseaux.flags, 'hex'),
         ]);
 
-        let shareinfo = new ShareInfo();
-        shareinfo.farShareHash = lastShare.info.absheight > 99 ? this.sharechain.get(lastShare.info.absheight - 99).hash : '0000000000000000000000000000000000000000000000000000000000000000';
-        shareinfo.maxBits = maxBits;
-        shareinfo.bits = bits;
-        shareinfo.timestamp = lastShare ? MathEx.clip(Date.now() / 1000 | 0, lastShare.info.timestamp + 1, lastShare.info.timestamp + 2 * ShareGenerator.PERIOD - 1) : Date.now() / 1000 | 0;
-        shareinfo.newTransactionHashes = newTxHashes;
-        shareinfo.transactionHashRefs = txHashRefs;
-        shareinfo.absheight = lastShare ? (lastShare.info.absheight + 1) % 4294967296 : 0
-        shareinfo.abswork = (lastShare ? lastShare.info.abswork : new Bignum(0)).add(Algos.targetToAverageAttempts(Algos.bitsToTarget(bits))).mod(Algos.POW2_128);
-        shareinfo.data = <ShareData>{
+        let shareInfo = new ShareInfo();
+        shareInfo.farShareHash = lastShare.info.absheight > 99 ? this.sharechain.get(lastShare.info.absheight - 99).hash : '0000000000000000000000000000000000000000000000000000000000000000';
+        shareInfo.maxBits = maxBits;
+        shareInfo.bits = bits;
+        shareInfo.timestamp = lastShare ? MathEx.clip(Date.now() / 1000 | 0, lastShare.info.timestamp + 1, lastShare.info.timestamp + 2 * ShareGenerator.PERIOD - 1) : Date.now() / 1000 | 0;
+        shareInfo.newTransactionHashes = newTxHashes;
+        shareInfo.transactionHashRefs = txHashRefs;
+        shareInfo.absheight = lastShare ? (lastShare.info.absheight + 1) % 4294967296 : 0
+        shareInfo.abswork = (lastShare ? lastShare.info.abswork : new Bignum(0)).add(Algos.targetToAverageAttempts(Algos.bitsToTarget(bits))).mod(Algos.POW2_128);
+        shareInfo.data = <ShareData>{
             previousShareHash: shareHash,
             coinbase: coinbaseScriptSig1.toString('hex'),
             nonce: Bignum.fromBuffer(crypto.randomBytes(4)).toNumber(),
@@ -126,26 +126,32 @@ export class ShareGenerator {
             desiredVersion: lastShare.SUCCESSOR ? (lastShare.SUCCESSOR.VOTING_VERSION || lastShare.VOTING_VERSION) : lastShare.VOTING_VERSION,
         }
 
-        let segwitActivated = BaseShare.isSegwitActivated(shareinfo.data.desiredVersion);
+        let segwitActivated = BaseShare.isSegwitActivated(shareInfo.data.desiredVersion);
         if (segwitActivated) {
             // TODO segwit
         }
 
-        let { tx1, tx2 } = this.generateCoinbaseTx(template, coinbaseScriptSig1, payments, shareinfo);
-
-        let share = new ShareVersionMapper[lastShare.VERSION]() as BaseShare;
-        share.info = shareinfo;
-        share.refMerkleLink = [];
-        share.hashLink = HashLink.fromPrefix(Buffer.concat([tx1, tx2.slice(0, -32 - 8 - 4)]), GENTX_BEFORE_REFHASH);
-        share.merkleLink = (new MerkleTree([null].concat(desiredTxHashes.map(hash => Utils.uint256BufferFromHash(hash)))).steps);
+        let { tx1, tx2 } = this.generateCoinbaseTx(template, coinbaseScriptSig1, payments, shareInfo);
+        let merkleLink = (new MerkleTree([null].concat(desiredTxHashes.map(hash => Utils.uint256BufferFromHash(hash)))).steps);
 
         console.log('maxbits', maxBits.toString(16));
-        console.log('far share hash', new Bignum(shareinfo.farShareHash, 16), );
+        console.log('far share hash', new Bignum(shareInfo.farShareHash, 16), );
 
-        return { share, tx1, tx2, maxBits, bits }
+        return { shareInfo, merkleLink, tx1, tx2, maxBits, bits };
     }
 
-    generateCoinbaseTx(template: GetBlockTemplate, coinbaseScriptSig1: Buffer, payouts: Array<(Buffer | Bignum)[]>, shareInfo: ShareInfo) {
+    // As SHA256 by js is so slow, delay this function calling
+    generateShare(version: number, shareInfo: ShareInfo, tx1: Buffer, tx2: Buffer, merkleLink: Buffer[]) {
+
+        let share = new ShareVersionMapper[version]() as BaseShare;
+        share.info = shareInfo;
+        share.refMerkleLink = [];
+        share.hashLink = HashLink.fromPrefix(Buffer.concat([tx1, tx2.slice(0, -32 - 8 - 4)]), GENTX_BEFORE_REFHASH);
+        share.merkleLink = merkleLink;
+
+    }
+
+    private generateCoinbaseTx(template: GetBlockTemplate, coinbaseScriptSig1: Buffer, payouts: Array<(Buffer | Bignum)[]>, shareInfo: ShareInfo) {
 
         let outputs = new Array<Buffer>();
         for (let [script, value] of payouts) {

@@ -21,24 +21,25 @@ import Sharechain from "../p2pool/chain/Sharechain";
 import * as readline from 'readline';
 import { bitsToTarget, targetToBits, BaseTarget, targetToDifficulty } from "../core/Algos";
 import { ShareGenerator } from "../p2pool/chain/ShareGenerator";
+import { GetBlockTemplate } from "../core/DaemonWatcher";
 
 kinq.enable();
 
 async function test() {
 
-    let peer = new Node();
-    peer.onVersionVerified(async (sender, version) => {
-        assert.equal(sender, peer);
-        assert.equal(version.subVersion.startsWith('15.0'), true);
-        console.log(version);
-        await peer.sendGetaddrsAsync(10);
+  let peer = new Node();
+  peer.onVersionVerified(async (sender, version) => {
+    assert.equal(sender, peer);
+    assert.equal(version.subVersion.startsWith('15.0'), true);
+    console.log(version);
+    await peer.sendGetaddrsAsync(10);
 
-    });
-    peer.onAddrs((sender, addrs) => {
-        console.log(addrs);
-    })
-    await peer.connectAsync('123.163.48.115', 9333);
-    await peer.sendVersionAsync();
+  });
+  peer.onAddrs((sender, addrs) => {
+    console.log(addrs);
+  })
+  await peer.connectAsync('123.163.48.115', 9333);
+  await peer.sendVersionAsync();
 
 }
 let data = `{"VERSION":16,"VOTING_VERSION":16,"SUCCESSOR":null,"MAX_BLOCK_WEIGHT":4000000,"MAX_NEW_TXS_SIZE":50000,"validity":true,"minHeader":{"version":536870912,"previousBlockHash":"00000000000000000059a81c0ede181210bb5fcaa75a3a5229bcc65af8eb810f","timestamp":1494304150,"bits":402791230,"nonce":2240378593},"info":{"data":{"previousShareHash":"00000000000000574a5074cd7057f7e5ba50aaeb1373f26ce30b4a84812501ba","coinbase":"038a1a072cfabe6d6d411e426e84b68d3057131052eb5b154b0e5d6dfc45adabd5c1e16af567bfaadc0100000000000000","nonce":1168411900,"pubkeyHash":"9acc71726db0c84ad8bf9886dadeebd0a7db6e75","subsidy":"525b4159","donation":65,"staleInfo":0,"desiredVersion":16},"newTransactionHashes":["510099d721f66ed8f78de90f1143886f27d364125d9f1d286c117d2ef02b54ae","a71a6a947889e7ceb20a29a080fdfe3fdd15e2401ca08a29e040911219631a50","ba63301804e7993dded58b54f832fc239d2bf74844886ab1fc89279ac70ab169","1d5fa767acfaeb520f76a59e17727f72175b83e33ad3c146ea8dd325252799bc","8b62df319b107f8dee47d7dee81393fa72c53e2b98f2be970c7d6bbdefb43ae1","4f97741a4b9d165ea5be90bdb0dfd30be80058e26c54606719a336bc96950fcf","eca53510d36342ffedc86577bcc5d0281c4db064f70995fd58dc3811dfda5325","5d7f8c6eb08508f1d5a37bec88e3a28d7f551a3c364cd57d2644ac9bc9bb1f54","5b32503df872acee9db2c158ab115dc179df674b3b9bb1bc240809171752cd5e","c7b911e7ce12f8592700d0580fd9c23cd3baf63f32581a101e531747f67c1244","cfa9dd3dfd0d6537cc45b92c3481b75f8ebabbf465d1c80579286b59725aa36f","d6901fee65be2c4c3742d7210406d3058cbc7d306afc9587b5758484ce678d6a","cb2acadf6ae74865c17bb0bbbd81bae0df993756f03bee4c645853a232a2340d","572896ab8a7ddee2e50e2c85f49b20982921aaf91de364a1d4c6955becca8e84","a344796b396e5c0d71803ac8a4b364c7573552eb997e7fbece1a4edbd007c216","a00442d0da3c0f1e8f3e05d59868bef1b02968ab462af1bc7969128f9d671cce","8d432d932eb642f170acabfdf4273c4e9e1ac75fdfbb9bc593bce51e8262b414","d2d0466b7c26da3202edf00922c5ab5a7b3a757af0baeed9803b01f08ebbbc9a","8ac67b65dbdde74651dfc7feb07be62f1df0dc2e4c07d48d8318476551122a09","077d4401c98f972d1a4f9016ad866ccd91d8ea1300b7b62f17cd07454d8f0962","84b63f6e1ef952c66104655685029ade746355508ff67e4650387516c7a7a74d","70376cfbe76c82015086ae5fee828dabf12e9510901bb201cb63b22297efb83a","d9e5978611dda194236cf7bbe48036d0a03b7ba92b491407b7eff069f250aeb9","7bf9a5c160e6a662c8e969d46cd01cac85dc0be9d8a12b54e8ae3849e6c4301d","b946e4aa110b19358d0f5868737944834462b70d7be0a89aec81c18bd9bd21e2","2da218f80b08d140aa3b065c5437508e6d03b89762444a10b9f55d0dd722668c","1e971a1cb011f3933cf342f7ad186b2cd61072982f93f55e797172b6f3ad52af","9d1c55e7a9881806b829272d049aae22cfaa50c7b88232bbdf535ebff054f7e1","2d8c82f04f0969333c268cc5b11fc2e01409738c904c93a9b707d85cc8217a8a","834eaa4b7d8efc10715c6ad11d3a8fc2cf699c9827e87a0a10304bd629111a00","96eee9fd9f2fa555f44ea791aa32d30e2caa757083b5d9c86101a08db6d955c6","ed820179c84b2b86679dd51a65a246cf446a89d78cda736693d243cb6b63158c","2ab2702e8425cb09b450b48d836aab2554dcba85fc0708ad229c7268e910a5c9","e0287d45b300af4f2841862ec6d1703640d1925ea37137b73f9240fe7a159d83","3510c86d30642c23010a8a2132920cc8243539b67d577ac29fc103835daaac76","29c6a61f3026a6b4c743f71015370549e2fd59b8bbefaf3071af10df912439b2","579184032e34c733d7bf4c665ec7517e04208b1e9feae85d128e1068a73ca0c9","f73ed14607e948f2a4d58d42f57cf8d19d40371db26f5142303d057e26a6fcc4","fbc04c408f592759cbdef5d723052ff265d5b68a0d9ef887aa1e3fc3b5749018","ad09ca70a8c70fdb4356649652888516664a498d7c8bf08991c9ca46baea7907","2eb51cc85cdf3a9df8df6411f4aa3da3672ba58e9bbb813833150098b4f90bab","65a2efa19199c2dd4a5b36663c6c16d05d4bc3f9eaf8e5fe5793b3ee78c9c428","44f0b31a0e110d11fee6db8519164d060c8964f0f0bd9af7598f014667d12491","8ee8403e321fd86e8cfb2dc0e183c3fbd46356a7d4d763becbd5972fca2a6668","98b54b69874a43affafcfee65c3e31fa3348edf4682244ea77b5f45f6e07f895","788eef6589b8846a4c9bea78364663f1acbddeedc841b72fe8a0965b4aa239af","d19143047bace88e8f4de389939da75048618f6aee77bc2b07cb5fc3dd351c3f","d137bfa551924fa7a407c4649dc27373a0bcf9f4eb7abe2875ae16772b5ae553","77798451c58850ba1be48946bbacf4ebc71f99c3bbd9893cdb6c6da2e83004e0","88b8753c91c075af6f24abc6b97c02ae559ec80591d52c2467dbad8f0153bfdd","82f0c0ea2be4de59f71410976fcc3df36e6fa8b8b8516d7c9a2fcdfbb9f79753","19a3764aa26b6a19454273abb9e98579346f50322d0f67b46912e951df34ce07","d23399d80b4a62901f1c5b0b90c5642ad3cd367350d0bd147fa82b8f8a4227c6","94706559ba1f546d6553e4b3f748401beaa490810863e74ae9214c63b372ba83","e3904dc6ede7580421e41e5f59cd005f11dac6e7b8e30738ee22a7ce624cba49","ce4a26ad8e61e42e02de3f9ddacc0f07d910e2d065bfc935806e200bf4065605","c17df1dfd7ac68867e98f84cc2b63eff71e764a6ac8a5a09bb183dd06a102bf9","c48a4ed02e2b181ff3afc15aec2529e047accedeeccf6ebc693ccd911b3bf498","abf3645debdbcb1c4be8ef5a8f513710c343dc4145f86f0e314e8ce51086b102","922bde675d71b685d8a8265fc3acd369ef8b26fcbaf9993e9e2cdeb2986a5e54","331203c03d82a731978abeda21e4e6e823d1085b1c6e5ba3afb001a97bb33c62","e3511036232d39c78b0b502409ffc296172fa3dba4b992ea4601108333bb9595","60d2649bc1b4f64e2b66ce39ba1a73acc29277b2e981360e5321fe43450d95b6","b51bb889b62c2a94803d8ef0260b29d4c48101f69b47236ac52794cfb6bbb2d4","cf2ad68f02f60eb5048db667a85acd787cd5c5ad3826a7bd8cbc91437cefbf82","fc5df91e15af33983a96905aac8de697fe1d3ff9169a0e28c5ac7d1fcdb6825a","830dae5703d73f68b3f9c8ca17e7479368eec21de0304a523c77b6e84454ad35","e954c4845c22cfa662a4b8b981e6474ab688edc3523d8778cbebe6a115a13a4f","77f153ac584bf04527d10e32baa522666855c319366bf2686dd435d75112ab74","eb5308edbad60078c2385928c1a9d83ffe3233fc32d9e9eaf4f2603e0ee2139e","df356c64bf6e19eed966790abbc53aa158f40a3adfdbbec8ab55718b78b921dc","38aab563486cf2453d8493bcd2beb6537b1346764237b42e919b75baf1034515","043be467e4e80dfa4a974405148bb8009287182c2e5bfc0ab5b63875d64b37fc","e311405bb24783e3a51d1f27d7c003ba62932ca7706a0c7b9961428b20bd2152","842e6446c69f1a4fd8685099f45f30cd5217591e59a2282c91b26b547a74f56a","dff5a347c4b1273a9649f69c5020ca6fcd89371aaec95011e3b353e311934802","3fb6a3309a878bf5b1536d6103b269b157652c78a4601cc11d75a69b21c5d3f1","450c7230f425b015f7d24252be1198232e2117372085786d9043217f37beddf1","9e6f73e04197515fb9418dfb272e90c06ff0232c11d32e3202f68f346f057fab","dcd9480aaf70fe9d076665dc10d23387e48bd7c00066105033652134736111e0","b6bc57c13546ca8d2b611e89391a412eab0adc8a18cf082d2f249c8ff267ba2e","347d48051a1aee096afd4970edf94aa5d37b73ec3594bdfda3ae4da6e2f782ee","8f0bcb78a395de380a889e8a0e0b4e888a7ad59a34af55468a44f2ba5dc26603","75e28d53861bdf68a0e2934706113d0c61835135027fed136cb55aef70de64b0","e036f06bb8740eb2086de4d3a48d2f57a0aaa412a2720e3d5036796988c14023","86f47ec085c2b4ab7efbb7a53eda5291d9094d8116f5a1d966b6bb483d209b48","1862ac2b4983fb034a653ef901c823cd2c8383d9b2e5377b79662ab86a2dcd57","11eefb03cb34427172d5f4c22b58f30e107c63ba35afe772d0c5a7a71897d90e","3b0e2eddfa16f64920bf044303381fd37f3f14d4c371707fa83b53d835a589fc","f9a04309a8d443fa20807e349de4d13e77a5b0aefa1678aaf6fc95e2361b6dea"],"transactionHashRefs":[4,4,3,0,6,0,6,1,3,1,6,2,6,3,10,0,17,5,6,4,8,0,13,0,9,0,2,0,14,0,1,0,3,2,6,5,12,0,16,0,7,0,9,1,15,0,8,1,7,1,15,1,2,1,4,5,6,6,3,3,6,7,3,4,3,5,16,1,3,6,9,2,6,8,1,1,9,3,6,9,3,7,7,2,16,3,16,2,6,10,8,2,16,4,7,3,17,0,14,1,16,5,17,1,9,4,2,2,10,1,17,2,17,3,17,4,13,1,16,6,5,0,15,2,15,3,3,8,4,6,3,9,1,2,9,5,8,3,6,11,3,10,2,3,12,1,15,4,2,4,16,7,3,11,6,12,7,4,7,5,6,87,6,88,3,12,9,6,2,5,6,13,3,13,3,14,24,11,24,12,10,2,3,15,10,3,3,16,8,4,1,3,13,2,16,8,3,17,24,13,6,14,3,18,21,2,22,9,16,9,1,4,6,15,13,3,20,6,9,7,3,19,2,6,1,5,3,20,15,5,1,6,1,7,5,1,10,4,12,2,10,5,3,21,2,7,2,8,5,2,16,10,6,16,5,3,15,6,5,4,10,6,10,7,6,17,5,5,3,22,9,8,6,18,12,7,3,23,15,7,3,24,8,5,8,6,10,8,6,19,8,7,17,6,2,9,2,10,14,2,14,3,2,11,2,12,12,3,12,4,12,5,12,6,9,9,9,10,1,8,1,9,6,20,1,10,1,11,17,7,17,8,15,8,6,21,6,22,3,25,3,26,6,23,6,24,13,4,13,5,30,7,30,8,6,25,15,16,5,46,4,33,15,17,15,9,3,27,10,9,8,8,3,28,2,13,2,14,3,142,2,15,8,9,6,26,3,29,3,30,2,16,3,31,15,10,17,9,5,6,6,27,6,28,16,12,22,26,10,10,16,11,12,8,17,10,9,11,8,10,3,32,10,11,10,12,17,11,10,13,16,13,4,7,5,7,3,33,17,12,1,12,12,9,1,13,3,34,2,17,1,14,3,35,2,18,3,36,3,37,2,19,2,20,6,29,8,11,29,11,24,17,20,15,4,8,9,12,6,30,6,31,21,6,9,13,12,10,3,38,12,11,6,36,4,10,1,15,1,16,2,21,3,39,2,22,3,40,7,6,17,13,2,23,2,24,14,4,10,14,2,25,2,26,2,27,6,32,6,33,12,12,10,15,3,41,1,17,6,34,9,14,9,15,17,14,12,13,1,18,6,35,5,8,3,42,8,12,9,16,7,7,3,43,2,28,6,37,12,14,16,17,6,38,6,39,10,16,9,17,7,8,6,40,3,44,8,13,16,16,9,18,9,19,6,41,2,29,17,15,3,45,2,30,6,42,9,20,6,43,12,15,3,46,6,44,12,16,16,15,6,45,5,9,1,19,3,47,2,31,15,11,12,17,9,21,9,22,3,48,9,23,2,32,6,46,4,9,9,24,3,49,2,33,6,47,3,50,16,14,3,51,10,17,29,14,17,16,17,17,21,8,25,6,31,4,17,18,29,15,25,8,17,19,22,38,28,9,2,34,3,52,17,20,6,48,7,9,3,53,6,49,1,20,1,21,3,54,1,22,6,50,14,5,9,25,6,51,2,35,16,24,8,14,3,55,6,52,3,56,1,23,9,26,6,53,3,57,16,23,8,15,2,36,1,24,2,37,9,27,10,18,9,28,15,12,6,54,16,22,15,13,6,55,6,56,6,57,9,29,15,14,3,58,13,6,6,58,2,38,1,25,10,19,16,21,6,59,9,30,6,60,16,20,7,10,9,31,16,19,6,61,17,21,2,39,10,20,6,62,4,12,3,59,6,63,2,40,1,26,6,64,6,65,2,41,4,11,6,66,3,60,10,21,16,18,6,67,9,32,3,61,17,22,24,25,24,27,33,15,17,23,33,17,24,30,20,27,30,17,20,28,17,24,17,25,20,30,30,18,17,26,17,27,4,13,9,33,6,68,1,27,1,28,1,29,3,62,3,63,8,16,8,17,12,18,2,42,17,28,17,29,6,69,12,19,6,70,12,20,1,30,1,31,6,71,14,6,2,43,3,64,15,15,12,21,6,72,3,65,6,73,1,32,6,74,16,25,6,77,3,66,4,14,3,67,3,68,2,44,1,33,1,34,6,75,1,35,1,36,2,45,9,34,3,69,15,18,8,18,1,37,6,76,2,46,17,30,8,19,3,70,1,38,3,71,3,72,17,31,6,78,7,11,9,35,2,47,6,79,6,80,6,81,8,20,9,36,15,19,16,26,6,82,16,27,5,10,8,21,16,28,10,22,9,37,6,83,16,30,1,39,6,84,17,32,9,38,16,29,2,48,6,85,1,40,4,15,9,39,4,16,17,33,8,22,5,11,8,23,4,17,10,23,6,86,12,22,16,31,15,20,9,40,5,12,3,73,2,49,9,41,7,12,6,89,3,74,17,34,1,41,2,50,6,90,10,24,3,75,17,35,8,24,16,32,16,33,13,7,1,42,6,91,9,42,9,43,17,36,9,44,1,43,16,34,12,23,16,35,9,45,16,36,15,21,14,7,12,24,16,37,1,44,2,51,1,45,1,46,2,52,7,13,9,46,6,92,3,76,6,93,4,18,8,25,6,94,6,95,12,25,1,47,2,53,8,26,9,47,9,48,13,8,9,49,3,77,9,50,2,54,16,38,6,96,10,25,17,37,9,51,6,97,1,48,1,49,9,52,4,19,6,98,15,22,2,55,3,78,3,79,1,50,8,27,3,80,6,99,2,56,1,51,3,81,10,26,6,100,6,101,2,57,9,53,9,54,15,23,9,55,1,52,3,82,9,56,4,20,6,102,6,103,6,104,5,13,10,27,6,105,4,21,1,53,2,58,2,59,5,14,16,39,5,15,12,26,5,16,1,54,5,17,4,22,1,55,5,18,16,40,3,83,3,84,1,56,17,38,5,19,17,39,17,40,9,57,3,85,1,57,1,58,10,28,5,20,3,86,3,87,3,88,1,59,5,21,2,60,2,85,1,60,2,61,13,9,16,50,5,41,5,42,5,43,5,44,3,116,2,67,2,68,2,69,2,70,2,71,1,61,4,23,9,58,5,22,1,62,16,41,5,23,2,62,16,42,3,89,2,63,14,8,16,62,16,63,10,29,10,30,9,59,10,31,8,28,8,29,1,63,3,90,5,24,5,25,12,27,16,43,5,26,3,91,3,92,3,93,3,94,16,44,5,27,12,28,14,9,5,28,5,29,5,30,3,95,1,64,9,60,2,64,4,24,15,24,3,96,3,97,12,29,12,30,12,31,3,98,1,65,9,61,4,25,12,32,3,99,3,100,5,31,3,101,3,102,3,103,2,65,16,45,9,62,9,63,16,46,5,32,5,33,3,104,9,64,9,65,16,47,16,48,2,66,4,32,4,31,1,66,4,30,3,105,4,29,4,28,5,34,17,41,5,35,4,27,3,106,3,107,9,66,3,108,3,109,16,49,5,36,3,110,3,111,4,26,3,112,9,67,1,67,5,37,10,32,5,38,9,68,12,33,8,30,5,39,8,31,5,40,14,10,5,45,3,113,10,33,3,114,9,69,13,10,3,115,15,25,7,14,9,70,12,34,3,117,1,68,1,69,12,35,12,36,2,72,9,71,1,70,5,47,2,73,17,42,3,118,3,119,5,48,12,37,8,32,5,49,7,15,3,120,5,50,10,34,17,43,3,121,1,71,13,11,1,72,2,74,9,72,1,73,5,108,3,122,7,16,3,123,5,51,2,75,9,73,3,124,2,76,15,26,16,51,16,52,16,53,17,44,15,27,9,74,5,52,15,28,8,33,3,125,3,126,12,38,16,54,1,74,5,53,12,39,1,75,16,55,2,77,7,17,2,78,5,54,12,40,9,75,3,127,3,128,9,76,8,34,5,55,5,56,3,129,3,130,2,79,1,76,5,57,1,77,1,78,5,58,5,59,5,60,1,79,1,80,17,45,17,46,17,47,17,48,3,131,3,132,3,133,10,35,10,36,9,77,13,12,3,134,3,135,3,136,33,41,33,42,5,61,5,62,2,80,2,81,1,81,1,82,3,137,3,138,15,29,15,30,17,49,17,50,5,63,5,64,2,82,2,83,21,22,21,23,12,41,15,31,15,32,12,42,14,11,9,78,5,65,9,79,5,66,3,139,9,80,9,81,1,83,10,37,1,84,7,18,3,140,5,67,1,85,3,141,2,84,5,68,14,12,5,69,8,35,9,82,9,83,7,19,16,56,2,86,1,86,7,20,2,87,5,70,5,71,3,143,5,72,15,33,10,38,5,73,5,74,5,75,1,87,3,144,5,76,1,88,2,88,17,51,3,145,8,36,5,77,5,78,2,89,9,84,9,85,5,79,12,43,3,146,10,39,12,44,5,80,3,147,5,81,2,90,5,82,1,89,12,45,16,57,15,40,9,91,5,84,2,91,16,58,9,86,9,90,15,43,5,83,17,52,2,92,5,85,9,87,9,88,5,86,15,34,5,87,2,93,14,13,5,88,8,37,9,89,5,89,2,94,8,38,5,90,2,95,5,91,5,92,2,96,2,97,9,95,2,98,16,59,15,35,2,99,5,93,1,90,2,100,16,60,16,61,1,91,16,64,2,101,2,102,5,94,1,92,1,93,5,95,9,92,2,103,15,36,9,93,15,37,9,94,5,96,1,94,7,21,5,97,15,38,15,39,5,98,5,99,2,104,2,105,1,95,2,106,5,100,5,101,5,102,15,41,1,96,1,97,2,107,15,42,17,53,1,98,2,108,8,39,2,109,1,99,1,100,15,44,2,110,2,111,8,40,2,112,15,45,2,113,9,96,5,103,12,46,10,40,2,114,5,104,2,115,15,46,9,97,2,116,2,117,2,118,2,119,1,101,9,98,1,102,17,54,5,105,5,106,9,99,2,120,2,121,15,47,1,103,1,104,8,41,15,48,5,107,2,122,2,123,9,100,9,101,2,124,2,125,15,49,2,126,2,127,2,128,1,105,2,129,9,102,5,109,15,50,2,130,17,55,17,56,5,110,5,111,9,103,12,47,15,51,15,52,12,48,17,57,2,131,5,112,5,113,2,132,2,133,2,134,2,135,2,136,2,137,15,53,5,114,15,54,9,104,1,106,1,107,1,108,1,109,10,41,9,105,15,55,15,56,5,115,7,22,9,106,15,57,1,110,1,111,1,112,15,58,5,116,15,59,1,113,15,60,15,61,17,58,17,59,17,60,5,117,15,62,1,114,5,118,12,49,10,42,5,119,1,115,9,107,15,63,5,120,1,116,5,121,5,122,1,117,1,118,1,119,21,50,21,51,1,120,1,121,20,86,20,87,5,123,5,124,1,122,1,123,14,14,1,124,1,125,9,108,15,64,1,126,1,127,1,128,1,129,1,130,7,25,1,131,7,23,1,132,17,61,1,133,1,134,1,135,9,109,20,95,20,96,20,97,15,65,15,66,14,15,1,136,0,0,0,1,7,24,13,13,9,110,14,16,12,50,0,2,0,3,0,4,0,5,0,6,0,7,0,8,12,51,12,52,9,111,8,42,8,43,8,44,0,9,15,67,15,68,15,69,15,70,15,71,15,72,15,73,15,74,15,75,15,76,15,77,15,78,15,79,15,80,15,81,15,82,15,83,15,84,14,17,14,18,14,19,14,20,14,21,14,22,14,23,14,24,0,10,0,11,0,12,0,13,10,43,0,14,8,45,0,15,14,25,14,26,8,46,0,16,14,27,0,17,0,18,10,44,8,47,10,45,7,26,0,19,0,20,14,28,14,29,0,21,0,22,0,23,0,24,0,25,0,26,0,27,12,53,12,54,14,30,24,117,24,118,0,28,0,29,0,30,12,55,12,56,12,57,12,58,17,62,0,31,0,32,0,33,13,14,0,34,14,31,10,46,0,35,0,36,0,37,0,38,13,15,12,59,8,48,0,39,0,40,0,41,8,49,0,42,8,50,0,43,12,60,10,47,14,32,8,51,8,52,17,63,17,64,17,65,17,66,51,63,51,64,51,65,51,66,0,44,0,45,0,46,0,47,0,48,0,49,0,50,17,67,17,68,0,51,0,52,13,16,0,53,12,61,12,62,0,54,0,55,14,33,0,56,0,57,17,69,17,70,17,71,17,72,17,73,17,74,0,58,8,53,12,63,0,59,0,60,0,61,0,62,0,63,0,64,0,65,8,54,14,34,14,35,0,66,0,67,17,75,17,76,17,77,8,55,0,68,14,36,0,69,0,70,8,56,10,48,8,57,8,58,17,78,17,79,12,64,0,71,13,17,13,18,13,19,14,37,0,72,10,49,13,20,60,83,60,84,60,85,60,86,0,73,8,59,0,74,0,75,0,76,14,38,0,77,0,78,0,79,0,80,17,81,17,82,17,83,0,81,8,60,10,50,0,82,0,83,0,84,0,85,17,84,14,39,14,40,14,41,14,42,14,43,14,44,14,45,17,85,17,86,13,21,0,86,0,87,0,88,0,89],"farShareHash":"00000000000001b56e0c5cfddd593e691e63deaf95a9d84498b6bcdd535baf82","maxBits":437049439,"bits":436262590,"timestamp":1494304171,"absheight":3999885,"abswork":"000000000000236b5ddbb1a5d4e03e00"},"hashLink":{"state":"c4559d1fe10e5c5751522e12c5845ed6c4cf5a19d72d78b1852074e53c43a11a","length":4671,"extra":""},"merkleLink":["1d279b918e362d8aa24353b3cc9c30adbccf2f2c94e69113efad8b3111cfe388","934a4f66bcc6bd918170d285ba3ddfc240beb13704e21aca9986f76d9bda6704","c47eecd18107eaeacf1f571d03f08c835c0e932666b8d1dd1f132114597219d9","f7e6cc0a573c7d48f55c6d3bdcd492e1fec9e1e2731817dc6e87c680c16b0229","80993d6461f6d491b70a58959181626c0ae620292f38082eefa9c374dcbca44a","f5e90e8419b6902d0a62aeed3284ddb9fc1a7511e7bbc0d3f9da910e9b26e32d","57c116339a934391c59a2a7988d4e32b0055b8425eab2f0167e1853ccd4275e7","81bee7111e96079dc434d31711fd87788c7cdf6baa40032e38f03c6ca1391c09","13bf5e00f84e3f9406babbfbbfd3b1c1a4bff3c18a7ec9c061ae5cc0e26f4217","0e5b3b14ed4388dcaa84e0541c4a327a3386089160f6a48481ff16e45f5b8f3a","067db6b3d03e2961e21581a4ca023e593191b39f0bfb09bcc435bb82bf3c7969"],"refMerkleLink":[],"lastTxoutNonce":"c0ee6700000001","newScript":"76a9149acc71726db0c84ad8bf9886dadeebd0a7db6e7588ac","target":1.347958557816982e+60,"gentxHash":"01618bb2ac69093f4f3e4d364c37281388faa3934a45a7eae4f990e15003ab72","hash":"00000000000000b96690bf4f16a7845483be228848a1a2546492c8251a73d2ba"}
@@ -17610,7 +17611,7 @@ const rpc = JSON.parse(`{
   "curtime": 1494897211,
   "bits": "1801f6a7",
   "height": 466617
-}`);
+}`) as GetBlockTemplate;
 
 fs.writeFileSync(path.resolve(__dirname, 'shares_' + SharechainHelper.today.toString()), data, 'utf8');
 
@@ -17618,125 +17619,125 @@ SharechainHelper.appDir = __dirname;
 SharechainHelper.dataDir = __dirname;
 
 function testShares() {
-    BaseShare.IDENTIFIER = Bitcoin.IDENTIFIER;
-    BaseShare.POWFUNC = Utils.sha256d;
-    BaseShare.MAX_TARGET = Bitcoin.MAX_TARGET;
+  BaseShare.IDENTIFIER = Bitcoin.IDENTIFIER;
+  BaseShare.POWFUNC = Utils.sha256d;
+  BaseShare.MAX_TARGET = Bitcoin.MAX_TARGET;
 
-    ShareGenerator.MAX_TARGET = Bitcoin.MAX_TARGET;
-    ShareGenerator.MIN_TARGET = Bitcoin.MIN_TARGET;
-    ShareGenerator.TARGET_LOOKBEHIND = Bitcoin.TARGET_LOOKBEHIND;
-    ShareGenerator.PERIOD = Bitcoin.SHARE_PERIOD;
-    ShareGenerator.BLOCKSPREAD = Bitcoin.SPREAD;
-    // let str = BufferWriter.writeVarString('6a28' + '0000000000000000000000000000000000000000000000000000000000000000' + '0000000000000000', 'hex');
+  ShareGenerator.MAX_TARGET = Bitcoin.MAX_TARGET;
+  ShareGenerator.MIN_TARGET = Bitcoin.MIN_TARGET;
+  ShareGenerator.TARGET_LOOKBEHIND = Bitcoin.TARGET_LOOKBEHIND;
+  ShareGenerator.PERIOD = Bitcoin.SHARE_PERIOD;
+  ShareGenerator.BLOCKSPREAD = Bitcoin.SPREAD;
+  // let str = BufferWriter.writeVarString('6a28' + '0000000000000000000000000000000000000000000000000000000000000000' + '0000000000000000', 'hex');
 
-    // let array = str.take(3).toArray();
-    // let array2 = str.slice(0, 3);
-    // let s = Shares.fromBuffer(Buffer.from(shares, 'hex'));
-    // let hs = s.toBuffer().toString('hex');
-    // assert.equal(hs, shares);
-    // console.log(hs == shares);
-    // let binary = Buffer.from(raw4, 'hex');
+  // let array = str.take(3).toArray();
+  // let array2 = str.slice(0, 3);
+  // let s = Shares.fromBuffer(Buffer.from(shares, 'hex'));
+  // let hs = s.toBuffer().toString('hex');
+  // assert.equal(hs, shares);
+  // console.log(hs == shares);
+  // let binary = Buffer.from(raw4, 'hex');
 
-    // let shares = Shares.fromBuffer(binary);
-    // let share = shares.shares.first().contents;
+  // let shares = Shares.fromBuffer(binary);
+  // let share = shares.shares.first().contents;
 
-    // winston.log('info', Bignum.fromBuffer(Utils.uint256BufferFromHash(share.hash)));
+  // winston.log('info', Bignum.fromBuffer(Utils.uint256BufferFromHash(share.hash)));
 
-    // winston.info(Bignum.fromBuffer(Buffer.from('0000000000000079fff9faf2e28f1a87bc8818599acdfc129d5691b75799829f', 'hex')).toNumber());
-    // let peer = new Peer({ port: 11223 });
-    // peer.handleShares(new Node(), shares.shares);
-    // fs.writeFileSync('/tmp/bad_shares', binary);
+  // winston.info(Bignum.fromBuffer(Buffer.from('0000000000000079fff9faf2e28f1a87bc8818599acdfc129d5691b75799829f', 'hex')).toNumber());
+  // let peer = new Peer({ port: 11223 });
+  // peer.handleShares(new Node(), shares.shares);
+  // fs.writeFileSync('/tmp/bad_shares', binary);
 
-    // let targetGbt = new Bignum('000000000000000001f6a7000000000000000000000000000000000000000000', 16);
+  // let targetGbt = new Bignum('000000000000000001f6a7000000000000000000000000000000000000000000', 16);
 
-    // return console.log(targetGbt, targetToBits(targetGbt).toString(16));
+  // return console.log(targetGbt, targetToBits(targetGbt).toString(16));
 
-    let script = Utils.addressToScript('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9').toString('hex');
-    console.log(script);
-    script = Utils.addressToScript('1J3nHXrL3XUixCUdWzs9VfE1EQCfsh8WYS').toString('hex');
-    console.log(script);
-    let ascpecialpubkey = Utils.addressToPubkey('1J3nHXrL3XUixCUdWzs9VfE1EQCfsh8WYS');
-    console.log(Utils.pubkeyToAddress(Utils.scriptToPubkey(Buffer.from('76a91463defa7682e7da328523148fc0c9db061fb2e08088ac', 'hex')).toString('hex')));
-    // console.log(Utils.pubkeyToAddress('f54e8b762ff17c06a71f2a523dbe51238d523cfd'));
-    // console.log(Utils.pubkeyToAddress('acb511a1c36234192b6f9b22a0e18bdcb82289f0'));
-    // console.log(Utils.pubkeyToAddress('038bcb403710baf971c9b6a73ffd0623c2ba099b'));
+  let script = Utils.addressToScript('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9').toString('hex');
+  console.log(script);
+  script = Utils.addressToScript('1J3nHXrL3XUixCUdWzs9VfE1EQCfsh8WYS').toString('hex');
+  console.log(script);
+  let ascpecialpubkey = Utils.addressToPubkey('1J3nHXrL3XUixCUdWzs9VfE1EQCfsh8WYS');
+  console.log(Utils.pubkeyToAddress(Utils.scriptToPubkey(Buffer.from('76a91463defa7682e7da328523148fc0c9db061fb2e08088ac', 'hex')).toString('hex')));
+  // console.log(Utils.pubkeyToAddress('f54e8b762ff17c06a71f2a523dbe51238d523cfd'));
+  // console.log(Utils.pubkeyToAddress('acb511a1c36234192b6f9b22a0e18bdcb82289f0'));
+  // console.log(Utils.pubkeyToAddress('038bcb403710baf971c9b6a73ffd0623c2ba099b'));
 
-    // '010966776006953D5567439E5E39F86A0D273BEE';
-    // let addr = Utils.pubkeyToAddress('03db74c9b92b09cd46c131f97d869150c17e138d');
-    // console.log(addr);
-    // console.log(Utils.addressToPubkey(addr).toString('hex') === '03db74c9b92b09cd46c131f97d869150c17e138d')
-    // return;
-
-
-    let bits = Bignum.fromBuffer(Buffer.from('1801f6a7', 'hex')).toNumber();
-    let targetbignum = bitsToTarget(bits);
-    let targetnumber = (bits & 0x00ffffff) * Math.pow(2, 8 * ((bits >> 24) - 3));
-    let bits2 = targetToBits(targetbignum);
-
-    let target = bitsToTarget(0x20012e00);
-    let bits3 = targetToBits(target);
-    SharechainHelper.init('bitcoin');
-
-    let chain = Sharechain.Instance;
-    // chain.onGapsFound((s, gs) => console.log(gs));
-    SharechainHelper.loadSharesAsync().then(shares => {
-        if (shares.length === 0) return;
-        console.log('aspecial count', shares.count(s => s.pubkeyScript.sequenceEqual(Buffer.from('76a91463defa7682e7da328523148fc0c9db061fb2e08088ac', 'hex'))));
-
-        console.log(shares.length);
-        chain.add(shares);
-        chain.verify();
-        let gaps = chain.checkGaps();
-        console.log(gaps);
-
-        console.log('max hashrefs', shares.max(s => s.info.transactionHashRefs.length).info.transactionHashRefs.length);
+  // '010966776006953D5567439E5E39F86A0D273BEE';
+  // let addr = Utils.pubkeyToAddress('03db74c9b92b09cd46c131f97d869150c17e138d');
+  // console.log(addr);
+  // console.log(Utils.addressToPubkey(addr).toString('hex') === '03db74c9b92b09cd46c131f97d869150c17e138d')
+  // return;
 
 
-        let absheight = chain.get('0000000000000000002b7b2cbedc39692ad7608acd0d1c518399bf059e74432c').info.absheight;// chain.newest.value.info.absheight - 700;
-        let targetShare = chain.get(absheight);
-        let farShareHash = targetShare.info.farShareHash;
-        console.log('absheight', absheight, chain.get(farShareHash).info.absheight);
+  let bits = Bignum.fromBuffer(Buffer.from('1801f6a7', 'hex')).toNumber();
+  let targetbignum = bitsToTarget(bits);
+  let targetnumber = (bits & 0x00ffffff) * Math.pow(2, 8 * ((bits >> 24) - 3));
+  let bits2 = targetToBits(targetbignum);
 
-        // chain.newest.set(chain.get(chain.newest.value.info.absheight - 1));
-        // console.log('target share', targetShare);
+  let target = bitsToTarget(0x20012e00);
+  let bits3 = targetToBits(target);
+  SharechainHelper.init('bitcoin');
 
-        console.log('target', targetShare.info.maxBits);
-        console.log('far', chain.get(farShareHash).info.maxBits)
+  let chain = Sharechain.Instance;
+  // chain.onGapsFound((s, gs) => console.log(gs));
+  SharechainHelper.loadSharesAsync().then(shares => {
+    if (shares.length === 0) return;
+    console.log('aspecial count', shares.count(s => s.pubkeyScript.sequenceEqual(Buffer.from('76a91463defa7682e7da328523148fc0c9db061fb2e08088ac', 'hex'))));
 
-        let begin = Date.now();
-        let g = new ShareGenerator('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9');
+    console.log(shares.length);
+    chain.add(shares);
+    chain.verify();
+    let gaps = chain.checkGaps();
+    console.log(gaps);
 
-        let desiredTxHashes = new Array<string>();
-        for (let { shareCount, txCount } of targetShare.info.extractTxHashRefs()) {
-            // chain.get(targetShare.hash, shareCount, 'backward')
-            let parentHeight = targetShare.info.absheight - shareCount;
-            let parent = chain.get(parentHeight);
-            let txHash = parent.info.newTransactionHashes[txCount];
-            desiredTxHashes.push(txHash);
-        }
-        console.log(desiredTxHashes.length, ',', targetShare.info.transactionHashRefs.length);
-        console.log(targetShare.info.extractTxHashRefs().length);
-        // console.log(targetShare.info.extractTxHashRefs().where(i => i.shareCount === 0).toArray());
-        // targetShare.info.extractTxHashRefs().select(ref => {
+    console.log('max hashrefs', shares.max(s => s.info.transactionHashRefs.length).info.transactionHashRefs.length);
 
-        // });
-        let preShare = chain.get(absheight - 1);
-        // g.generateTx(null, targetShare.info.data.previousShareHash, targetShare.target, txHashes);
-        g.generateNextShare(rpc, preShare.info.data.previousShareHash, targetShare.target, desiredTxHashes);
-        console.log(`${Date.now() - begin}ms`);
-    });
-    // console.log(chain.length);
-    // // let gaps = chain.checkGaps();
-    // // console.log(gaps);
-    // console.log(chain.verify());
 
-    // readline.createInterface({
-    //     input: fs.createReadStream('/Users/unsignedint8/.js2pool/data/bitcoin/shares_17296', { encoding: 'utf8' })
-    // }).on('line', line => { console.log(line) });
+    let absheight = chain.get('0000000000000000002b7b2cbedc39692ad7608acd0d1c518399bf059e74432c').info.absheight;// chain.newest.value.info.absheight - 700;
+    let targetShare = chain.get(absheight);
+    let farShareHash = targetShare.info.farShareHash;
+    console.log('absheight', absheight, chain.get(farShareHash).info.absheight);
 
-    let s = MathEx.shuffle([1, 2, 3, 4, 5, 6, 7]);
-    console.log(s);
-    // process.stdin.resume();
+    // chain.newest.set(chain.get(chain.newest.value.info.absheight - 1));
+    // console.log('target share', targetShare);
+
+    console.log('target', targetShare.info.maxBits);
+    console.log('far', chain.get(farShareHash).info.maxBits)
+
+    let begin = Date.now();
+    let g = new ShareGenerator('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9');
+
+    let desiredTxHashes = new Array<string>();
+    for (let { shareCount, txCount } of targetShare.info.extractTxHashRefs()) {
+      // chain.get(targetShare.hash, shareCount, 'backward')
+      let parentHeight = targetShare.info.absheight - shareCount;
+      let parent = chain.get(parentHeight);
+      let txHash = parent.info.newTransactionHashes[txCount];
+      desiredTxHashes.push(txHash);
+    }
+    console.log(desiredTxHashes.length, ',', targetShare.info.transactionHashRefs.length);
+    console.log(targetShare.info.extractTxHashRefs().length);
+    // console.log(targetShare.info.extractTxHashRefs().where(i => i.shareCount === 0).toArray());
+    // targetShare.info.extractTxHashRefs().select(ref => {
+
+    // });
+    let preShare = chain.get(absheight - 1);
+    // g.generateTx(null, targetShare.info.data.previousShareHash, targetShare.target, txHashes);
+    g.generateNextTask(rpc, preShare.info.data.previousShareHash, targetShare.target, rpc.transactions.map(tx => tx.txid), rpc.transactions.toMap(tx => tx.txid, tx => tx));
+    console.log(`${Date.now() - begin}ms`);
+  });
+  // console.log(chain.length);
+  // // let gaps = chain.checkGaps();
+  // // console.log(gaps);
+  // console.log(chain.verify());
+
+  // readline.createInterface({
+  //     input: fs.createReadStream('/Users/unsignedint8/.js2pool/data/bitcoin/shares_17296', { encoding: 'utf8' })
+  // }).on('line', line => { console.log(line) });
+
+  let s = MathEx.shuffle([1, 2, 3, 4, 5, 6, 7]);
+  console.log(s);
+  // process.stdin.resume();
 }
 
 testShares();

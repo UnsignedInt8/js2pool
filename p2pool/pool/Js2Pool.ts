@@ -54,7 +54,7 @@ export class Js2Pool {
         if (!newestShare.hasValue() || !this.sharechain.calculatable) return;
 
         let knownTxs = template.transactions.toMap(item => item.txid || item.hash, item => item);
-        this.generator.generateNextShare(template, newestShare.value.hash, new Bignum(0), Array.from(knownTxs.keys()), knownTxs);
+        this.generator.generateNextTask(template, newestShare.value.hash, new Bignum(0), Array.from(knownTxs.keys()), knownTxs);
     }
 
     private async onBlockNotified(sender: DaemonWatcher, hash: string) {
