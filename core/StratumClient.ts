@@ -45,6 +45,7 @@ export default class StratumClient extends Event {
     extraNonce1Size: number;
     extraNonce1: string;
     banThreshold = 20;
+    tag: string;
 
     private socket: Socket;
     private keepAliveTimer: NodeJS.Timer;

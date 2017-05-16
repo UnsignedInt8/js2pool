@@ -9,24 +9,36 @@ import * as Bignum from 'bignum';
 import * as kinq from 'kinq';
 import Sharechain from "../chain/Sharechain";
 import { SharechainHelper } from "../chain/SharechainHelper";
-import { ShareGenerator } from "../chain/ShareGenerator";
+import { ShareBuilder } from "../chain/ShareGenerator";
+import * as net from 'net';
+import { Socket } from "net";
+import * as crypto from 'crypto';
+import StratumClient from "../../core/StratumClient";
+import { IWorkerManager } from "./IWorkerManager";
 
 export type Js2PoolOptions = {
     daemon: DaemonOptions,
-    server: PeerOptions,
+    peer: PeerOptions,
+    stratum: StratumOptions,
 
     bootstrapPeers: { host: string, port: number }[],
+}
+
+export type StratumOptions = {
+    port: number;
 }
 
 export class Js2Pool {
 
     private daemonWatcher: DaemonWatcher;
-    private generator = new ShareGenerator('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9');
+    private builder = new ShareBuilder('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9');
     private readonly blocks = new Array<string>();
-    private sharechain = Sharechain.Instance;
+    private readonly clients = new Map<string, StratumClient>();
+    private readonly sharechain = Sharechain.Instance;
+    private readonly workerManager: IWorkerManager;
     peer: Peer;
 
-    constructor(opts: Js2PoolOptions) {
+    constructor(opts: Js2PoolOptions, manager: IWorkerManager) {
         this.sharechain.onNewestChanged(this.onNewestShareChanged.bind(this));
         this.sharechain.onCandidateArrived(this.onNewestShareChanged.bind(this));
 
@@ -35,8 +47,14 @@ export class Js2Pool {
         this.daemonWatcher.onBlockNotified(this.onBlockNotified.bind(this));
         this.daemonWatcher.beginWatching();
 
-        this.peer = new Peer(opts.server);
+        this.peer = new Peer(opts.peer);
         this.peer.initPeersAsync(opts.bootstrapPeers);
+
+        let stratumServer = net.createServer(this.onStratumClientConnected.bind(this));
+        stratumServer.on('error', (error) => logger.error(error.message));
+        stratumServer.listen(opts.stratum.port);
+
+        this.workerManager = manager;
     }
 
     private onNewestShareChanged(sender: Sharechain, share: BaseShare) {
@@ -54,7 +72,7 @@ export class Js2Pool {
         if (!newestShare.hasValue() || !this.sharechain.calculatable) return;
 
         let knownTxs = template.transactions.toMap(item => item.txid || item.hash, item => item);
-        this.generator.buildTask(template, newestShare.value.hash, new Bignum(0), Array.from(knownTxs.keys()), knownTxs);
+        this.builder.buildTask(template, newestShare.value.hash, new Bignum(0), Array.from(knownTxs.keys()), knownTxs);
     }
 
     private async onBlockNotified(sender: DaemonWatcher, hash: string) {
@@ -70,5 +88,54 @@ export class Js2Pool {
 
         this.peer.removeDeprecatedTxs(block.tx);
         logger.info('clean deprecated txs: ', block.tx.length);
+    }
+
+    private onStratumClientConnected(socket: Socket) {
+        let me = this;
+        let client = new StratumClient(socket, 0);
+        client.tag = crypto.randomBytes(8).toString('hex');
+
+        client.onSubscribe((sender, msg) => sender.sendSubscription(msg.id, ShareBuilder.COINBASE_NONCE_LENGTH));
+        client.onEnd(sender => me.clients.delete(sender.tag));
+        client.onKeepingAliveTimeout(sender => sender.sendPing());
+        client.onTaskTimeout(sender => { });
+
+        client.onAuthorize(async (sender, username, password, raw) => {
+            let { authorized, initDifficulty } = await me.workerManager.authorizeAsync(username, password);
+            sender.sendAuthorization(raw.id, authorized);
+            if (!authorized) return;
+            sender.sendDifficulty(initDifficulty);
+            if (me.currentTask) sender.sendTask(me.currentTask.stratumParams);
+        });
+
+        client.onSubmit((sender, result, message) => {
+            if (result.taskId != me.currentTask.taskId) {
+                let msg = { miner: result.miner, taskId: result.taskId };
+                me.broadcastInvalidShare(msg);
+                client.sendSubmissionResult(message.id, false, null);
+                return;
+            }
+
+            let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
+            if (!share || share.shareDiff < sender.difficulty) {
+                let msg = { miner: result.miner, taskId: result.taskId, };
+                me.broadcastInvalidShare(msg);
+                client.sendSubmissionResult(message.id, false, null);
+                client.touchBad();
+                return;
+            }
+
+            let shareMessage = { miner: result.miner, hash: share.shareHash, diff: share.shareDiff, expectedDiff: sender.difficulty, timestamp: share.timestamp };
+
+            if (share.shareHex) {
+                me.fastSubmitter.submitBlockAsync(share.shareHex);
+                me.broadcastBlock(shareMessage);
+            }
+
+            client.sendSubmissionResult(message.id, true, null);
+            me.broadcastShare(shareMessage);
+        });
+
+        me.clients.set(client.extraNonce1, client);
     }
 }

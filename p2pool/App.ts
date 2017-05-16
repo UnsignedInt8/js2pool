@@ -11,12 +11,14 @@ import { Message } from "./p2p/Message";
 import { SharechainHelper } from "./chain/SharechainHelper";
 import Sharechain from "./chain/Sharechain";
 import logger from '../misc/Logger';
-import { ShareGenerator } from "./chain/ShareGenerator";
+import { ShareBuilder } from "./chain/ShareGenerator";
+import { StratumOptions } from "./pool/Js2Pool";
 
 export type AppOptions = {
     coin: { name: string, },
     daemon: DaemonOptions,
-    server: PeerOptions,
+    peer: PeerOptions,
+    stratum: StratumOptions,
     bootstrapPeers: { host: string, port: number }[],
 }
 
@@ -29,14 +31,14 @@ export class App {
         if (!coin) throw Error(`${opts.coin.name} not be supported`);
 
         BaseShare.MAX_TARGET = coin.MAX_TARGET;
-        ShareGenerator.MIN_TARGET = Bitcoin.MIN_TARGET;
+        ShareBuilder.MIN_TARGET = Bitcoin.MIN_TARGET;
         BaseShare.IDENTIFIER = coin.IDENTIFIER;
         BaseShare.SEGWIT_ACTIVATION_VERSION = coin.SEGWIT_ACTIVATION_VERSION;
         BaseShare.POWFUNC = coin.POWFUNC;
         Message.MAGIC = coin.MSGPREFIX;
-        ShareGenerator.MAX_TARGET = Bitcoin.MAX_TARGET;
-        ShareGenerator.TARGET_LOOKBEHIND = Bitcoin.TARGET_LOOKBEHIND;
-        ShareGenerator.PERIOD = Bitcoin.SHARE_PERIOD;
+        ShareBuilder.MAX_TARGET = Bitcoin.MAX_TARGET;
+        ShareBuilder.TARGET_LOOKBEHIND = Bitcoin.TARGET_LOOKBEHIND;
+        ShareBuilder.PERIOD = Bitcoin.SHARE_PERIOD;
 
         logger.info('|-------------- BOOTING JS2POOL --------------|');
         logger.info('|                                             |');

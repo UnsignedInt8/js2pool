@@ -31,8 +31,11 @@ const opts = {
         password: 'testpass',
         username: 'testuser',
     },
-    server: {
+    peer: {
         port: 19990,
+    },
+    stratum: {
+        port: 23456
     },
     bootstrapPeers: [{
         host: 'localhost',
