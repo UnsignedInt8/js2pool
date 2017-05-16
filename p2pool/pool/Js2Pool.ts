@@ -3,7 +3,7 @@ import { DaemonWatcher, DaemonOptions, GetBlockTemplate } from "../../core/Daemo
 import { Peer, PeerOptions } from "../p2p/Peer";
 import Bitcoin from '../coins/Bitcoin';
 import { BaseShare } from "../p2p/shares/index";
-import { Algos } from "../../core/Algos";
+import * as Algos from "../../core/Algos";
 import logger from '../../misc/Logger';
 import * as Bignum from 'bignum';
 import * as kinq from 'kinq';
@@ -35,17 +35,17 @@ type Task = {
     coinbaseTx: { part1: Buffer, part2: Buffer },
     stratumParams: (string | boolean | string[])[],
     taskId: string,
-    previousBlockHash: string,
     merkleLink: Buffer[],
     height: number,
     shareInfo: ShareInfo,
+    target: Bignum,
 }
 
 export class Js2Pool {
 
     private daemonWatcher: DaemonWatcher;
     private sharechainBuilder = new SharechainBuilder('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9');
-    private shareManager: SharesManager;
+    private sharesManager: SharesManager;
     private readonly blocks = new Array<string>();
     private readonly clients = new Map<string, StratumClient>();
     private readonly sharechain = Sharechain.Instance;
@@ -54,7 +54,7 @@ export class Js2Pool {
     peer: Peer;
 
     constructor(opts: Js2PoolOptions, manager: IWorkerManager) {
-        this.shareManager = new SharesManager(opts.algorithm);
+        this.sharesManager = new SharesManager(opts.algorithm);
 
         this.sharechain.onNewestChanged(this.onNewestShareChanged.bind(this));
         this.sharechain.onCandidateArrived(this.onNewestShareChanged.bind(this));
@@ -84,7 +84,7 @@ export class Js2Pool {
 
     private onMiningTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
         this.peer.updateMiningTemplate(template);
-        this.shareManager.updateGbt(template);
+        this.sharesManager.updateGbt(template);
 
         let newestShare = this.sharechain.newest;
         if (!newestShare.hasValue() || !this.sharechain.calculatable) return;
@@ -108,10 +108,10 @@ export class Js2Pool {
             coinbaseTx: { part1: tx1, part2: tx2 },
             height: template.height,
             merkleLink,
-            previousBlockHash: template.previousblockhash,
             taskId: stratumParams[0],
             stratumParams,
             shareInfo,
+            target: Algos.bitsToTarget(bits),
         };
     }
 
@@ -157,8 +157,17 @@ export class Js2Pool {
             }
 
             let { part1: tx1, part2: tx2 } = me.task.coinbaseTx;
-            me.shareManager.buildShare(tx1, tx2, me.task.merkleLink, result.nonce, '', result.extraNonce2, result.nTime);
+            let { shareTarget, shareHex, header } = me.sharesManager.buildShare(tx1, tx2, me.task.merkleLink, result.nonce, '', result.extraNonce2, result.nTime);
+            console.log('header', header);
+            if (!shareTarget) {
+                let msg = { miner: result.miner, taskId: result.taskId, };
+                client.sendSubmissionResult(message.id, false, null);
+                return;
+            }
 
+            if (shareTarget.le(this.task.target)) {
+
+            }
             // let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
             // if (!share || share.shareDiff < sender.difficulty) {
             //     let msg = { miner: result.miner, taskId: result.taskId, };

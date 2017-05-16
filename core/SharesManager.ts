@@ -66,17 +66,17 @@ export default class SharesManager {
 
         let coinbaseTxid = this.txHasher(coinbaseTx);
         let merkleRoot = Utils.reverseBuffer(merkleLink.aggregate<Buffer, Buffer>(coinbaseTxid, (prev, curr) => Utils.sha256d(Buffer.concat([prev, curr])))).toString('hex');
-        let header = this.buildHeader(nonce, nTime, merkleRoot);
-        let headerHashBuf = this.headerHasher(header);
+        let { buffer: headerBuf, header } = this.buildHeader(nonce, nTime, merkleRoot);
+        let headerHashBuf = this.headerHasher(headerBuf);
         let shareHash = Utils.reverseBuffer(headerHashBuf).toString('hex');
 
         let shareTarget = Bignum.fromBuffer(headerHashBuf, { endian: 'little', size: 32 });
-        
+
         let shareHex: string;
         if (this.blockTarget.ge(shareTarget)) {
             console.info('found block target: ', shareTarget);
             shareHex = Buffer.concat([
-                header,
+                headerBuf,
                 Utils.varIntBuffer(this.template.transactions.length + 1),
                 coinbaseTx,
                 Buffer.concat(this.template.transactions.map(tx => Buffer.from(tx.data, 'hex'))),
@@ -85,19 +85,29 @@ export default class SharesManager {
             ]).toString('hex');
         }
 
-        return { shareTarget, shareHex, shareHash, merkleRoot, timestamp: now };
+        return { shareTarget, shareHex, shareHash, merkleRoot, timestamp: now, header };
     }
 
     private buildHeader(nonce: string, nTime: string, merkleRoot: string) {
-        let header = Buffer.alloc(80);
+        let buffer = Buffer.alloc(80);
         let position = 0;
-        header.write(nonce, position, 4, 'hex');
-        header.write(this.template.bits, position += 4, 4, 'hex');
-        header.write(nTime, position += 4, 4, 'hex');
-        header.write(merkleRoot, position += 4, 32, 'hex');
-        header.write(this.template.previousblockhash, position += 32, 32, 'hex');
-        header.writeUInt32BE(this.template.version, position + 32);
-        header = Utils.reverseBuffer(header);
-        return header;
+        
+        buffer.write(nonce, position, 4, 'hex');
+        buffer.write(this.template.bits, position += 4, 4, 'hex');
+        buffer.write(nTime, position += 4, 4, 'hex');
+        buffer.write(merkleRoot, position += 4, 32, 'hex');
+        buffer.write(this.template.previousblockhash, position += 32, 32, 'hex');
+        buffer.writeUInt32BE(this.template.version, position + 32);
+        buffer = Utils.reverseBuffer(buffer);
+
+        let header = {
+            version: this.template.version,
+            previousBlockHash: this.template.previousblockhash,
+            timestamp: Number.parseInt(nTime, 16),
+            bits: Number.parseInt(this.template.bits, 16),
+            nonce: Number.parseInt(nonce, 16),
+        };
+
+        return { header, buffer };
     }
 }
