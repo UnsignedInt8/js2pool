@@ -107,7 +107,8 @@ export class ShareGenerator {
         ]);
 
         let shareInfo = new ShareInfo();
-        shareInfo.farShareHash = lastShare.info.absheight > 99 ? this.sharechain.get(lastShare.info.absheight - 99).hash : '0000000000000000000000000000000000000000000000000000000000000000';
+        let farShare = lastShare.info.absheight > 99 ? this.sharechain.get(lastShare.info.absheight - 99) : null;
+        shareInfo.farShareHash = farShare ? farShare.hash : '0000000000000000000000000000000000000000000000000000000000000000';
         shareInfo.maxBits = maxBits;
         shareInfo.bits = bits;
         shareInfo.timestamp = lastShare ? MathEx.clip(Date.now() / 1000 | 0, lastShare.info.timestamp + 1, lastShare.info.timestamp + 2 * ShareGenerator.PERIOD - 1) : Date.now() / 1000 | 0;
