@@ -9,7 +9,7 @@ import * as Bignum from 'bignum';
 import * as kinq from 'kinq';
 import Sharechain from "../chain/Sharechain";
 import { SharechainHelper } from "../chain/SharechainHelper";
-import { ShareBuilder } from "../chain/ShareBuilder";
+import { SharechainBuilder } from "../chain/ShareBuilder";
 import * as net from 'net';
 import { Socket } from "net";
 import * as crypto from 'crypto';
@@ -44,7 +44,7 @@ type Task = {
 export class Js2Pool {
 
     private daemonWatcher: DaemonWatcher;
-    private js2poolShareBuilder = new ShareBuilder('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9');
+    private sharechainBuilder = new SharechainBuilder('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9');
     private shareManager: SharesManager;
     private readonly blocks = new Array<string>();
     private readonly clients = new Map<string, StratumClient>();
@@ -90,7 +90,7 @@ export class Js2Pool {
         if (!newestShare.hasValue() || !this.sharechain.calculatable) return;
 
         let knownTxs = template.transactions.toMap(item => item.txid || item.hash, item => item);
-        let { bits, maxBits, merkleLink, shareInfo, tx1, tx2 } = this.js2poolShareBuilder.buildMiningComponents(template, newestShare.value.hash, new Bignum(0), Array.from(knownTxs.keys()), knownTxs);
+        let { bits, maxBits, merkleLink, shareInfo, tx1, tx2 } = this.sharechainBuilder.buildMiningComponents(template, newestShare.value.hash, new Bignum(0), Array.from(knownTxs.keys()), knownTxs);
 
         let stratumParams = [
             crypto.randomBytes(4).toString('hex'),
@@ -136,7 +136,7 @@ export class Js2Pool {
         client.tag = crypto.randomBytes(8).toString('hex');
         me.clients.set(client.tag, client);
 
-        client.onSubscribe((sender, msg) => sender.sendSubscription(msg.id, ShareBuilder.COINBASE_NONCE_LENGTH));
+        client.onSubscribe((sender, msg) => sender.sendSubscription(msg.id, SharechainBuilder.COINBASE_NONCE_LENGTH));
         client.onEnd(sender => me.clients.delete(sender.tag));
         client.onKeepingAliveTimeout(sender => sender.sendPing());
         client.onTaskTimeout(sender => { });
@@ -156,6 +156,8 @@ export class Js2Pool {
                 return;
             }
 
+            let { part1: tx1, part2: tx2 } = me.task.coinbaseTx;
+            me.shareManager.buildShare(tx1, tx2, me.task.merkleLink, result.nonce, '', result.extraNonce2, result.nTime);
 
             // let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
             // if (!share || share.shareDiff < sender.difficulty) {

@@ -20,7 +20,7 @@ import * as path from 'path';
 import Sharechain from "../p2pool/chain/Sharechain";
 import * as readline from 'readline';
 import { bitsToTarget, targetToBits, BaseTarget, targetToDifficulty } from "../core/Algos";
-import { ShareBuilder } from "../p2pool/chain/ShareBuilder";
+import { SharechainBuilder } from "../p2pool/chain/ShareBuilder";
 import { GetBlockTemplate } from "../core/DaemonWatcher";
 
 kinq.enable();
@@ -17623,11 +17623,11 @@ function testShares() {
   BaseShare.POWFUNC = Utils.sha256d;
   BaseShare.MAX_TARGET = Bitcoin.MAX_TARGET;
 
-  ShareBuilder.MAX_TARGET = Bitcoin.MAX_TARGET;
-  ShareBuilder.MIN_TARGET = Bitcoin.MIN_TARGET;
-  ShareBuilder.TARGET_LOOKBEHIND = Bitcoin.TARGET_LOOKBEHIND;
-  ShareBuilder.PERIOD = Bitcoin.SHARE_PERIOD;
-  ShareBuilder.BLOCKSPREAD = Bitcoin.SPREAD;
+  SharechainBuilder.MAX_TARGET = Bitcoin.MAX_TARGET;
+  SharechainBuilder.MIN_TARGET = Bitcoin.MIN_TARGET;
+  SharechainBuilder.TARGET_LOOKBEHIND = Bitcoin.TARGET_LOOKBEHIND;
+  SharechainBuilder.PERIOD = Bitcoin.SHARE_PERIOD;
+  SharechainBuilder.BLOCKSPREAD = Bitcoin.SPREAD;
   // let str = BufferWriter.writeVarString('6a28' + '0000000000000000000000000000000000000000000000000000000000000000' + '0000000000000000', 'hex');
 
   // let array = str.take(3).toArray();
@@ -17705,7 +17705,7 @@ function testShares() {
     console.log('far', chain.get(farShareHash).info.maxBits)
 
     let begin = Date.now();
-    let g = new ShareBuilder('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9');
+    let g = new SharechainBuilder('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9');
 
     let desiredTxHashes = new Array<string>();
     for (let { shareCount, txCount } of targetShare.info.extractTxHashRefs()) {

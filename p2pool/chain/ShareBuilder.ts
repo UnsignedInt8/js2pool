@@ -21,7 +21,7 @@ import { ShareVersionMapper, DONATION_SCRIPT_BUF, GENTX_BEFORE_REFHASH } from ".
 import { HashLink } from "../p2p/shares/HashLink";
 import MerkleTree from "../../core/MerkleTree";
 
-export class ShareBuilder {
+export class SharechainBuilder {
 
     static MAX_TARGET: Bignum;
     static MIN_TARGET: Bignum;
@@ -40,13 +40,13 @@ export class ShareBuilder {
     private estimateBits(fromShare: BaseShare, desiredTarget: Bignum) {
         let preTarget: Bignum, preTarget2: Bignum, preTarget3: Bignum;
 
-        if (!fromShare || fromShare.info.absheight < ShareBuilder.TARGET_LOOKBEHIND) {
-            preTarget3 = ShareBuilder.MAX_TARGET;
+        if (!fromShare || fromShare.info.absheight < SharechainBuilder.TARGET_LOOKBEHIND) {
+            preTarget3 = SharechainBuilder.MAX_TARGET;
         } else {
-            let attemptsPerSecond = SharechainHelper.calcGlobalAttemptsPerSecond(fromShare.hash, ShareBuilder.TARGET_LOOKBEHIND, true);
-            preTarget = attemptsPerSecond.gt(0) ? Algos.POW2_256.div(attemptsPerSecond.mul(ShareBuilder.PERIOD)).sub(1) : Algos.POW2_256_SUB_1;
+            let attemptsPerSecond = SharechainHelper.calcGlobalAttemptsPerSecond(fromShare.hash, SharechainBuilder.TARGET_LOOKBEHIND, true);
+            preTarget = attemptsPerSecond.gt(0) ? Algos.POW2_256.div(attemptsPerSecond.mul(SharechainBuilder.PERIOD)).sub(1) : Algos.POW2_256_SUB_1;
             preTarget2 = MathEx.clip(preTarget, fromShare.maxTarget.mul(9).div(10), fromShare.maxTarget.mul(11).div(10));
-            preTarget3 = MathEx.clip(preTarget2, ShareBuilder.MIN_TARGET, ShareBuilder.MAX_TARGET);
+            preTarget3 = MathEx.clip(preTarget2, SharechainBuilder.MIN_TARGET, SharechainBuilder.MAX_TARGET);
         }
 
         let maxBits = Algos.targetToBits(preTarget3);
@@ -111,7 +111,7 @@ export class ShareBuilder {
         shareInfo.farShareHash = farShare ? farShare.hash : '0000000000000000000000000000000000000000000000000000000000000000';
         shareInfo.maxBits = maxBits;
         shareInfo.bits = bits;
-        shareInfo.timestamp = lastShare ? MathEx.clip(Date.now() / 1000 | 0, lastShare.info.timestamp + 1, lastShare.info.timestamp + 2 * ShareBuilder.PERIOD - 1) : Date.now() / 1000 | 0;
+        shareInfo.timestamp = lastShare ? MathEx.clip(Date.now() / 1000 | 0, lastShare.info.timestamp + 1, lastShare.info.timestamp + 2 * SharechainBuilder.PERIOD - 1) : Date.now() / 1000 | 0;
         shareInfo.newTransactionHashes = newTxHashes;
         shareInfo.transactionHashRefs = txHashRefs;
         shareInfo.absheight = lastShare ? (lastShare.info.absheight + 1) % 4294967296 : 0
@@ -189,7 +189,7 @@ export class ShareBuilder {
             Utils.varIntBuffer(1), // input count
             Utils.uint256BufferFromHash('00'), // previous tx hash
             Utils.packUInt32LE(Math.pow(2, 32) - 1), // previous tx output index 
-            Utils.varIntBuffer(coinbaseScriptSig1.length + ShareBuilder.COINBASE_NONCE_LENGTH), // P2Pool always uses 8 bytes nonce
+            Utils.varIntBuffer(coinbaseScriptSig1.length + SharechainBuilder.COINBASE_NONCE_LENGTH), // P2Pool always uses 8 bytes nonce
             coinbaseScriptSig1,
         ]);
 

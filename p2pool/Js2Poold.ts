@@ -11,7 +11,7 @@ import { SharechainHelper } from "./chain/SharechainHelper";
 import Sharechain from "./chain/Sharechain";
 import { Peer } from "./p2p/Peer";
 import * as Bignum from 'bignum';
-import { ShareBuilder } from "./chain/ShareBuilder";
+import { SharechainBuilder } from "./chain/ShareBuilder";
 import { Message } from "./p2p/Message";
 import { DefaultWorkerManager } from './pool/DefaultWorkerManager';
 kinq.enable();
@@ -64,10 +64,10 @@ async function run() {
     BaseShare.MAX_TARGET = Bitcoin.MAX_TARGET;
     Message.MAGIC = Bitcoin.MSGPREFIX;
 
-    ShareBuilder.MAX_TARGET = Bitcoin.MAX_TARGET;
-    ShareBuilder.MIN_TARGET = Bitcoin.MIN_TARGET;
-    ShareBuilder.TARGET_LOOKBEHIND = Bitcoin.TARGET_LOOKBEHIND;
-    ShareBuilder.PERIOD = Bitcoin.SHARE_PERIOD;
+    SharechainBuilder.MAX_TARGET = Bitcoin.MAX_TARGET;
+    SharechainBuilder.MIN_TARGET = Bitcoin.MIN_TARGET;
+    SharechainBuilder.TARGET_LOOKBEHIND = Bitcoin.TARGET_LOOKBEHIND;
+    SharechainBuilder.PERIOD = Bitcoin.SHARE_PERIOD;
 
     SharechainHelper.init('bitcoin');
     let shares = await SharechainHelper.loadSharesAsync();
