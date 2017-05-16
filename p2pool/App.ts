@@ -11,7 +11,7 @@ import { Message } from "./p2p/Message";
 import { SharechainHelper } from "./chain/SharechainHelper";
 import Sharechain from "./chain/Sharechain";
 import logger from '../misc/Logger';
-import { SharechainBuilder } from "./chain/ShareBuilder";
+import { SharechainBuilder } from "./chain/SharechainBuilder";
 import { StratumOptions } from "./pool/Js2Pool";
 
 export type AppOptions = {

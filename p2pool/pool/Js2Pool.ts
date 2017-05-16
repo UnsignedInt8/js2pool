@@ -9,7 +9,7 @@ import * as Bignum from 'bignum';
 import * as kinq from 'kinq';
 import Sharechain from "../chain/Sharechain";
 import { SharechainHelper } from "../chain/SharechainHelper";
-import { SharechainBuilder } from "../chain/ShareBuilder";
+import { SharechainBuilder } from "../chain/SharechainBuilder";
 import * as net from 'net';
 import { Socket } from "net";
 import * as crypto from 'crypto';

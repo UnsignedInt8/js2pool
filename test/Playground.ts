@@ -20,7 +20,7 @@ import * as path from 'path';
 import Sharechain from "../p2pool/chain/Sharechain";
 import * as readline from 'readline';
 import { bitsToTarget, targetToBits, BaseTarget, targetToDifficulty } from "../core/Algos";
-import { SharechainBuilder } from "../p2pool/chain/ShareBuilder";
+import { SharechainBuilder } from "../p2pool/chain/SharechainBuilder";
 import { GetBlockTemplate } from "../core/DaemonWatcher";
 
 kinq.enable();

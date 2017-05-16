@@ -91,7 +91,7 @@ export default class SharesManager {
     private buildHeader(nonce: string, nTime: string, merkleRoot: string) {
         let buffer = Buffer.alloc(80);
         let position = 0;
-        
+
         buffer.write(nonce, position, 4, 'hex');
         buffer.write(this.template.bits, position += 4, 4, 'hex');
         buffer.write(nTime, position += 4, 4, 'hex');
@@ -106,6 +106,7 @@ export default class SharesManager {
             timestamp: Number.parseInt(nTime, 16),
             bits: Number.parseInt(this.template.bits, 16),
             nonce: Number.parseInt(nonce, 16),
+            merkleRoot,
         };
 
         return { header, buffer };
