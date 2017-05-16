@@ -16,7 +16,7 @@ import { Have_tx, Losing_tx, Forget_tx } from "./messages/Have_tx";
 import { Remember_tx, TypeRemember_tx } from "./messages/Remember_tx";
 import { Block, Transaction } from "bitcoinjs-lib";
 import { Shares, TypeShares } from "./messages/Shares";
-import { Share, NewShare, BaseShare } from "./shares";
+import { Share, SegwitShare, BaseShare } from "./shares";
 import { TypeSharereq, default as Sharereq } from "./messages/Sharereq";
 import { TypeSharereply, default as Sharereply } from "./messages/Sharereply";
 import { TransactionTemplate } from "../../core/DaemonWatcher";

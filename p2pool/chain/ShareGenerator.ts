@@ -8,7 +8,7 @@ import * as Utils from '../../misc/Utils';
 import * as kinq from 'kinq';
 import * as Bignum from 'bignum';
 import * as MathEx from '../../misc/MathEx';
-import { BaseShare, NewShare, Share } from "../p2p/shares/index";
+import { BaseShare, SegwitShare, Share } from "../p2p/shares/index";
 import * as Algos from "../../core/Algos";
 import { GetBlockTemplate, TransactionTemplate } from "../../core/DaemonWatcher";
 import * as assert from 'assert';
@@ -37,7 +37,7 @@ export class ShareGenerator {
         this.paymentCalculator = new PaymentCalculator(nodeAddress);
     }
 
-    generateBits(fromShare: BaseShare | Share | NewShare, desiredTarget: Bignum) {
+    generateBits(fromShare: BaseShare, desiredTarget: Bignum) {
         let preTarget: Bignum, preTarget2: Bignum, preTarget3: Bignum;
 
         if (!fromShare || fromShare.info.absheight < ShareGenerator.TARGET_LOOKBEHIND) {
@@ -141,6 +141,8 @@ export class ShareGenerator {
 
         console.log('maxbits', maxBits.toString(16));
         console.log('far share hash', new Bignum(shareinfo.farShareHash, 16), );
+
+        return { share, tx1, tx2, maxBits, bits }
     }
 
     generateCoinbaseTx(template: GetBlockTemplate, coinbaseScriptSig1: Buffer, payouts: Array<(Buffer | Bignum)[]>, shareInfo: ShareInfo) {

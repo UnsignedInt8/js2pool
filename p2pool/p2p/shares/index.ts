@@ -3,4 +3,4 @@
  * Github: https://github.com/unsignedint8
  */
 
-export { Share, NewShare, BaseShare } from './BaseShare';
+export { Share, SegwitShare, BaseShare } from './BaseShare';

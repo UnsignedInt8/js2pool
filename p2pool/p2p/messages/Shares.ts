@@ -4,14 +4,14 @@
  */
 
 import { Payload } from "./Payload";
-import { BaseShare, Share, NewShare } from "../shares/index";
+import { BaseShare, Share, SegwitShare } from "../shares/index";
 import * as utils from '../../../misc/Utils';
 import BufferReader from "../../../misc/BufferReader";
 import BufferWriter from "../../../misc/BufferWriter";
 
 export type TypeShares = {
     version: number,
-    contents: BaseShare | Share | NewShare,
+    contents: BaseShare | Share | SegwitShare,
 }
 
 /**
@@ -22,7 +22,7 @@ export type TypeShares = {
 export class Shares extends Payload {
     shares: {
         version: number, // var int
-        contents: BaseShare | Share | NewShare, // nullable, check it before using
+        contents: BaseShare | Share | SegwitShare, // nullable, check it before using
     }[] = [];
 
     toBuffer() {

@@ -153,10 +153,10 @@ export abstract class BaseShare {
 export class Share extends BaseShare {
     readonly VERSION = 16;
     readonly VOTING_VERSION = 16;
-    readonly SUCCESSOR = NewShare;
+    readonly SUCCESSOR = SegwitShare;
 }
 
-export class NewShare extends BaseShare {
+export class SegwitShare extends BaseShare {
     readonly VERSION = 17;
     readonly MAX_NEW_TXS_SIZE = 100000;
     readonly VOTING_VERSION = 17;
@@ -165,6 +165,6 @@ export class NewShare extends BaseShare {
     static VOTING_VERSION = 17;
 }
 
-export const ShareVersionMapper = { 16: Share, 17: NewShare };
+export const ShareVersionMapper = { 16: Share, 17: SegwitShare };
 
 

@@ -4,7 +4,7 @@
  */
 
 import logger from '../../misc/Logger';
-import { BaseShare, Share, NewShare } from "../p2p/shares/index";
+import { BaseShare, Share, SegwitShare } from "../p2p/shares/index";
 import { Event } from "../../nodejs/Event";
 import ObservableProperty from "../../nodejs/ObservableProperty";
 
@@ -53,9 +53,9 @@ export default class Sharechain extends Event {
     }
 
     private hashIndexer = new Map<string, number>();
-    private absheightIndexer = new Map<number, Array<BaseShare | Share | NewShare>>();
-    newest = ObservableProperty.init<BaseShare | Share | NewShare>(null);
-    oldest: BaseShare | Share | NewShare;
+    private absheightIndexer = new Map<number, Array<BaseShare | Share | SegwitShare>>();
+    newest = ObservableProperty.init<BaseShare | Share | SegwitShare>(null);
+    oldest: BaseShare | Share | SegwitShare;
     calculatable = false;
     verified = false;
 
@@ -112,7 +112,7 @@ export default class Sharechain extends Event {
         return shares[0];
     }
 
-    add(shares: Iterable<BaseShare | Share | NewShare>) {
+    add(shares: Iterable<BaseShare | Share | SegwitShare>) {
         for (let share of shares) {
             this.append(share);
         }
@@ -122,7 +122,7 @@ export default class Sharechain extends Event {
      * if returns ture, means it's a new share, and it can be broadcasted to other peers
      * if returns false, means it's **an old** or invalid share, and it should not be broadcasted to other peers
      */
-    append(share: BaseShare | Share | NewShare) {
+    append(share: BaseShare | Share | SegwitShare) {
         if (!share.validity) {
             logger.warn(`invalid share, ${share.info.absheight}, ${share.hash}`);
             return false;
