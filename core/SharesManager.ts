@@ -31,14 +31,22 @@ export default class SharesManager {
 
         this.template = template;
         this.blockTarget = template.target ? new Bignum(template.target, 16) : bitsToTarget(Number.parseInt(template.bits, 16));
-        this.targetDiff = targetToDifficulty(this.blockTarget)
-        console.info('block target: ', this.blockTarget);
+        // this.targetDiff = targetToDifficulty(this.blockTarget);
 
         this.shares.clear();
     }
 
-    buildShare(task: Task, nonce: string, extraNonce1: string, extraNonce2: string, nTime: string) {
-        if (task.previousBlockHash !== this.template.previousblockhash) return null;
+    /**
+     * 
+     * @param coinbaseTx1 
+     * @param coinbaseTx2 
+     * @param merkleLink Flat merkle link without first tx
+     * @param nonce 
+     * @param extraNonce1 
+     * @param extraNonce2 
+     * @param nTime 
+     */
+    buildShare(coinbaseTx1: Buffer, coinbaseTx2: Buffer, merkleLink: Buffer[], nonce: string, extraNonce1: string, extraNonce2: string, nTime: string) {
 
         let now = Date.now() / 1000 | 0;
         let nTimeValue = Number.parseInt(nTime, 16);
@@ -49,14 +57,14 @@ export default class SharesManager {
         this.shares.add(fingerprint);
 
         let coinbaseTx = Buffer.concat([
-            task.coinbaseTx.part1,
+            coinbaseTx1,
             Buffer.from(extraNonce1, 'hex'),
             Buffer.from(extraNonce2, 'hex'),
-            task.coinbaseTx.part2,
+            coinbaseTx2,
         ]);
 
         let coinbaseTxid = this.txHasher(coinbaseTx);
-        let merkleRoot = Utils.reverseBuffer(task.merkleLink.aggregate<Buffer, Buffer>(coinbaseTxid, (prev, curr) => Utils.sha256d(Buffer.concat([prev, curr])))).toString('hex');
+        let merkleRoot = Utils.reverseBuffer(merkleLink.aggregate<Buffer, Buffer>(coinbaseTxid, (prev, curr) => Utils.sha256d(Buffer.concat([prev, curr])))).toString('hex');
         let header = this.buildHeader(nonce, nTime, merkleRoot);
         let headerHashBuf = this.headerHasher(header);
         let shareHash = Utils.reverseBuffer(headerHashBuf).toString('hex');

@@ -127,7 +127,7 @@ export class StratumServer extends Event {
                 return;
             }
 
-            let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
+            let share = me.sharesManager.buildShare(me.currentTask.coinbaseTx.part1, me.currentTask.coinbaseTx.part2, me.currentTask.merkleLink, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
             if (!share || share.shareDiff < sender.difficulty) {
                 let msg = { miner: result.miner, taskId: result.taskId, };
                 me.broadcastInvalidShare(msg);

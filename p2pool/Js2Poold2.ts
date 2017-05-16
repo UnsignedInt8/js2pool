@@ -21,6 +21,7 @@ SharechainHelper.loadSharesAsync().then(shares => {
 });
 
 const opts = {
+    algorithm: 'sha256d',
     daemon: {
         blocknotifylistener: {
             enabled: false,

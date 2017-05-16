@@ -37,6 +37,7 @@ const opts = {
     stratum: {
         port: 23456,
     },
+    algorithm: 'sha256d',
     bootstrapPeers: [
         {
             host: '123.163.48.115',

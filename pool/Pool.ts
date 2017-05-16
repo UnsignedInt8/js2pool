@@ -86,7 +86,7 @@ export default class Pool {
                 // sender.sendTask(this.currentTask.stratumParams);
             });
             client.onSubmit((sender, result, msg) => {
-                let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
+                let share = me.sharesManager.buildShare(me.currentTask.coinbaseTx.part1, me.currentTask.coinbaseTx.part2, me.currentTask.merkleLink, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
 
                 if (!share) {
                     client.sendSubmissionResult(msg.id, false, null);

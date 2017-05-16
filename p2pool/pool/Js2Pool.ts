@@ -13,14 +13,17 @@ import { ShareBuilder } from "../chain/ShareBuilder";
 import * as net from 'net';
 import { Socket } from "net";
 import * as crypto from 'crypto';
+import * as Utils from '../../misc/Utils';
 import StratumClient from "../../core/StratumClient";
 import { IWorkerManager } from "./IWorkerManager";
+import ShareInfo from "../p2p/shares/ShareInfo";
+import SharesManager from "../../core/SharesManager";
 
 export type Js2PoolOptions = {
     daemon: DaemonOptions,
     peer: PeerOptions,
     stratum: StratumOptions,
-
+    algorithm: string,
     bootstrapPeers: { host: string, port: number }[],
 }
 
@@ -28,19 +31,21 @@ export type StratumOptions = {
     port: number;
 }
 
-type Task ={
-coinbaseTx: { part1: Buffer, part2: Buffer },
+type Task = {
+    coinbaseTx: { part1: Buffer, part2: Buffer },
     stratumParams: (string | boolean | string[])[],
     taskId: string,
     previousBlockHash: string,
     merkleLink: Buffer[],
     height: number,
+    shareInfo: ShareInfo,
 }
 
 export class Js2Pool {
 
     private daemonWatcher: DaemonWatcher;
-    private builder = new ShareBuilder('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9');
+    private js2poolShareBuilder = new ShareBuilder('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9');
+    private shareManager: SharesManager;
     private readonly blocks = new Array<string>();
     private readonly clients = new Map<string, StratumClient>();
     private readonly sharechain = Sharechain.Instance;
@@ -49,6 +54,8 @@ export class Js2Pool {
     peer: Peer;
 
     constructor(opts: Js2PoolOptions, manager: IWorkerManager) {
+        this.shareManager = new SharesManager(opts.algorithm);
+
         this.sharechain.onNewestChanged(this.onNewestShareChanged.bind(this));
         this.sharechain.onCandidateArrived(this.onNewestShareChanged.bind(this));
 
@@ -82,7 +89,29 @@ export class Js2Pool {
         if (!newestShare.hasValue() || !this.sharechain.calculatable) return;
 
         let knownTxs = template.transactions.toMap(item => item.txid || item.hash, item => item);
-        this.builder.buildTask(template, newestShare.value.hash, new Bignum(0), Array.from(knownTxs.keys()), knownTxs);
+        let { bits, maxBits, merkleLink, shareInfo, tx1, tx2 } = this.js2poolShareBuilder.buildMiningComponents(template, newestShare.value.hash, new Bignum(0), Array.from(knownTxs.keys()), knownTxs);
+
+        let stratumParams = [
+            crypto.randomBytes(4).toString('hex'),
+            Utils.reverseByteOrder(Buffer.from(template.previousblockhash, 'hex')).toString('hex'),
+            tx1.toString('hex'),
+            tx2.toString('hex'),
+            merkleLink.map(item => item.toString('hex')),
+            Utils.packUInt32BE(template.version).toString('hex'),
+            template.bits,
+            Utils.packUInt32BE(template.curtime).toString('hex'),
+            true, // Force to start new task
+        ];
+
+        this.task = <Task>{
+            coinbaseTx: { part1: tx1, part2: tx2 },
+            height: template.height,
+            merkleLink,
+            previousBlockHash: template.previousblockhash,
+            taskId: stratumParams[0],
+            stratumParams,
+            shareInfo,
+        };
     }
 
     private async onBlockNotified(sender: DaemonWatcher, hash: string) {
@@ -104,6 +133,7 @@ export class Js2Pool {
         let me = this;
         let client = new StratumClient(socket, 0);
         client.tag = crypto.randomBytes(8).toString('hex');
+        me.clients.set(client.tag, client);
 
         client.onSubscribe((sender, msg) => sender.sendSubscription(msg.id, ShareBuilder.COINBASE_NONCE_LENGTH));
         client.onEnd(sender => me.clients.delete(sender.tag));
@@ -121,10 +151,10 @@ export class Js2Pool {
         client.onSubmit((sender, result, message) => {
             if (result.taskId != me.task.taskId) {
                 let msg = { miner: result.miner, taskId: result.taskId };
-                // me.broadcastInvalidShare(msg);
                 client.sendSubmissionResult(message.id, false, null);
                 return;
             }
+
 
             // let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
             // if (!share || share.shareDiff < sender.difficulty) {
@@ -146,6 +176,5 @@ export class Js2Pool {
             // me.broadcastShare(shareMessage);
         });
 
-        me.clients.set(client.extraNonce1, client);
     }
 }

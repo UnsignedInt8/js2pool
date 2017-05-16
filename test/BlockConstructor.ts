@@ -38,7 +38,7 @@ describe('Block Constructor Test', () => {
 
         let sm = new SharesManager('sha256d');
         sm.updateGbt(template);
-        let share = sm.buildShare(task, nonce, extranonce1, extranonce2, nTime);
+        let share = sm.buildShare(task.coinbaseTx.part1, task.coinbaseTx.part2, task.merkleLink, nonce, extranonce1, extranonce2, nTime);
 
         assert.equal(share.merkleRoot, merkleRoot);
         assert.equal(share.shareHex, blockHex);
@@ -73,7 +73,7 @@ describe('Block Constructor Test', () => {
 
         let sm = new SharesManager('sha256d');
         sm.updateGbt(template);
-        let share = sm.buildShare(task, nonce, extranonce1, extranonce2, nTime);
+        let share = sm.buildShare(task.coinbaseTx.part1, task.coinbaseTx.part2, task.merkleLink, nonce, extranonce1, extranonce2, nTime);
 
 
         assert.equal(share.merkleRoot, merkleRoot);

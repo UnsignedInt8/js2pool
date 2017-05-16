@@ -55,7 +55,7 @@ export class ShareBuilder {
         return { maxBits, bits };
     }
 
-    buildTask(template: GetBlockTemplate, shareHash: string, desiredTarget: Bignum, desiredTxHashes: string[], knownTxs: Map<string, TransactionTemplate> = null) {
+    buildMiningComponents(template: GetBlockTemplate, shareHash: string, desiredTarget: Bignum, desiredTxHashes: string[], knownTxs: Map<string, TransactionTemplate> = null) {
         let lastShare = this.sharechain.get(shareHash);
         let { maxBits, bits } = this.estimateBits(lastShare, desiredTarget);
         
@@ -149,6 +149,7 @@ export class ShareBuilder {
         share.refMerkleLink = [];
         share.hashLink = HashLink.fromPrefix(Buffer.concat([tx1, tx2.slice(0, -32 - 8 - 4)]), GENTX_BEFORE_REFHASH);
         share.merkleLink = merkleLink;
+        
 
     }
 
