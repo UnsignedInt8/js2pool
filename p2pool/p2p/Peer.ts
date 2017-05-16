@@ -88,7 +88,7 @@ export class Peer {
             node.sendSharereqAsync({
                 id: Bignum.fromBuffer(Utils.sha256(gap.descendent + '-' + gap.length)),
                 hashes: [gap.descendent],
-                parents: Math.min(gap.length, node.isJs2PoolPeer ? 1000 : 79),
+                parents: Math.min(gap.length, node.isJs2PoolPeer ? 250 : 79),
             });
         }
     }
@@ -205,7 +205,7 @@ export class Peer {
     }
 
     private handleSharereq(sender: Node, request: TypeSharereq) {
-        let parents = Math.min(Math.min(request.parents, 1000 / request.hashes.length | 0), sender.isJs2PoolPeer ? 1000 : 100) + 1;
+        let parents = Math.min(Math.min(request.parents, 1000 / request.hashes.length | 0), sender.isJs2PoolPeer ? 250 : 100) + 1;
         let stops = new Set(request.stops);
         let shares = new Array<BaseShare>();
 

@@ -17652,6 +17652,8 @@ function testShares() {
 
   // return console.log(targetGbt, targetToBits(targetGbt).toString(16));
 
+  console.log(rpc.transactions.sum(tx => tx.data.length / 2) /1024 + ' kb');
+  
   let script = Utils.addressToScript('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9').toString('hex');
   console.log(script);
   script = Utils.addressToScript('1J3nHXrL3XUixCUdWzs9VfE1EQCfsh8WYS').toString('hex');

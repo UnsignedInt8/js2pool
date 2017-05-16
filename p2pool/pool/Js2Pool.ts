@@ -113,6 +113,8 @@ export class Js2Pool {
             shareInfo,
             target: Algos.bitsToTarget(bits),
         };
+
+        Array.from(this.clients.values()).forEach(c => c.sendTask(stratumParams));
     }
 
     private async onBlockNotified(sender: DaemonWatcher, hash: string) {
@@ -147,9 +149,15 @@ export class Js2Pool {
             if (!authorized) return;
             sender.sendDifficulty(initDifficulty);
             if (me.task) sender.sendTask(me.task.stratumParams);
+            console.log('task sent');
         });
 
         client.onSubmit((sender, result, message) => {
+            if (!result) {
+                client.sendSubmissionResult(message ? message.id : 0, false, null);
+                return;
+            }
+
             if (result.taskId != me.task.taskId) {
                 let msg = { miner: result.miner, taskId: result.taskId };
                 client.sendSubmissionResult(message.id, false, null);
@@ -157,16 +165,17 @@ export class Js2Pool {
             }
 
             let { part1: tx1, part2: tx2 } = me.task.coinbaseTx;
-            let { shareTarget, shareHex, header } = me.sharesManager.buildShare(tx1, tx2, me.task.merkleLink, result.nonce, '', result.extraNonce2, result.nTime);
-            console.log('header', header);
+            let { shareTarget, shareHex, header, shareHash } = me.sharesManager.buildShare(tx1, tx2, me.task.merkleLink, result.nonce, '', result.extraNonce2, result.nTime);
+
             if (!shareTarget) {
                 let msg = { miner: result.miner, taskId: result.taskId, };
                 client.sendSubmissionResult(message.id, false, null);
                 return;
             }
 
-            if (shareTarget.le(this.task.target)) {
-
+            console.log('header', shareHash, shareTarget);
+            if (shareTarget.le(Algos.BaseTarget)) {
+                client.sendSubmissionResult(message.id, true, null);
             }
             // let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
             // if (!share || share.shareDiff < sender.difficulty) {

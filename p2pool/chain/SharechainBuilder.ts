@@ -94,6 +94,7 @@ export class SharechainBuilder {
             for (let item of tuple) txHashRefs.push(item); // p2pool/data.py#177: transaction_hash_refs.extend(this)
         }
 
+        console.log('other tx hashes', otherTxHashes.length, knownTxs.size);
         let begin = Date.now();
 
         let payments = this.paymentCalculator.calc(shareHash, template.coinbasevalue, template.target);
