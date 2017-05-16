@@ -11,8 +11,9 @@ import { SharechainHelper } from "./chain/SharechainHelper";
 import Sharechain from "./chain/Sharechain";
 import { Peer } from "./p2p/Peer";
 import * as Bignum from 'bignum';
-import { ShareBuilder } from "./chain/ShareGenerator";
+import { ShareBuilder } from "./chain/ShareBuilder";
 import { Message } from "./p2p/Message";
+import { DefaultWorkerManager } from './pool/DefaultWorkerManager';
 kinq.enable();
 
 process.on('uncaughtException', (err) => console.error(err));
@@ -71,7 +72,7 @@ async function run() {
     let shares = await SharechainHelper.loadSharesAsync();
     Sharechain.Instance.add(shares);
     console.log('share chain length', shares.length);
-    setTimeout(() => new Js2Pool(opts), 2000);
+    setTimeout(() => new Js2Pool(opts, DefaultWorkerManager.Instance), 2000);
 
     // let daemon = new DaemonWatcher(opts.daemon);
     // daemon.getBlockAsync('000000000000000000020fe5e98fd311039ba3b0953fe6268b5a3a357de83067').then(value => {

@@ -9,6 +9,7 @@ import * as kinq from 'kinq';
 import { BaseShare } from "./p2p/shares/BaseShare";
 import Bitcoin from "./coins/Bitcoin";
 import { Js2Pool } from "./pool/Js2Pool";
+import { DefaultWorkerManager } from './pool/DefaultWorkerManager';
 kinq.enable();
 
 SharechainHelper.init('bitcoin2');
@@ -49,7 +50,7 @@ const opts = {
 
 setTimeout(async () => {
     setTimeout(() => {
-        let pool = new Js2Pool(opts);
+        let pool = new Js2Pool(opts, DefaultWorkerManager.Instance);
 
         setInterval(() => {
             let node = pool.peer.peers.first()[1];

@@ -58,7 +58,7 @@ export class ShareBuilder {
     buildTask(template: GetBlockTemplate, shareHash: string, desiredTarget: Bignum, desiredTxHashes: string[], knownTxs: Map<string, TransactionTemplate> = null) {
         let lastShare = this.sharechain.get(shareHash);
         let { maxBits, bits } = this.estimateBits(lastShare, desiredTarget);
-        console.log('knowntxs:', desiredTxHashes.length, knownTxs.size);
+        
         let recentShares = Array.from(this.sharechain.subchain(shareHash, 100, 'backward'));
         let newTxHashes = new Array<string>();
         let newTxSize = 0;
