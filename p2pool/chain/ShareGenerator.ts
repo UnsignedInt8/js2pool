@@ -8,7 +8,7 @@ import * as Utils from '../../misc/Utils';
 import * as kinq from 'kinq';
 import * as Bignum from 'bignum';
 import * as MathEx from '../../misc/MathEx';
-import { BaseShare } from "../p2p/shares/index";
+import { BaseShare, NewShare, Share } from "../p2p/shares/index";
 import * as Algos from "../../core/Algos";
 import { GetBlockTemplate, TransactionTemplate } from "../../core/DaemonWatcher";
 import * as assert from 'assert';
@@ -28,13 +28,13 @@ export class ShareGenerator {
     static readonly COINBASE_NONCE_LENGTH = 8
 
     readonly sharechain = Sharechain.Instance;
-    paymentCalculator: PaymentCalculator;
+    readonly paymentCalculator: PaymentCalculator;
 
     constructor(nodeAddress: string) {
         this.paymentCalculator = new PaymentCalculator(nodeAddress);
     }
 
-    generateBits(fromShare: BaseShare, desiredTarget: Bignum) {
+    generateBits(fromShare: BaseShare | Share | NewShare, desiredTarget: Bignum) {
         let preTarget: Bignum, preTarget2: Bignum, preTarget3: Bignum;
 
         if (!fromShare || fromShare.info.absheight < ShareGenerator.TARGET_LOOKBEHIND) {
@@ -78,7 +78,7 @@ export class ShareGenerator {
             let tuple = txHashesToThis.get(hash);
 
             if (!tuple && knownTxs) {
-                let size = knownTxs.get(hash).data.length / 2;
+                let size = knownTxs.get(hash).data.length / 2; // convert hex string length to bytes length
                 if (size + newTxSize > 50000) break;
                 newTxSize += size;
                 newTxHashes.push(hash);
@@ -86,9 +86,9 @@ export class ShareGenerator {
             }
 
             otherTxHashes.push(hash);
-            if (!tuple) continue;
 
-            for (let item of tuple) txHashRefs.push(item);// transaction_hash_refs.extend(this)
+            if (!tuple) continue;
+            for (let item of tuple) txHashRefs.push(item); // p2pool/data.py#177: transaction_hash_refs.extend(this)
         }
 
         let begin = Date.now();
@@ -122,8 +122,11 @@ export class ShareGenerator {
             staleInfo: 0,
             desiredVersion: lastShare.SUCCESSOR ? (lastShare.SUCCESSOR.VOTING_VERSION || lastShare.VOTING_VERSION) : lastShare.VOTING_VERSION,
         }
+        let segwitActivated = BaseShare.isSegwitActivated(shareinfo.data.desiredVersion);
 
+        console.log('shareinfo ok');
         let { tx1, tx2 } = this.generateCoinbaseTx(template, coinbaseScriptSig1, payments, BaseShare.getRefHash(shareinfo, []));
+
 
         console.log('maxbits', maxBits.toString(16));
         console.log('far share hash', new Bignum(shareinfo.farShareHash, 16), );
@@ -140,13 +143,13 @@ export class ShareGenerator {
             ]));
         }
 
-        let shareFingerprint = Buffer.concat([Buffer.from('6a28', 'hex'), shareInfo, Buffer.alloc(8, 0)]); // 
+        let shareFingerprint = Buffer.concat([Buffer.from('6a28', 'hex'), shareInfo, Buffer.alloc(8, 0)]); // P2Pool last tx fingerprint
         outputs.push(Buffer.concat([
             Utils.packInt64LE(0),
             Utils.varIntBuffer(shareFingerprint.length),
             shareFingerprint,
         ]));
-
+console.log('fingerprint ok');
         let txOutput = BufferWriter.writeList(outputs);
 
         let tx1 = Buffer.concat([
@@ -170,6 +173,7 @@ export class ShareGenerator {
 
             // Tx outputs
             txOutput,
+            // Tx outputs end
 
             Utils.packUInt32LE(0), // Tx lock time
         ]);

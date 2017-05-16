@@ -9,6 +9,7 @@ import * as Bignum from 'bignum';
 import * as kinq from 'kinq';
 import * as Algos from "../../core/Algos";
 import * as Utils from '../../misc/Utils';
+import logger from '../../misc/Logger';
 import { GetBlockTemplate } from "../../core/DaemonWatcher";
 import BufferWriter from '../../misc/BufferWriter';
 import { DONATION_SCRIPT, DONATION_SCRIPT_BUF } from "../p2p/shares/BaseShare";
@@ -63,6 +64,11 @@ export class PaymentCalculator {
                 shareWeight = desiredWeight.sub(lastTotalWeight).div(65535).mul(share.weight).div(share.totalWeight.div(65535));
             }
             weights.set(pubkeyScript, shareWeight);
+        }
+
+        if (weights.any(item => item[1].lt(0))) {
+            logger.error('some weights less than 0, sharechain is not correct or bitcoind returns incorrect information!!!');
+            return [];
         }
 
         console.log('totalweight', weights.size, totalWeight, donationWeight);

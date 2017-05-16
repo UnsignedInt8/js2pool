@@ -26,7 +26,7 @@ export abstract class BaseShare {
 
     VERSION = 0;
     VOTING_VERSION = 0;
-    SUCCESSOR = null;
+    SUCCESSOR?: typeof BaseShare = null;
     MAX_BLOCK_WEIGHT = 4000000;
     MAX_NEW_TXS_SIZE = 50000;
 
@@ -159,7 +159,10 @@ export class Share extends BaseShare {
 export class NewShare extends BaseShare {
     readonly VERSION = 17;
     readonly MAX_NEW_TXS_SIZE = 100000;
-    static readonly VOTING_VERSION = 17;
+    readonly VOTING_VERSION = 17;
+    readonly SUCCESSOR = null;
+
+    static VOTING_VERSION = 17;
 }
 
 export const ShareVersionMapper = { 16: Share, 17: NewShare };
