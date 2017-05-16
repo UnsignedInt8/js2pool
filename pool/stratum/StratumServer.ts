@@ -10,6 +10,7 @@ import { DaemonOptions, DaemonWatcher } from "../../core/DaemonWatcher";
 import { ExtraNonce1Size, ExtraNonce2Size, Topics } from "../Constant";
 import { Client, Consumer, Producer, HighLevelProducer } from 'kafka-node';
 import { StratumServerOptions } from "./index";
+import * as Algos from '../../core/Algos';
 
 export interface IMinerManager {
     authorize(username: string, password: string): { authorized: boolean, initDiff: number };
@@ -105,7 +106,7 @@ export class StratumServer extends Event {
     private onSocketConnected(socket: Socket) {
         let me = this;
         let client = new StratumClient(socket, ExtraNonce1Size);
-        
+
         client.onSubscribe((sender, msg) => sender.sendSubscription(msg.id, ExtraNonce2Size));
         client.onEnd(sender => me.clients.delete(sender.extraNonce1));
         client.onKeepingAliveTimeout(sender => sender.sendPing());
@@ -128,7 +129,7 @@ export class StratumServer extends Event {
             }
 
             let share = me.sharesManager.buildShare(me.currentTask.coinbaseTx.part1, me.currentTask.coinbaseTx.part2, me.currentTask.merkleLink, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
-            if (!share || share.shareDiff < sender.difficulty) {
+            if (!share || Algos.targetToDifficulty(share.shareTarget).lt(sender.difficulty)) {
                 let msg = { miner: result.miner, taskId: result.taskId, };
                 me.broadcastInvalidShare(msg);
                 client.sendSubmissionResult(message.id, false, null);
@@ -136,7 +137,7 @@ export class StratumServer extends Event {
                 return;
             }
 
-            let shareMessage = { miner: result.miner, hash: share.shareHash, diff: share.shareDiff, expectedDiff: sender.difficulty, timestamp: share.timestamp };
+            let shareMessage = { miner: result.miner, hash: share.shareHash, diff: Algos.targetToDifficulty(share.shareTarget), expectedDiff: sender.difficulty, timestamp: share.timestamp };
 
             if (share.shareHex) {
                 me.fastSubmitter.submitBlockAsync(share.shareHex);

@@ -21,6 +21,7 @@ export default class SharesManager {
     proof: 'POW' | 'POS' = 'POW';
 
     constructor(algorithm: string, configs?: { normalHash?: boolean }) {
+        if (!algorithm) throw new Error('Algorithm must not be empty');
         this.txHasher = ['keccak', 'blake', 'fugue', 'groestl'].includes(algorithm) && (configs && !configs.normalHash) ? Utils.sha256 : Utils.sha256d;
         this.mutliplier = Algos[algorithm].multiplier || 1;
         this.headerHasher = Algos[algorithm].hash(configs || {})
@@ -69,9 +70,8 @@ export default class SharesManager {
         let headerHashBuf = this.headerHasher(header);
         let shareHash = Utils.reverseBuffer(headerHashBuf).toString('hex');
 
-        let shareTarget = Bignum.fromBuffer(headerHashBuf, { endian: 'little', size: 32 }).toNumber();
-        let shareDiff = BaseTarget / shareTarget * this.mutliplier;
-
+        let shareTarget = Bignum.fromBuffer(headerHashBuf, { endian: 'little', size: 32 });
+        
         let shareHex: string;
         if (this.blockTarget.ge(shareTarget)) {
             console.info('found block target: ', shareTarget);
@@ -85,7 +85,7 @@ export default class SharesManager {
             ]).toString('hex');
         }
 
-        return { shareDiff, shareHex, shareHash, merkleRoot, timestamp: now };
+        return { shareTarget, shareHex, shareHash, merkleRoot, timestamp: now };
     }
 
     private buildHeader(nonce: string, nTime: string, merkleRoot: string) {

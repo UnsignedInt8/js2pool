@@ -1,5 +1,5 @@
 
-import { Algos } from '../core/Algos';
+import { Algos, targetToDifficulty } from '../core/Algos';
 import * as Utils from '../misc/Utils';
 import { Server } from "net";
 import * as net from 'net';
@@ -101,7 +101,7 @@ export default class Pool {
                     console.info('hash: ', share.shareHash);
                     console.info('new block found!!!!!!');
                 }
-                let validity = share.shareDiff > sender.difficulty;
+                let validity = targetToDifficulty(share.shareTarget).gt(sender.difficulty);
                 client.sendSubmissionResult(msg.id, validity, null);
 
                 if (!validity) client.touchBad();

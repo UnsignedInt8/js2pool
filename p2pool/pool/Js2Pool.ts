@@ -84,6 +84,7 @@ export class Js2Pool {
 
     private onMiningTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
         this.peer.updateMiningTemplate(template);
+        this.shareManager.updateGbt(template);
 
         let newestShare = this.sharechain.newest;
         if (!newestShare.hasValue() || !this.sharechain.calculatable) return;
