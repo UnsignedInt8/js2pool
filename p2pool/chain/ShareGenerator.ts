@@ -17,6 +17,9 @@ import { SharechainHelper } from "./SharechainHelper";
 import ShareInfo, { ShareData } from "../p2p/shares/ShareInfo";
 import * as crypto from 'crypto';
 import BufferWriter from "../../misc/BufferWriter";
+import { ShareVersionMapper, DONATION_SCRIPT_BUF, GENTX_BEFORE_REFHASH } from "../p2p/shares/BaseShare";
+import { HashLink } from "../p2p/shares/HashLink";
+import MerkleTree from "../../core/MerkleTree";
 
 export class ShareGenerator {
 
@@ -122,17 +125,25 @@ export class ShareGenerator {
             staleInfo: 0,
             desiredVersion: lastShare.SUCCESSOR ? (lastShare.SUCCESSOR.VOTING_VERSION || lastShare.VOTING_VERSION) : lastShare.VOTING_VERSION,
         }
+
         let segwitActivated = BaseShare.isSegwitActivated(shareinfo.data.desiredVersion);
+        if (segwitActivated) {
+            // TODO segwit
+        }
 
-        console.log('shareinfo ok');
-        let { tx1, tx2 } = this.generateCoinbaseTx(template, coinbaseScriptSig1, payments, BaseShare.getRefHash(shareinfo, []));
+        let { tx1, tx2 } = this.generateCoinbaseTx(template, coinbaseScriptSig1, payments, shareinfo);
 
+        let share = new ShareVersionMapper[lastShare.VERSION]() as BaseShare;
+        share.info = shareinfo;
+        share.refMerkleLink = [];
+        share.hashLink = HashLink.fromPrefix(Buffer.concat([tx1, tx2.slice(0, -32 - 8 - 4)]), GENTX_BEFORE_REFHASH);
+        share.merkleLink = (new MerkleTree([null].concat(desiredTxHashes.map(hash => Utils.uint256BufferFromHash(hash)))).steps);
 
         console.log('maxbits', maxBits.toString(16));
         console.log('far share hash', new Bignum(shareinfo.farShareHash, 16), );
     }
 
-    generateCoinbaseTx(template: GetBlockTemplate, coinbaseScriptSig1: Buffer, payouts: Array<(Buffer | Bignum)[]>, shareInfo: Buffer) {
+    generateCoinbaseTx(template: GetBlockTemplate, coinbaseScriptSig1: Buffer, payouts: Array<(Buffer | Bignum)[]>, shareInfo: ShareInfo) {
 
         let outputs = new Array<Buffer>();
         for (let [script, value] of payouts) {
@@ -143,17 +154,26 @@ export class ShareGenerator {
             ]));
         }
 
-        let shareFingerprint = Buffer.concat([Buffer.from('6a28', 'hex'), shareInfo, Buffer.alloc(8, 0)]); // P2Pool last tx fingerprint
+        let shareFingerprint = Buffer.concat([Buffer.from('6a28', 'hex'), BaseShare.getRefHash(shareInfo, []), Buffer.alloc(8, 0)]); // P2Pool last tx fingerprint: OP_RETURN N/A shareinfo lasttxnonce(64bits, 0)
         outputs.push(Buffer.concat([
             Utils.packInt64LE(0),
             Utils.varIntBuffer(shareFingerprint.length),
             shareFingerprint,
         ]));
-console.log('fingerprint ok');
-        let txOutput = BufferWriter.writeList(outputs);
+
+        // https://bitcointalk.org/index.php?topic=1676471.0;prev_next=prev
+        if (template.default_witness_commitment !== undefined) {
+            let witness_commitment = Buffer.from(template.default_witness_commitment, 'hex');
+            outputs.unshift(Buffer.concat([
+                Utils.packInt64LE(0),
+                Utils.varIntBuffer(witness_commitment.length),
+                witness_commitment
+            ]));
+        }
+
 
         let tx1 = Buffer.concat([
-            Utils.packUInt32LE(1),
+            Utils.packUInt32LE(1), // version
 
             // Tx Inputs
             Utils.varIntBuffer(1), // input count
@@ -172,7 +192,7 @@ console.log('fingerprint ok');
             // Tx inputs end
 
             // Tx outputs
-            txOutput,
+            BufferWriter.writeList(outputs),
             // Tx outputs end
 
             Utils.packUInt32LE(0), // Tx lock time
