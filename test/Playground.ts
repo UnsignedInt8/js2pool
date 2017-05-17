@@ -17697,7 +17697,7 @@ function testShares() {
     console.log(gaps);
 
     console.log('max hashrefs', shares.max(s => s.info.transactionHashRefs.length).info.transactionHashRefs.length);
-
+    return;
 
     let absheight = chain.get('0000000000000000002b7b2cbedc39692ad7608acd0d1c518399bf059e74432c').info.absheight;// chain.newest.value.info.absheight - 700;
     let targetShare = chain.get(absheight);

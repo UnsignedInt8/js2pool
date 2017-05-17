@@ -86,7 +86,7 @@ export class Peer {
         for (let gap of randomGaps) {
             if (!peers.length) break;
             let node = peers.shift();
-            console.log('gap length', gap.length, gap.descendentHeight, 'except', gap.descendentHeight - gap.length);
+            console.log('gap descendent', gap.descendent, gap.descendentHeight, 'except', gap.descendentHeight - gap.length);
             console.log('ancestor: ', this.sharechain.get(gap.descendentHeight - gap.length - 1) ? true : false, 'descendant', this.sharechain.get(gap.descendentHeight - gap.length + 1) ? true : false);
             node.sendSharereqAsync({
                 id: Bignum.fromBuffer(Utils.sha256(gap.descendent + '-' + gap.length)),
