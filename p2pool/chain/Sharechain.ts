@@ -235,13 +235,11 @@ export default class Sharechain extends Event {
             if (parents[0].hash === current.info.data.previousShareHash) continue;
             let target = parents.singleOrDefault(p => p.hash === current.info.data.previousShareHash, null);
             if (!target) continue;
-            if (current.info.absheight === 4020379)
-                console.log('here');
+            
             let others = parents.except([target], (i1, i2) => i1.hash === i2.hash).toArray();
             this.absheightIndexer.set(current.info.absheight - 1, [target].concat(others));
         }
     }
-
 
     *subchain(startHash: string, length: number = Number.MAX_SAFE_INTEGER, direction: 'backward' | 'forward' = 'backward') {
         let absheight = this.hashIndexer.get(startHash);

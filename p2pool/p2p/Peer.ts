@@ -35,9 +35,6 @@ export class Peer {
     private readonly shareReplies = new Set<string>();
     readonly peers = new Map<string, Node>(); // ip:port -> Node
 
-    bestShare: BaseShare;
-    desired: any[];
-
     constructor(opts: PeerOptions) {
         this.knownTxs.onPropertyChanged(this.onKnownTxsChanged.bind(this));
         this.miningTxs.onPropertyChanged(this.onMiningTxsChanged.bind(this));
