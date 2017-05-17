@@ -17652,8 +17652,8 @@ function testShares() {
 
   // return console.log(targetGbt, targetToBits(targetGbt).toString(16));
 
-  console.log(rpc.transactions.sum(tx => tx.data.length / 2) /1024 + ' kb');
-  
+  console.log(rpc.transactions.sum(tx => tx.data.length / 2) / 1024 + ' kb');
+
   let script = Utils.addressToScript('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9').toString('hex');
   console.log(script);
   script = Utils.addressToScript('1J3nHXrL3XUixCUdWzs9VfE1EQCfsh8WYS').toString('hex');
@@ -17690,6 +17690,10 @@ function testShares() {
     chain.add(shares);
     chain.verify();
     let gaps = chain.checkGaps();
+
+    for (let i = 4020382; i >= 4020375; i--) {
+      console.log(i, chain.get(i) ? true : false, chain.get(i).hash, chain.get(i).info.data.previousShareHash);
+    }
     console.log(gaps);
 
     console.log('max hashrefs', shares.max(s => s.info.transactionHashRefs.length).info.transactionHashRefs.length);

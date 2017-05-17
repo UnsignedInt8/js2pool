@@ -75,9 +75,10 @@ export class Peer {
     }
 
     private onGapsFound(sender: Sharechain, gaps: Gap[]) {
-        logger.warn(`Sharechain gaps found, count: ${gaps.length}, length: ${gaps.sum(g => g.length)}`);
         if (!this.peers.size) return;
         if (!gaps.length) return;
+
+        logger.warn(`Sharechain gaps found, count: ${gaps.length}, length: ${gaps.sum(g => g.length)}`);
 
         let peers = kinq.toLinqable(this.peers.values()).orderByDescending(p => p.isJs2PoolPeer).toArray();
         let randomGaps = gaps.length > 1 ? MathEx.shuffle(gaps) : gaps;
@@ -85,6 +86,8 @@ export class Peer {
         for (let gap of randomGaps) {
             if (!peers.length) break;
             let node = peers.shift();
+            console.log('gap length', gap.length, gap.descendentHeight, 'except', gap.descendentHeight - gap.length);
+            console.log('ancestor: ', this.sharechain.get(gap.descendentHeight - gap.length - 1) ? true : false, 'descendant', this.sharechain.get(gap.descendentHeight - gap.length + 1) ? true : false);
             node.sendSharereqAsync({
                 id: Bignum.fromBuffer(Utils.sha256(gap.descendent + '-' + gap.length)),
                 hashes: [gap.descendent],
@@ -230,10 +233,16 @@ export class Peer {
         // not ok
         if (reply.result != 0) {
             this.sharechain.checkGaps();
+            logger.warn(`share reply not ok, error code: ${reply.result}`);
             return;
         }
 
-        if (this.shareReplies.has(reply.id.toString())) return;
+        if (this.shareReplies.has(reply.id.toString())) {
+            console.log('farest reply height', reply.wrapper.shares.min(s => s.contents.info.absheight).contents.info.absheight);
+
+            logger.info(`duplicate share reply from ${sender.tag}`);
+            return;
+        }
 
         let shares = reply.wrapper.shares.map(s => s.contents).where(share => !this.sharechain.has(share.hash)).toArray();
         this.sharechain.add(shares);
@@ -241,8 +250,8 @@ export class Peer {
         this.sharechain.verify();
         SharechainHelper.saveShares(shares);
 
-        this.shareReplies.add(reply.id.toString());
         console.log(reply.id.toString());
+        this.shareReplies.add(reply.id.toString());
         if (this.shareReplies.size > 10) this.shareReplies.delete(this.shareReplies.first());
 
         logger.info(`received ${reply.wrapper.shares.length} shares from ${sender.tag}`);

@@ -183,6 +183,9 @@ export class Js2Pool {
                 this.sharechainBuilder.buildShare(me.task.shareVersion, SmallBlockHeader.fromObject(header), me.task.shareInfo, tx1, tx2, me.task.merkleLink, result.extraNonce2);
             }
 
+            let share = this.sharechainBuilder.buildShare(me.task.shareVersion, SmallBlockHeader.fromObject(header), me.task.shareInfo, tx1, tx2, me.task.merkleLink, result.extraNonce2);
+            share.init();
+            console.log(share.hash);
             console.log('header', shareHash, shareTarget, result.extraNonce2);
             console.log(shareTarget.toNumber(), Algos.BaseTarget);
             sender.sendSubmissionResult(message.id, true, null);

@@ -145,7 +145,6 @@ export class SharechainBuilder {
 
     // As SHA256 by js is so slow, delay this function calling
     buildShare(version: number, minHeader: SmallBlockHeader, shareInfo: ShareInfo, tx1: Buffer, tx2: Buffer, merkleLink: Buffer[], coinbaseNonce: string) {
-
         let share = new ShareVersionMapper[version]() as BaseShare;
         share.info = shareInfo;
         share.refMerkleLink = [];
@@ -153,6 +152,8 @@ export class SharechainBuilder {
         share.merkleLink = merkleLink;
         share.minHeader = minHeader;
         share.lastTxoutNonce = new Bignum(coinbaseNonce);
+
+        return share;
     }
 
     private buildCoinbaseTx(template: GetBlockTemplate, coinbaseScriptSig1: Buffer, payouts: Array<(Buffer | Bignum)[]>, shareInfo: ShareInfo) {
