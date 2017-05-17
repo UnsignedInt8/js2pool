@@ -96,7 +96,7 @@ export class SharechainBuilder {
             for (let item of tuple) txHashRefs.push(item); // p2pool/data.py#177: transaction_hash_refs.extend(this)
         }
 
-        console.log('other tx hashes', otherTxHashes.length, knownTxs.size);
+        console.log('newTxHashes', newTxHashes.length, otherTxHashes.length, knownTxs.size);
 
         let payments = this.paymentCalculator.calc(shareHash, template.coinbasevalue, template.target);
         if (payments.length === 0) { }
@@ -139,6 +139,7 @@ export class SharechainBuilder {
 
         console.log('maxbits', maxBits.toString(16));
         console.log('far share hash', new Bignum(shareInfo.farShareHash, 16), );
+        console.log(shareCoinbaseTx.toString('hex'));
         console.log('coinbase tx length', shareCoinbaseTx.length);
 
         return { shareInfo, merkleLink, tx1, tx2, shareCoinbaseTx, maxBits, bits, version: lastShare.VERSION };
@@ -202,7 +203,7 @@ export class SharechainBuilder {
         //
 
         let tx2 = Buffer.concat([
-            Utils.packUInt32LE(0),  // Tx input sequence
+            Utils.packUInt32LE(0xFFFFFFFF),  // Tx input sequence
             // Tx inputs end
 
             // Tx outputs
@@ -225,6 +226,12 @@ export class SharechainBuilder {
             coinbaseScriptSig1,
         ]);
 
-        return { tx1, tx2, shareCoinbaseTx: Buffer.concat([shareTx1, tx2]) };
+        let shareTx2 = Buffer.concat([
+            Utils.packUInt32LE(0xFFFFFFFF),
+            BufferWriter.writeList([]),
+            Utils.packUInt32LE(0),
+        ])
+
+        return { tx1, tx2, shareCoinbaseTx: Buffer.concat([shareTx1, shareTx2]) };
     }
 }

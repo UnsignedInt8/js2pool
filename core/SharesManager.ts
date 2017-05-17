@@ -73,7 +73,7 @@ export default class SharesManager {
         let shareTarget = Bignum.fromBuffer(headerHashBuf, { endian: 'little', size: 32 });
 
         let shareHex: string;
-        if (this.blockTarget.ge(shareTarget)) {
+        if (/*this.blockTarget.ge(shareTarget)*/true) {
             console.info('found block target: ', shareTarget);
             shareHex = Buffer.concat([
                 headerBuf,
