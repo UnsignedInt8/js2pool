@@ -291,17 +291,19 @@ export default class Sharechain extends Event {
         if (!this.newest.hasValue()) return;
 
         let gaps = new Array<Gap>();
-        let descendent = this.newest.value;
+        let child = this.newest.value;
+        let descendent = child;
 
-        for (let [ancestorHeight, shares] of Array.from(this.absheightIndexer).sort((a, b) => b[0] - a[0]).skip(1)) {
+        for (let [parentHeight, shares] of Array.from(this.absheightIndexer).sort((a, b) => b[0] - a[0]).skip(1)) {
 
-            if (ancestorHeight + 1 !== descendent.info.absheight || shares[0].hash !== descendent.info.data.previousShareHash) {
-                let length = descendent.info.absheight - ancestorHeight + 1;
+            if (parentHeight + 1 !== child.info.absheight || shares[0].hash !== child.info.data.previousShareHash) {
+                let length = descendent.info.absheight - parentHeight + 1;
                 // let descendents = this.absheightIndexer.get(descendentHeight + 1) || this.absheightIndexer.get(descendentHeight);
-                gaps.push({ descendent: descendent.hash, length: length, descendentHeight: descendent.info.absheight });
+                gaps.push({ descendent: descendent.hash, length: length, descendentHeight: child.info.absheight });
+                descendent = child;
             }
 
-            descendent = shares[0];
+            child = shares[0];
         }
 
         if (this.oldest && this.newest.hasValue() && this.newest.value.info.absheight - this.oldest.info.absheight < Sharechain.CALC_CHAIN_LENGTH) {
