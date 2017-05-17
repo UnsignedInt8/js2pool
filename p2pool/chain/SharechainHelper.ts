@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import { Shares } from "../p2p/messages/Shares";
 import logger from '../../misc/Logger';
 import * as Bignum from 'bignum';
-import SmallBlockHeader from "../p2p/shares/SmallBlockHeader";
+import { SmallBlockHeader } from "../p2p/shares/SmallBlockHeader";
 import ShareInfo from "../p2p/shares/ShareInfo";
 import { HashLink } from "../p2p/shares/HashLink";
 import * as crypto from 'crypto';
@@ -53,7 +53,7 @@ export class SharechainHelper {
                 let obj = <BaseShare>Object.assign({}, share);
                 obj.info = Object.assign({}, share.info);
                 obj.info.abswork = <any>share.info.abswork.toString(16);
-                
+
                 obj.info.data = Object.assign({}, share.info.data);
                 obj.info.data.subsidy = <any>share.info.data.subsidy.toString(16);
                 obj.info.data.pubkeyHash = <any>share.info.data.pubkeyHash.toString('hex');
@@ -156,7 +156,7 @@ export class SharechainHelper {
                     share.merkleLink = obj.merkleLink.map(l => Buffer.from(<any>l, 'hex'));
                     share.gentxHash = Buffer.from(<any>obj.gentxHash, 'hex');
                     share.target = new Bignum(obj.target, 16);
-                    share.work = new Bignum(obj.work,16);
+                    share.work = new Bignum(obj.work, 16);
                     share.maxTarget = new Bignum(obj.maxTarget, 16);
                     share.minWork = new Bignum(obj.minWork, 16);
                     share.lastTxoutNonce = new Bignum(obj.lastTxoutNonce, 16);

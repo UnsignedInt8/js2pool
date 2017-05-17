@@ -8,7 +8,15 @@ import BufferReader from "../../../misc/BufferReader";
 import { bitsToTarget } from "../../../core/Algos";
 import { Algos } from "../../../core/Algos";
 
-export default class SmallBlockHeader {
+export type TypeSmallBlockHeader = {
+    version: number,
+    previousBlockHash: string,
+    timestamp: number,
+    bits: number,
+    nonce: number,
+}
+
+export class SmallBlockHeader {
     version: number; // var int
     previousBlockHash: string; // 256 bits
     timestamp: number; // 4 bytes in seconds
@@ -47,7 +55,7 @@ export default class SmallBlockHeader {
         return header;
     }
 
-    static fromObject(obj: any) {
+    static fromObject(obj: TypeSmallBlockHeader) {
         let header = new SmallBlockHeader();
         header = Object.assign(header, obj);
         return header;

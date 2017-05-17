@@ -18,6 +18,7 @@ import StratumClient from "../../core/StratumClient";
 import { IWorkerManager } from "./IWorkerManager";
 import ShareInfo from "../p2p/shares/ShareInfo";
 import SharesManager from "../../core/SharesManager";
+import { SmallBlockHeader } from "../p2p/shares/SmallBlockHeader";
 
 export type Js2PoolOptions = {
     daemon: DaemonOptions,
@@ -37,8 +38,11 @@ type Task = {
     taskId: string,
     merkleLink: Buffer[],
     height: number,
+
+    // Js2Pool parameters
     shareInfo: ShareInfo,
     target: Bignum,
+    shareVersion: number,
 }
 
 export class Js2Pool {
@@ -90,7 +94,7 @@ export class Js2Pool {
         if (!newestShare.hasValue() || !this.sharechain.calculatable) return;
 
         let knownTxs = template.transactions.toMap(item => item.txid || item.hash, item => item);
-        let { bits, maxBits, merkleLink, shareInfo, tx1, tx2 } = this.sharechainBuilder.buildMiningComponents(template, newestShare.value.hash, new Bignum(0), Array.from(knownTxs.keys()), knownTxs);
+        let { bits, maxBits, merkleLink, shareInfo, tx1, tx2, version } = this.sharechainBuilder.buildMiningComponents(template, newestShare.value.hash, new Bignum(0), Array.from(knownTxs.keys()), knownTxs);
 
         let stratumParams = [
             crypto.randomBytes(4).toString('hex'),
@@ -112,6 +116,7 @@ export class Js2Pool {
             stratumParams,
             shareInfo,
             target: Algos.bitsToTarget(bits),
+            shareVersion: version,
         };
 
         Array.from(this.clients.values()).forEach(c => c.sendTask(stratumParams));
@@ -153,14 +158,15 @@ export class Js2Pool {
         });
 
         client.onSubmit((sender, result, message) => {
-            if (!result) {
-                client.sendSubmissionResult(message ? message.id : 0, false, null);
+            if (!result || !message) {
+                sender.sendSubmissionResult(message ? message.id : 0, false, null);
                 return;
             }
 
+            // dead on arrive
             if (result.taskId != me.task.taskId) {
                 let msg = { miner: result.miner, taskId: result.taskId };
-                client.sendSubmissionResult(message.id, false, null);
+                sender.sendSubmissionResult(message.id, false, null);
                 return;
             }
 
@@ -169,14 +175,20 @@ export class Js2Pool {
 
             if (!shareTarget) {
                 let msg = { miner: result.miner, taskId: result.taskId, };
-                client.sendSubmissionResult(message.id, false, null);
+                sender.sendSubmissionResult(message.id, false, null);
                 return;
             }
 
-            console.log('header', shareHash, shareTarget);
-            if (shareTarget.le(Algos.BaseTarget)) {
-                client.sendSubmissionResult(message.id, true, null);
+            if (shareTarget.le(this.task.target)) {
+                this.sharechainBuilder.buildShare(me.task.shareVersion, SmallBlockHeader.fromObject(header), me.task.shareInfo, tx1, tx2, me.task.merkleLink, result.extraNonce2);
             }
+
+            console.log('header', shareHash, shareTarget, result.extraNonce2);
+            console.log(shareTarget.toNumber(), Algos.BaseTarget);
+            sender.sendSubmissionResult(message.id, true, null);
+
+            // me.sharechainBuilder.buildShare()
+
             // let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
             // if (!share || share.shareDiff < sender.difficulty) {
             //     let msg = { miner: result.miner, taskId: result.taskId, };

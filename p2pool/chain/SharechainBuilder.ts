@@ -20,6 +20,7 @@ import BufferWriter from "../../misc/BufferWriter";
 import { ShareVersionMapper, DONATION_SCRIPT_BUF, GENTX_BEFORE_REFHASH } from "../p2p/shares/BaseShare";
 import { HashLink } from "../p2p/shares/HashLink";
 import MerkleTree from "../../core/MerkleTree";
+import { SmallBlockHeader } from "../p2p/shares/SmallBlockHeader";
 
 export class SharechainBuilder {
 
@@ -58,7 +59,8 @@ export class SharechainBuilder {
     buildMiningComponents(template: GetBlockTemplate, shareHash: string, desiredTarget: Bignum, desiredTxHashes: string[], knownTxs: Map<string, TransactionTemplate> = null) {
         let lastShare = this.sharechain.get(shareHash);
         let { maxBits, bits } = this.estimateBits(lastShare, desiredTarget);
-        
+        let begin = Date.now();
+
         let recentShares = Array.from(this.sharechain.subchain(shareHash, 100, 'backward'));
         let newTxHashes = new Array<string>();
         let newTxSize = 0;
@@ -95,7 +97,6 @@ export class SharechainBuilder {
         }
 
         console.log('other tx hashes', otherTxHashes.length, knownTxs.size);
-        let begin = Date.now();
 
         let payments = this.paymentCalculator.calc(shareHash, template.coinbasevalue, template.target);
         if (payments.length === 0) { }
@@ -139,19 +140,19 @@ export class SharechainBuilder {
         console.log('maxbits', maxBits.toString(16));
         console.log('far share hash', new Bignum(shareInfo.farShareHash, 16), );
 
-        return { shareInfo, merkleLink, tx1, tx2, maxBits, bits };
+        return { shareInfo, merkleLink, tx1, tx2, maxBits, bits, version: lastShare.VERSION };
     }
 
     // As SHA256 by js is so slow, delay this function calling
-    buildShare(version: number, shareInfo: ShareInfo, tx1: Buffer, tx2: Buffer, merkleLink: Buffer[]) {
+    buildShare(version: number, minHeader: SmallBlockHeader, shareInfo: ShareInfo, tx1: Buffer, tx2: Buffer, merkleLink: Buffer[], coinbaseNonce: string) {
 
         let share = new ShareVersionMapper[version]() as BaseShare;
         share.info = shareInfo;
         share.refMerkleLink = [];
         share.hashLink = HashLink.fromPrefix(Buffer.concat([tx1, tx2.slice(0, -32 - 8 - 4)]), GENTX_BEFORE_REFHASH);
         share.merkleLink = merkleLink;
-        
-
+        share.minHeader = minHeader;
+        share.lastTxoutNonce = new Bignum(coinbaseNonce);
     }
 
     private buildCoinbaseTx(template: GetBlockTemplate, coinbaseScriptSig1: Buffer, payouts: Array<(Buffer | Bignum)[]>, shareInfo: ShareInfo) {

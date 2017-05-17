@@ -38,7 +38,7 @@ export default class SharesManager {
     }
 
     /**
-     * 
+     * Returns a standard share info, including actual target, share hex if it satisfies Bitcoin target, share hash string, merkle root string, and block header
      * @param coinbaseTx1 
      * @param coinbaseTx2 
      * @param merkleLink Flat merkle link without first tx
