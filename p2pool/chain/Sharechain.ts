@@ -118,10 +118,6 @@ export default class Sharechain extends Event {
         }
     }
 
-    rebuild() {
-        // for (let [height])
-    }
-
     /**
      * if returns ture, means it's a new share, and it can be broadcasted to other peers
      * if returns false, means it's **an old** or invalid share, and it should not be broadcasted to other peers
@@ -229,6 +225,23 @@ export default class Sharechain extends Event {
         this.absheightIndexer.delete(this.oldest.info.absheight);
         for (let ds of deprecatedShares) this.hashIndexer.delete(ds.hash);
     }
+
+    fix() {
+        for (let [height, shares] of Array.from(this.absheightIndexer).sort((a, b) => b[0] - a[0])) {
+            let current = shares[0];
+            let parents = this.absheightIndexer.get(current.info.absheight - 1);
+            if (!parents || parents.length <= 1) continue;
+
+            if (parents[0].hash === current.info.data.previousShareHash) continue;
+            let target = parents.singleOrDefault(p => p.hash === current.info.data.previousShareHash, null);
+            if (!target) continue;
+            if (current.info.absheight === 4020379)
+                console.log('here');
+            let others = parents.except([target], (i1, i2) => i1.hash === i2.hash).toArray();
+            this.absheightIndexer.set(current.info.absheight - 1, [target].concat(others));
+        }
+    }
+
 
     *subchain(startHash: string, length: number = Number.MAX_SAFE_INTEGER, direction: 'backward' | 'forward' = 'backward') {
         let absheight = this.hashIndexer.get(startHash);

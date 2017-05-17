@@ -71,7 +71,10 @@ async function run() {
 
     SharechainHelper.init('bitcoin');
     let shares = await SharechainHelper.loadSharesAsync();
+    console.log('init sharechain', shares.length);
     Sharechain.Instance.add(shares);
+    console.log('fix it');
+    Sharechain.Instance.fix();
     console.log('share chain length', shares.length);
     setTimeout(() => new Js2Pool(opts, DefaultWorkerManager.Instance), 2000);
 

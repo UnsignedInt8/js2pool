@@ -50,6 +50,7 @@ export class App {
         SharechainHelper.init(coiname);
         SharechainHelper.loadSharesAsync().then(shares => {
             chain.add(shares);
+            chain.fix();
         });
     }
 }
