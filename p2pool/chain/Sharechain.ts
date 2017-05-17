@@ -280,7 +280,7 @@ export default class Sharechain extends Event {
         logger.info(`sharechain verified: ${verified}, length: ${this.length}, size: ${this.size}`);
         this.calculatable = verified == this.length && verified >= Sharechain.CALC_CHAIN_LENGTH;
         this.verified = verified === this.length;
-        
+
         return this.verified;
     }
 
@@ -295,8 +295,8 @@ export default class Sharechain extends Event {
 
             if (!(ancestorHeight + 1 === descendentHeight && shares[0].hash === ancestorHash)) {
                 let length = descendentHeight - ancestorHeight;
-                let descendents = this.absheightIndexer.get(descendentHeight);
-                gaps.push({ descendent: descendents[0].hash, length: length + 1, descendentHeight });
+                let descendents = this.absheightIndexer.get(descendentHeight + 1) || this.absheightIndexer.get(descendentHeight);
+                gaps.push({ descendent: descendents[0].hash, length: length, descendentHeight });
             }
 
             descendentHeight = ancestorHeight;
@@ -312,7 +312,7 @@ export default class Sharechain extends Event {
         }
 
         if (gaps.length > 0) super.trigger(Sharechain.Events.gapsFound, this, gaps);
-        
+
         return gaps;
     }
 }
