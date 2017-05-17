@@ -32,7 +32,6 @@ export class Peer {
     private readonly knownTxsCaches = new Array<Map<string, TransactionTemplate>>();
     private readonly miningTxs = ObservableProperty.init(new Map<string, TransactionTemplate>());
     private readonly sharechain = Sharechain.Instance;
-    private readonly shareReplies = new Set<string>();
     readonly peers = new Map<string, Node>(); // ip:port -> Node
 
     constructor(opts: PeerOptions) {
@@ -82,14 +81,15 @@ export class Peer {
 
         for (let gap of randomGaps) {
             if (!peers.length) break;
-            let node = peers.shift();
+
             console.log('gap descendent', gap.descendent, gap.descendentHeight, 'except', gap.descendentHeight - gap.length);
-            console.log('ancestor: ', this.sharechain.get(gap.descendentHeight - gap.length - 1) ? true : false, 'descendant', this.sharechain.get(gap.descendentHeight - gap.length + 1) ? true : false);
-            node.sendSharereqAsync({
-                id: Bignum.fromBuffer(Utils.sha256(gap.descendent + '-' + gap.length)),
-                hashes: [gap.descendent],
-                parents: Math.min(gap.length, node.isJs2PoolPeer ? 250 : 79),
-            });
+            for (let node of peers.take(3)) {
+                node.sendSharereqAsync({
+                    id: Bignum.fromBuffer(Utils.sha256(gap.descendent + '-' + gap.length)),
+                    hashes: [gap.descendent],
+                    parents: Math.min(gap.length, node.isJs2PoolPeer ? 250 : 79),
+                });
+            }
         }
     }
 
@@ -234,21 +234,12 @@ export class Peer {
             return;
         }
 
-        if (this.shareReplies.has(reply.id.toString())) {
-            logger.info(`duplicate share reply from ${sender.tag}`);
-            return;
-        }
-
         let shares = reply.wrapper.shares.map(s => s.contents).where(share => !this.sharechain.has(share.hash)).toArray();
         if (shares.length === 0) this.sharechain.fix();
         this.sharechain.add(shares);
         this.sharechain.checkGaps();
         this.sharechain.verify();
         SharechainHelper.saveShares(shares);
-
-        console.log(reply.id.toString());
-        this.shareReplies.add(reply.id.toString());
-        if (this.shareReplies.size > 10) this.shareReplies.delete(this.shareReplies.first());
 
         logger.info(`received ${reply.wrapper.shares.length} shares from ${sender.tag}`);
     }

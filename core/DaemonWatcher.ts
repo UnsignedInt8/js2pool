@@ -81,8 +81,8 @@ export class DaemonWatcher extends Event {
     async submitBlockAsync(blockHex: string) {
         try {
             let results: any[] = await this.client.command([{ method: 'submitblock', parameters: [blockHex] }]);
-            logger.info(results);
             let result = results.first();
+            logger.info(result);
             if (result == null) return true;
             if (typeof (result) === 'string') return false;
             if (result.error || result.result === 'reject') return false;
@@ -111,7 +111,7 @@ export class DaemonWatcher extends Event {
             let blocks: BlockTemplate[] = await this.client.command([{ method: 'getblock', parameters: [hash] }]);
             return blocks.first();
         } catch (error) {
-
+            logger.error(error);
         }
     }
 

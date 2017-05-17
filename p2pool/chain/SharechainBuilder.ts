@@ -12,6 +12,7 @@ import { BaseShare, SegwitShare, Share } from "../p2p/shares/index";
 import * as Algos from "../../core/Algos";
 import { GetBlockTemplate, TransactionTemplate } from "../../core/DaemonWatcher";
 import * as assert from 'assert';
+import * as fs from 'fs';
 import { PaymentCalculator } from "./PaymentCalculator";
 import { SharechainHelper } from "./SharechainHelper";
 import ShareInfo, { ShareData } from "../p2p/shares/ShareInfo";
@@ -139,7 +140,7 @@ export class SharechainBuilder {
 
         console.log('maxbits', maxBits.toString(16));
         console.log('far share hash', new Bignum(shareInfo.farShareHash, 16), );
-        // console.log(shareCoinbaseTx.toString('hex'));
+        console.log(fs.writeFile('/tmp/' + shareInfo.absheight, shareCoinbaseTx.toString('hex'), () => { }));
         console.log('coinbase tx length', shareCoinbaseTx.length);
 
         return { shareInfo, merkleLink, tx1, tx2, shareCoinbaseTx, maxBits, bits, version: lastShare.VERSION };
@@ -162,7 +163,6 @@ export class SharechainBuilder {
 
         let outputs = new Array<Buffer>();
         for (let [script, value] of payouts) {
-            console.log((<Buffer>script).toString('hex'), value);
             outputs.push(Buffer.concat([
                 (<Bignum>value).toBuffer({ endian: 'little', size: 8 }),
                 Utils.varIntBuffer((<Buffer>script).length),
