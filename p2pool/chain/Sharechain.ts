@@ -186,7 +186,10 @@ export default class Sharechain extends Event {
 
             let nextHeight = share.info.absheight + 1;
             let nextShares = this.absheightIndexer.get(nextHeight);
-            if (!nextShares || nextShares.length == 0) return;
+            if (!nextShares || nextShares.length == 0) {
+                // this.trigger(Sharechain.Events.gapsFound, this, [{descendent: }])
+                return;
+            }
 
             // dead share arrived
             if (!nextShares.some(s => s.info.data.previousShareHash == share.hash)) {
@@ -288,19 +291,17 @@ export default class Sharechain extends Event {
         if (!this.newest.hasValue()) return;
 
         let gaps = new Array<Gap>();
-        let descendentHeight = this.newest.value.info.absheight;
-        let ancestorHash = this.newest.value.info.data.previousShareHash;
+        let descendent = this.newest.value;
 
         for (let [ancestorHeight, shares] of Array.from(this.absheightIndexer).sort((a, b) => b[0] - a[0]).skip(1)) {
 
-            if (!(ancestorHeight + 1 === descendentHeight && shares[0].hash === ancestorHash)) {
-                let length = descendentHeight - ancestorHeight;
-                let descendents = this.absheightIndexer.get(descendentHeight + 1) || this.absheightIndexer.get(descendentHeight);
-                gaps.push({ descendent: descendents[0].hash, length: length, descendentHeight });
+            if (ancestorHeight + 1 !== descendent.info.absheight || shares[0].hash !== descendent.info.data.previousShareHash) {
+                let length = descendent.info.absheight - ancestorHeight + 1;
+                // let descendents = this.absheightIndexer.get(descendentHeight + 1) || this.absheightIndexer.get(descendentHeight);
+                gaps.push({ descendent: descendent.hash, length: length, descendentHeight: descendent.info.absheight });
             }
 
-            descendentHeight = ancestorHeight;
-            ancestorHash = shares[0].info.data.previousShareHash;
+            descendent = shares[0];
         }
 
         if (this.oldest && this.newest.hasValue() && this.newest.value.info.absheight - this.oldest.info.absheight < Sharechain.CALC_CHAIN_LENGTH) {
