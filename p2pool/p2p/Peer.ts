@@ -240,6 +240,7 @@ export class Peer {
         }
 
         let shares = reply.wrapper.shares.map(s => s.contents).where(share => !this.sharechain.has(share.hash)).toArray();
+        if (shares.length === 0) this.sharechain.fix();
         this.sharechain.add(shares);
         this.sharechain.checkGaps();
         this.sharechain.verify();

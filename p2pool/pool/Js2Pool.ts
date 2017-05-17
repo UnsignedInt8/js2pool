@@ -56,6 +56,7 @@ export class Js2Pool {
     private readonly sharechain = Sharechain.Instance;
     private readonly workerManager: IWorkerManager;
     private task: Task;
+    private sharesCount = 0;
     peer: Peer;
 
     constructor(opts: Js2PoolOptions, manager: IWorkerManager) {
@@ -81,9 +82,11 @@ export class Js2Pool {
 
     private onNewestShareChanged(sender: Sharechain, share: BaseShare) {
         this.daemonWatcher.refreshBlockTemplateAsync();
-        if (sender.size % 5 === 0) {
+        this.sharesCount++;
+        if (this.sharesCount % 5 === 0) {
             sender.checkGaps();
             SharechainHelper.saveShares(kinq.toLinqable(sender.subchain(share.hash, 10, 'backward')).skip(5));
+            this.sharesCount = 0;
         }
     }
 
