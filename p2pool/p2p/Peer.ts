@@ -234,12 +234,10 @@ export class Peer {
             return;
         }
 
-        // if (this.shareReplies.has(reply.id.toString())) {
-        //     console.log('farest reply height', reply.wrapper.shares.min(s => s.contents.info.absheight).contents.info.absheight);
-
-        //     logger.info(`duplicate share reply from ${sender.tag}`);
-        //     return;
-        // }
+        if (this.shareReplies.has(reply.id.toString())) {
+            logger.info(`duplicate share reply from ${sender.tag}`);
+            return;
+        }
 
         let shares = reply.wrapper.shares.map(s => s.contents).where(share => !this.sharechain.has(share.hash)).toArray();
         this.sharechain.add(shares);

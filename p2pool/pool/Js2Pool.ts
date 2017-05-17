@@ -43,6 +43,7 @@ type Task = {
     shareInfo: ShareInfo,
     target: Bignum,
     shareVersion: number,
+    shareCoinbaseTx: Buffer,
 }
 
 export class Js2Pool {
@@ -94,7 +95,7 @@ export class Js2Pool {
         if (!newestShare.hasValue() || !this.sharechain.calculatable) return;
 
         let knownTxs = template.transactions.toMap(item => item.txid || item.hash, item => item);
-        let { bits, maxBits, merkleLink, shareInfo, tx1, tx2, version } = this.sharechainBuilder.buildMiningComponents(template, newestShare.value.hash, new Bignum(0), Array.from(knownTxs.keys()), knownTxs);
+        let { bits, maxBits, merkleLink, shareInfo, tx1, tx2, shareCoinbaseTx, version } = this.sharechainBuilder.buildMiningComponents(template, newestShare.value.hash, new Bignum(0), Array.from(knownTxs.keys()), knownTxs);
 
         let stratumParams = [
             crypto.randomBytes(4).toString('hex'),
@@ -117,6 +118,7 @@ export class Js2Pool {
             shareInfo,
             target: Algos.bitsToTarget(bits),
             shareVersion: version,
+            shareCoinbaseTx,
         };
 
         Array.from(this.clients.values()).forEach(c => c.sendTask(stratumParams));
@@ -158,7 +160,7 @@ export class Js2Pool {
         });
 
         client.onSubmit((sender, result, message) => {
-            if (!result || !message) {
+            if (!result || !message || !me.task) {
                 sender.sendSubmissionResult(message ? message.id : 0, false, null);
                 return;
             }
@@ -170,8 +172,9 @@ export class Js2Pool {
                 return;
             }
 
-            let { part1: tx1, part2: tx2 } = me.task.coinbaseTx;
-            let { shareTarget, shareHex, header, shareHash } = me.sharesManager.buildShare(tx1, tx2, me.task.merkleLink, result.nonce, '', result.extraNonce2, result.nTime);
+            let task = me.task;
+            let { part1: tx1, part2: tx2 } = task.coinbaseTx;
+            let { shareTarget, shareHex, header, shareHash } = me.sharesManager.buildShare(tx1, tx2, task.merkleLink, result.nonce, '', result.extraNonce2, result.nTime);
 
             if (!shareTarget) {
                 let msg = { miner: result.miner, taskId: result.taskId, };
@@ -179,13 +182,17 @@ export class Js2Pool {
                 return;
             }
 
-            if (shareTarget.le(this.task.target)) {
-                this.sharechainBuilder.buildShare(me.task.shareVersion, SmallBlockHeader.fromObject(header), me.task.shareInfo, tx1, tx2, me.task.merkleLink, result.extraNonce2);
+            if (shareHex) {
+                me.daemonWatcher.submitBlockAsync(shareHex);
             }
 
-            let share = this.sharechainBuilder.buildShare(me.task.shareVersion, SmallBlockHeader.fromObject(header), me.task.shareInfo, tx1, tx2, me.task.merkleLink, result.extraNonce2);
+            if (shareTarget.le(task.target)) {
+                this.sharechainBuilder.buildShare(task.shareVersion, SmallBlockHeader.fromObject(header), task.shareInfo, task.shareCoinbaseTx, task.merkleLink, result.extraNonce2);
+            }
+
+            let share = this.sharechainBuilder.buildShare(task.shareVersion, SmallBlockHeader.fromObject(header), task.shareInfo, task.shareCoinbaseTx, task.merkleLink, result.extraNonce2);
             share.init();
-            console.log(share.hash);
+            console.log('validity', share.validity, share.hash);
             console.log('header', shareHash, shareTarget, result.extraNonce2);
             console.log(shareTarget.toNumber(), Algos.BaseTarget);
             sender.sendSubmissionResult(message.id, true, null);
@@ -202,11 +209,6 @@ export class Js2Pool {
             // }
 
             // let shareMessage = { miner: result.miner, hash: share.shareHash, diff: share.shareDiff, expectedDiff: sender.difficulty, timestamp: share.timestamp };
-
-            // if (share.shareHex) {
-            //     me.fastSubmitter.submitBlockAsync(share.shareHex);
-            //     me.broadcastBlock(shareMessage);
-            // }
 
             // client.sendSubmissionResult(message.id, true, null);
             // me.broadcastShare(shareMessage);

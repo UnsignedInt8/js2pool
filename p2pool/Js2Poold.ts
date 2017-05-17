@@ -41,7 +41,7 @@ const opts = {
     bootstrapPeers: [
         {
             host: '123.163.48.115',
-            port: 9787,
+            port: 9777,
         },
         {
             host: '123.163.48.115',
