@@ -38,7 +38,7 @@ export class SharechainHelper {
         if (!fs.existsSync(path.resolve(appDir, 'data'))) fs.mkdirSync(path.resolve(appDir, 'data'));
         if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir);
 
-        let deprecatedFiles = fs.readdirSync(dataDir).where(name => Number.parseInt(name.split('_')[1]) < SharechainHelper.today - 2).select(name => path.resolve(dataDir, name)).toArray();
+        let deprecatedFiles = fs.readdirSync(dataDir).where(name => Number.parseInt(name.split('_')[1]) < SharechainHelper.today - 3).select(name => path.resolve(dataDir, name)).toArray();
         deprecatedFiles.each(path => fs.unlinkSync(path));
     }
 

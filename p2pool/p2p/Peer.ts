@@ -79,7 +79,7 @@ export class Peer {
         if (!this.peers.size) return;
         if (!gaps.length) return;
 
-        let peers = Array.from(this.peers.values());
+        let peers = kinq.toLinqable(this.peers.values()).orderByDescending(p => p.isJs2PoolPeer).toArray();
         let randomGaps = gaps.length > 1 ? MathEx.shuffle(gaps) : gaps;
 
         for (let gap of randomGaps) {
