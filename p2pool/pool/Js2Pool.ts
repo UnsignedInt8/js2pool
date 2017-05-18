@@ -127,7 +127,6 @@ export class Js2Pool {
 
     private async onBlockNotified(sender: DaemonWatcher, hash: string) {
         if (this.blocks.includes(hash)) return;
-        this.sharechain.checkGaps(); // check gaps when new blocks be found
 
         this.blocks.push(hash);
         if (this.blocks.length < 4) return;
@@ -196,7 +195,7 @@ export class Js2Pool {
                 sender.sendSubmissionResult(message.id, false, null);
                 return;
             }
-            
+
             share.init();
             console.log('validity', share.validity, share.hash);
             console.log('header', shareHash, shareTarget, result.extraNonce2);
