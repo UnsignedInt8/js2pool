@@ -20,8 +20,14 @@ sudo apt-get install -y nodejs
 curl -sL https://deb.nodesource.com/setup_7.x | bash -
 apt-get install -y nodejs
 
+# Using CentOS 6/RHEL 6
+curl -sL https://rpm.nodesource.com/setup_7.x | bash -
+yum install -y nodejs
+
 # Using macOS
 brew install node
+
+# More Node.js installation info, please visit https://github.com/nodesource/distributions or https://nodejs.org/en/download/package-manager
 
 # node-gyp
 npm i -g node-gyp
@@ -47,6 +53,8 @@ npm link
 ## Usage
 
 This project has not been finished yet, so it is not usable at the moment. Coming soon...
+
+## Known issues
 
 ## Donation
 
