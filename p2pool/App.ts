@@ -29,7 +29,7 @@ export class App {
     constructor(opts: AppOptions) {
         let coiname = opts.coin.name.toLowerCase();
         let coin = this.coins.get(coiname);
-        if (!coin) throw Error(`${opts.coin.name} not be supported`);
+        if (!coin) throw Error(`${opts.coin.name} is not supported`);
 
         BaseShare.MAX_TARGET = coin.MAX_TARGET;
         SharechainBuilder.MIN_TARGET = Bitcoin.MIN_TARGET;
@@ -58,5 +58,8 @@ export class App {
             chain.add(shares);
             chain.fix();
         });
+
+        process.on('uncaughtException', (err) => logger.error(err));
+        process.on('error', (err) => logger.error(err));
     }
 }
