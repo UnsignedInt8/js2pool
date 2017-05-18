@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/UnsignedInt8/rice.git"
+    "url": "git+https://github.com/UnsignedInt8/js2pool.git"
   },
   "keywords": [
     "pool",
@@ -23,9 +23,9 @@
   "author": "UnsignedInt8",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/UnsignedInt8/rice/issues"
+    "url": "https://github.com/UnsignedInt8/js2pool/issues"
   },
-  "homepage": "https://github.com/UnsignedInt8/rice#readme",
+  "homepage": "https://github.com/UnsignedInt8/js2pool#readme",
   "dependencies": {
     "base58-native": "*",
     "bignum": "*",
