@@ -135,7 +135,7 @@ export class SharechainBuilder {
             // TODO segwit
         }
 
-        let { tx1, tx2 } = this.buildCoinbaseTx(template, coinbaseScriptSig1, payments, shareInfo);
+        let { tx1, tx2, genTx } = this.buildCoinbaseTx(template, coinbaseScriptSig1, payments, shareInfo);
         let merkleLink = (new MerkleTree([null].concat(desiredTxHashes.map(hash => Utils.uint256BufferFromHash(hash)))).steps);
 
         console.log('maxbits', maxBits.toString(16));
@@ -143,17 +143,17 @@ export class SharechainBuilder {
         // console.log(fs.writeFile('/tmp/' + shareInfo.absheight, shareCoinbaseTx.toString('hex'), () => { }));
         // console.log('coinbase tx length', shareCoinbaseTx.toString('hex').length);
 
-        return { shareInfo, merkleLink, tx1, tx2, maxBits, bits, version: lastShare.VERSION };
+        return { shareInfo, merkleLink, tx1, tx2, genTx, maxBits, bits, version: lastShare.VERSION };
     }
 
     // As SHA256 by js is so slow, delay this function calling
-    buildShare(version: number, minHeader: SmallBlockHeader, shareInfo: ShareInfo, tx1: Buffer, tx2: Buffer, merkleLink: Buffer[], coinbaseNonce: string) {
+    buildShare(version: number, minHeader: SmallBlockHeader, shareInfo: ShareInfo, genTx: Buffer, merkleLink: Buffer[], coinbaseNonce: string) {
         if (!ShareVersionMapper[version]) return null;
 
         let share = new ShareVersionMapper[version]() as BaseShare;
         share.info = shareInfo;
         share.refMerkleLink = [];
-        share.hashLink = HashLink.fromPrefix(Buffer.concat([tx1, tx2]).slice(0, -32 - 8 - 4), GENTX_BEFORE_REFHASH);
+        share.hashLink = HashLink.fromPrefix(genTx.slice(0, -32 - 8 - 4), GENTX_BEFORE_REFHASH);
         share.merkleLink = merkleLink;
         share.minHeader = minHeader;
         share.lastTxoutNonce = new Bignum(coinbaseNonce, 16);
@@ -189,7 +189,7 @@ export class SharechainBuilder {
         //     ]));
         // }
 
-        let tx = Buffer.concat([
+        let genTx = Buffer.concat([
             Utils.packUInt32LE(1), // version
 
             // Tx ins
@@ -206,6 +206,6 @@ export class SharechainBuilder {
             Utils.packUInt32LE(0), // Tx lock time
         ]);
 
-        return { tx1: tx.slice(0, -SharechainBuilder.COINBASE_NONCE_LENGTH - 4), tx2: tx.slice(0, -4) };
+        return { tx1: genTx.slice(0, -SharechainBuilder.COINBASE_NONCE_LENGTH - 4), tx2: genTx.slice(-4), genTx };
     }
 }
