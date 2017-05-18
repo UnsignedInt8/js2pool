@@ -32,28 +32,30 @@ npm i -g typescript
 ```
 2. Installing Js2Pool from source
 ```
-> git clone https://github.com/unsignedint8/js2pool.git
-
-> cd js2pool
+git clone https://github.com/unsignedint8/js2pool.git && cd js2pool
 
 # Install dependencies
-> npm update
+npm update
 
 # Compile the TypeScript code
-> tsc -p .
+tsc -p .
 
 # Link executable files
-> npm link
+npm link
 ```
 
+## Usage
+
+This project has not been finished yet, so it is not usable at the moment. Coming soon...
+
 ## Donation
+
+Even if you do not donate anything to me, I'm maintaining this project. :p
 
 ```
 BTC: 1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9
 ```
 
-Even if you do not donate anything to me, I'm maintaining this project. :p
 
 ## License
----------
 GPL v3.0
