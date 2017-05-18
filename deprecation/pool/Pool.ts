@@ -1,15 +1,15 @@
 
-import { Algos, targetToDifficulty } from '../core/Algos';
-import * as Utils from '../misc/Utils';
+import { Algos, targetToDifficulty } from '../../core/Algos';
+import * as Utils from '../../misc/Utils';
 import { Server } from "net";
 import * as net from 'net';
 import * as kinq from 'kinq';
 import * as assert from 'assert';
-import { DaemonWatcher, GetBlockTemplate } from "../core/DaemonWatcher";
-import { TaskConstructor, Task } from "../core/TaskConstructor";
-import SharesManager from "../core/SharesManager";
-import StratumClient from "../core/StratumClient";
-import MerkleTree from "../core/MerkleTree";
+import { DaemonWatcher, GetBlockTemplate } from "../../core/DaemonWatcher";
+import { TaskConstructor, Task } from "../../core/TaskConstructor";
+import SharesManager from "../../core/SharesManager";
+import StratumClient from "../../core/StratumClient";
+import MerkleTree from "../../core/MerkleTree";
 import { ExtraNonceSize, ExtraNonce1Size, ExtraNonce2Size } from "./Constant";
 require('../nodejs/AsyncSocket');
 require('../nodejs/Number');

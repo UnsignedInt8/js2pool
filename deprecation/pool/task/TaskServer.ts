@@ -1,8 +1,8 @@
 
-import { DaemonWatcher, GetBlockTemplate } from '../../core/DaemonWatcher';
-import { TaskConstructor } from '../../core/TaskConstructor';
+import { DaemonWatcher, GetBlockTemplate } from '../../../core/DaemonWatcher';
+import { TaskConstructor } from '../../../core/TaskConstructor';
 import { default as TaskPusher } from './TaskPusher';
-import MerkleTree from '../../core/MerkleTree';
+import MerkleTree from '../../../core/MerkleTree';
 import { ExtraNonceSize } from '../Constant';
 import { Server, Socket } from 'net';
 import * as net from 'net';

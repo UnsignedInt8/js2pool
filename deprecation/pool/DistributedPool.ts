@@ -2,7 +2,7 @@ import * as kinq from 'kinq';
 import { StratumServer } from './stratum';
 import { DefaultMinersManager } from './stratum';
 import { ShareProcessor } from './ShareProcessor';
-import { DaemonWatcher } from '../core/DaemonWatcher';
+import { DaemonWatcher } from '../../core/DaemonWatcher';
 import { TaskServer } from './task/TaskServer';
 kinq.enable();
 

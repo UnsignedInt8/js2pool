@@ -1,6 +1,6 @@
 
 import { ZookeeperOptions } from "../task/index";
-import { DaemonOptions } from "../../core/DaemonWatcher";
+import { DaemonOptions } from "../../../core/DaemonWatcher";
 
 export { StratumServer, IMinerManager } from './StratumServer';
 export { DefaultMinersManager } from './DefaultMinersManager';

@@ -4,9 +4,7 @@
   "description": "A mining pool",
   "main": "index.js",
   "bin": {
-    "rice-blocknotifier": "./dist/bin/BlockNotifier.js",
-    "rice-gbtserver": "./dist/bin/TaskServer.js",
-    "rice-stratumserver": "./dist/bin/StratumServer.js"
+    "js2pool-blocknotifier": "./dist/bin/BlockNotifier.js"
   },
   "scripts": {
     "test": "node_modules/.bin/mocha ./dist/test/*.js --no-timeouts"

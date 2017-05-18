@@ -1,9 +1,9 @@
 import { Client, HighLevelProducer } from 'kafka-node';
-import { Event } from '../../nodejs/Event';
+import { Event } from '../../../nodejs/Event';
 import * as crypto from 'crypto';
-import { DaemonWatcher, DaemonOptions, GetBlockTemplate, } from '../../core/DaemonWatcher';
-import { TaskConstructor, Task } from '../../core/TaskConstructor';
-import MerkleTree from '../../core/MerkleTree';
+import { DaemonWatcher, DaemonOptions, GetBlockTemplate, } from '../../../core/DaemonWatcher';
+import { TaskConstructor, Task } from '../../../core/TaskConstructor';
+import MerkleTree from '../../../core/MerkleTree';
 import { Topics } from '../Constant';
 import { ZookeeperOptions, TaskSerialization } from './index';
 

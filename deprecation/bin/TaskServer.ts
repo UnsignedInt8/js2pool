@@ -2,7 +2,7 @@
 
 import * as fs from 'fs';
 import * as net from 'net';
-import cmd from './ArgsParser';
+import cmd from '../../bin/ArgsParser';
 import * as commander from 'commander';
 import { TaskServerOptions, TaskServer } from '../pool/task/';
 

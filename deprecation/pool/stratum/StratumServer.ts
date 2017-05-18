@@ -1,16 +1,16 @@
 import * as net from 'net';
 import * as crypto from 'crypto';
 import { Server, Socket } from "net";
-import { Event } from "../../nodejs/Event";
-import StratumClient from "../../core/StratumClient";
-import SharesManager from "../../core/SharesManager";
+import { Event } from "../../../nodejs/Event";
+import StratumClient from "../../../core/StratumClient";
+import SharesManager from "../../../core/SharesManager";
 import { ZookeeperOptions, TaskSerialization } from "../task";
-import { TaskConstructor, Task } from "../../core/TaskConstructor";
-import { DaemonOptions, DaemonWatcher } from "../../core/DaemonWatcher";
+import { TaskConstructor, Task } from "../../../core/TaskConstructor";
+import { DaemonOptions, DaemonWatcher } from "../../../core/DaemonWatcher";
 import { ExtraNonce1Size, ExtraNonce2Size, Topics } from "../Constant";
 import { Client, Consumer, Producer, HighLevelProducer } from 'kafka-node';
 import { StratumServerOptions } from "./index";
-import * as Algos from '../../core/Algos';
+import * as Algos from '../../../core/Algos';
 
 export interface IMinerManager {
     authorize(username: string, password: string): { authorized: boolean, initDiff: number };

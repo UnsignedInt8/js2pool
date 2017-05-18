@@ -1,4 +1,4 @@
-import { GetBlockTemplate, DaemonOptions, BlockNotifyOptions } from "../../core/DaemonWatcher";
+import { GetBlockTemplate, DaemonOptions, BlockNotifyOptions } from "../../../core/DaemonWatcher";
 
 export type ZookeeperOptions = {
     host: string,
