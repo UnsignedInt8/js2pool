@@ -140,9 +140,9 @@ export class SharechainBuilder {
 
         console.log('maxbits', maxBits.toString(16));
         console.log('far share hash', new Bignum(shareInfo.farShareHash, 16), );
-        console.log(fs.writeFile('/tmp/' + shareInfo.absheight, shareCoinbaseTx.toString('hex'), () => { }));
-        console.log('coinbase tx length', shareCoinbaseTx.length);
-
+        // console.log(fs.writeFile('/tmp/' + shareInfo.absheight, shareCoinbaseTx.toString('hex'), () => { }));
+        // console.log('coinbase tx length', shareCoinbaseTx.toString('hex').length);
+        console.log('hash link', HashLink.fromPrefix(shareCoinbaseTx.slice(0, -32 - 8 - 4), GENTX_BEFORE_REFHASH));
         return { shareInfo, merkleLink, tx1, tx2, shareCoinbaseTx, maxBits, bits, version: lastShare.VERSION };
     }
 
@@ -151,7 +151,7 @@ export class SharechainBuilder {
         let share = new ShareVersionMapper[version]() as BaseShare;
         share.info = shareInfo;
         share.refMerkleLink = [];
-        share.hashLink = HashLink.fromPrefix(Buffer.concat([shareCoinbaseTx.slice(0, -32 - 8 - 4)]), GENTX_BEFORE_REFHASH);
+        share.hashLink = HashLink.fromPrefix(shareCoinbaseTx.slice(0, -32 - 8 - 4), GENTX_BEFORE_REFHASH);
         share.merkleLink = merkleLink;
         share.minHeader = minHeader;
         share.lastTxoutNonce = new Bignum(coinbaseNonce, 16);
@@ -178,14 +178,14 @@ export class SharechainBuilder {
         ]));
 
         // https://bitcointalk.org/index.php?topic=1676471.0;prev_next=prev
-        if (template.default_witness_commitment !== undefined) {
-            let witness_commitment = Buffer.from(template.default_witness_commitment, 'hex');
-            outputs.unshift(Buffer.concat([
-                Utils.packInt64LE(0),
-                Utils.varIntBuffer(witness_commitment.length),
-                witness_commitment
-            ]));
-        }
+        // if (template.default_witness_commitment !== undefined) {
+        //     let witness_commitment = Buffer.from(template.default_witness_commitment, 'hex');
+        //     outputs.unshift(Buffer.concat([
+        //         Utils.packInt64LE(0),
+        //         Utils.varIntBuffer(witness_commitment.length),
+        //         witness_commitment
+        //     ]));
+        // }
 
 
         let tx1 = Buffer.concat([

@@ -32,6 +32,7 @@ export class Peer {
     private readonly knownTxsCaches = new Array<Map<string, TransactionTemplate>>();
     private readonly miningTxs = ObservableProperty.init(new Map<string, TransactionTemplate>());
     private readonly sharechain = Sharechain.Instance;
+    private readonly pendingShareRequests = new Set<string>();
     readonly peers = new Map<string, Node>(); // ip:port -> Node
 
     constructor(opts: PeerOptions) {
@@ -80,16 +81,19 @@ export class Peer {
         let randomGaps = gaps.length > 1 ? MathEx.shuffle(gaps) : gaps;
 
         for (let gap of randomGaps) {
-            if (!peers.length) break;
+            let requestId = Utils.sha256(`${gap.descendent}-${gap.length}`).toString('hex');
+            if (this.pendingShareRequests.has(requestId)) continue;
 
             console.log('gap descendent', gap.descendent, gap.descendentHeight, 'except', gap.descendentHeight - gap.length);
-            for (let node of peers.take(3)) {
+            for (let node of peers.take(8)) {
                 node.sendSharereqAsync({
-                    id: Bignum.fromBuffer(Utils.sha256(gap.descendent + '-' + gap.length)),
+                    id: new Bignum(requestId, 16),
                     hashes: [gap.descendent],
                     parents: Math.min(gap.length, node.isJs2PoolPeer ? 250 : 79),
                 });
             }
+
+            this.pendingShareRequests.add(requestId);
         }
     }
 
@@ -230,16 +234,20 @@ export class Peer {
         // not ok
         if (reply.result != 0) {
             this.sharechain.checkGaps();
-            logger.warn(`share reply not ok, error code: ${reply.result}`);
+            logger.warn(`share request reply not ok, error code: ${reply.result}, from ${sender.tag}`);
             return;
         }
 
         let shares = reply.wrapper.shares.map(s => s.contents).where(share => !this.sharechain.has(share.hash)).toArray();
         if (shares.length === 0) this.sharechain.fix();
         this.sharechain.add(shares);
-        this.sharechain.checkGaps();
-        this.sharechain.verify();
         SharechainHelper.saveShares(shares);
+        this.pendingShareRequests.delete(reply.id.toString(16));
+
+        process.nextTick(() => {
+            this.sharechain.checkGaps();
+            this.sharechain.verify();
+        });
 
         logger.info(`received ${reply.wrapper.shares.length} shares from ${sender.tag}`);
     }
