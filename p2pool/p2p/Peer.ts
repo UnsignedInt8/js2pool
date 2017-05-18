@@ -36,27 +36,27 @@ export class Peer {
     readonly peers = new Map<string, Node>(); // ip:port -> Node
 
     constructor(opts: PeerOptions) {
-        this.knownTxs.onPropertyChanged(this.onKnownTxsChanged.bind(this));
-        this.miningTxs.onPropertyChanged(this.onMiningTxsChanged.bind(this));
+        this.knownTxs.onPropertyChanged(this.handleKnownTxsChanged.bind(this));
+        this.miningTxs.onPropertyChanged(this.handleMiningTxsChanged.bind(this));
 
-        this.sharechain.onGapsFound(this.onGapsFound.bind(this));
-        this.sharechain.onOrphansFound(this.onOrphansFound.bind(this));
-        this.sharechain.onNewestChanged(this.onNewestShareChanged.bind(this));
-        this.sharechain.onCandidateArrived(this.onCandidateArrived.bind(this));
-        this.sharechain.onDeadShareArrived(this.onDeadShareArrived.bind(this));
+        this.sharechain.onGapsFound(this.handleGapsFound.bind(this));
+        this.sharechain.onOrphansFound(this.handleOrphansFound.bind(this));
+        this.sharechain.onNewestChanged(this.handleNewestShareChanged.bind(this));
+        this.sharechain.onCandidateArrived(this.handleCandidateArrived.bind(this));
+        this.sharechain.onDeadShareArrived(this.handleDeadShareArrived.bind(this));
 
         if (!this.sharechain.calculatable) {
             logger.info('waiting for sharechain downloading');
-            this.sharechain.onChainCalculatable(this.onChainCalculatable.bind(this));
+            this.sharechain.onChainCalculatable(this.handleChainCalculatable.bind(this));
             this.port = opts.port;
             return;
         }
 
-        this.server = net.createServer(this.onSocketConnected.bind(this)).listen(opts.port);
+        this.server = net.createServer(this.handleNodeConnected.bind(this)).listen(opts.port);
         this.server.on('error', error => { logger.error(error.message); throw error; });
     }
 
-    private onSocketConnected(s: Socket) {
+    private handleNodeConnected(s: Socket) {
         let node = new Node();
         node.initSocket(s);
         node.sendVersionAsync(this.sharechain.newest.hasValue() ? this.sharechain.newest.value.hash : null);
@@ -64,14 +64,14 @@ export class Peer {
         this.registerNode(node);
     }
 
-    private onChainCalculatable(sender: Sharechain) {
+    private handleChainCalculatable(sender: Sharechain) {
         if (this.server) return;
-        this.server = net.createServer(this.onSocketConnected.bind(this)).listen(this.port);
+        this.server = net.createServer(this.handleNodeConnected.bind(this)).listen(this.port);
         this.server.on('error', error => { logger.error(error.message); });
         logger.info('Sharechain downloading completed');
     }
 
-    private onGapsFound(sender: Sharechain, gaps: Gap[]) {
+    private handleGapsFound(sender: Sharechain, gaps: Gap[]) {
         if (!this.peers.size) return;
         if (!gaps.length) return;
 
@@ -97,20 +97,20 @@ export class Peer {
         }
     }
 
-    private onCandidateArrived(sender: Sharechain, share: BaseShare) {
+    private handleCandidateArrived(sender: Sharechain, share: BaseShare) {
         logger.info(`candidate arrived, ${share.hash}`);
     }
 
-    private onDeadShareArrived(sender: Sharechain, share: BaseShare) {
+    private handleDeadShareArrived(sender: Sharechain, share: BaseShare) {
         logger.warn(`dead share arrived, ${share.info.absheight}, ${share.hash}`)
     }
 
-    private onOrphansFound(sender: Sharechain, orphans: BaseShare[]) {
+    private handleOrphansFound(sender: Sharechain, orphans: BaseShare[]) {
         logger.warn(`orphans found, ${orphans.length}, ${orphans[0].info.absheight}, ${orphans[0].hash}`);
 
     }
 
-    private onNewestShareChanged(sender: Sharechain, share: BaseShare) {
+    private handleNewestShareChanged(sender: Sharechain, share: BaseShare) {
         logger.info(`sharechain height: ${share.info.absheight}`);
 
     }
@@ -160,7 +160,7 @@ export class Peer {
         this.knownTxs.set(knownTxs);
     }
 
-    handleShares(sender: Node, wrappers: TypeShares[]) {
+    private handleShares(sender: Node, wrappers: TypeShares[]) {
         if (!wrappers || wrappers.length === 0) return;
         if (wrappers.all(item => Sharechain.Instance.has(item.contents.hash))) return;
 
@@ -266,7 +266,7 @@ export class Peer {
     /**
      * update_remote_view_of_my_known_txs
      */
-    private onKnownTxsChanged(oldValue: Map<string, TransactionTemplate>, newValue: Map<string, TransactionTemplate>) {
+    private handleKnownTxsChanged(oldValue: Map<string, TransactionTemplate>, newValue: Map<string, TransactionTemplate>) {
 
         let added = newValue.except(oldValue).select(item => item[0]).toArray();
         let removed = oldValue.except(newValue).select(item => item[0]).toArray();;
@@ -288,7 +288,7 @@ export class Peer {
     /**
      * update_remote_view_of_my_mining_txs
      */
-    private onMiningTxsChanged(oldValue: Map<string, TransactionTemplate>, newValue: Map<string, TransactionTemplate>) {
+    private handleMiningTxsChanged(oldValue: Map<string, TransactionTemplate>, newValue: Map<string, TransactionTemplate>) {
 
         let added = newValue.except(oldValue).select(item => item[1]).toArray();
         let removed = oldValue.except(newValue).select(item => item[1]).toArray();

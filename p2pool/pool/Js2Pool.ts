@@ -63,13 +63,13 @@ export class Js2Pool {
     constructor(opts: Js2PoolOptions, manager: IWorkerManager) {
         this.sharesManager = new SharesManager(opts.algorithm);
 
-        this.sharechain.onNewestChanged(this.onNewestShareChanged.bind(this));
-        this.sharechain.onCandidateArrived(this.onNewestShareChanged.bind(this));
+        this.sharechain.onNewestChanged(this.handleNewestShareChanged.bind(this));
+        this.sharechain.onCandidateArrived(this.handleNewestShareChanged.bind(this));
 
         for (let daemon of opts.daemons) {
             let watcher = new DaemonWatcher(daemon);
-            watcher.onBlockTemplateUpdated(this.onMiningTemplateUpdated.bind(this));
-            watcher.onBlockNotified(this.onBlockNotified.bind(this));
+            watcher.onBlockTemplateUpdated(this.handleMiningTemplateUpdated.bind(this));
+            watcher.onBlockNotified(this.handleBlockNotified.bind(this));
             watcher.beginWatching();
 
             this.daemonWatchers.push(watcher);
@@ -78,7 +78,7 @@ export class Js2Pool {
         this.peer = new Peer(opts.peer);
         this.peer.initPeersAsync(opts.bootstrapPeers);
 
-        let stratumServer = net.createServer(this.onStratumClientConnected.bind(this));
+        let stratumServer = net.createServer(this.handleStratumClientConnected.bind(this));
         stratumServer.on('error', (error) => logger.error(error.message));
         stratumServer.listen(opts.stratum.port);
 
@@ -86,7 +86,7 @@ export class Js2Pool {
         this.sharechainBuilder = new SharechainBuilder(opts.address);
     }
 
-    private async onNewestShareChanged(sender: Sharechain, share: BaseShare) {
+    private async handleNewestShareChanged(sender: Sharechain, share: BaseShare) {
         for (let watcher of this.daemonWatchers) {
             if (await watcher.refreshBlockTemplateAsync()) break; // just refresh once
         }
@@ -99,7 +99,7 @@ export class Js2Pool {
         }
     }
 
-    private onMiningTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
+    private handleMiningTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
         this.peer.updateMiningTemplate(template);
         this.sharesManager.updateGbt(template);
 
@@ -136,7 +136,7 @@ export class Js2Pool {
         Array.from(this.clients.values()).forEach(c => c.sendTask(stratumParams));
     }
 
-    private async onBlockNotified(sender: DaemonWatcher, hash: string) {
+    private async handleBlockNotified(sender: DaemonWatcher, hash: string) {
         if (this.blocks.includes(hash)) return;
 
         this.blocks.push(hash);
@@ -155,7 +155,7 @@ export class Js2Pool {
         logger.info('clean deprecated txs: ', block.tx.length);
     }
 
-    private onStratumClientConnected(socket: Socket) {
+    private handleStratumClientConnected(socket: Socket) {
         let me = this;
         let client = new StratumClient(socket, 0);
         client.tag = crypto.randomBytes(8).toString('hex');
