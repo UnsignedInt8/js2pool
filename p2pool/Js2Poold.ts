@@ -20,7 +20,7 @@ process.on('uncaughtException', (err) => console.error(err));
 process.on('error', (err)=> console.error(err));
 
 const opts = {
-    daemon: {
+    daemons: [{
         blocknotifylistener: {
             enabled: true,
             host: 'localhost',
@@ -30,7 +30,7 @@ const opts = {
         port: 8332,
         password: 'testpass',
         username: 'testuser',
-    },
+    }],
     peer: {
         port: 17951,
     },
@@ -55,7 +55,8 @@ const opts = {
     coin: {
         name: 'bitcoin',
         algo: 'sha256',
-    }
+    },
+    address: '1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9',
 };
 
 async function run() {

@@ -61,7 +61,7 @@ export default class SharesManager {
         let coinbaseTx = Buffer.concat([
             coinbaseTx1,
             Buffer.from(extraNonce1, 'hex'),
-            Buffer.from(extraNonce2, 'hex'),
+            Buffer.from(extraNonce2, 'hex'), // last tx out nonce
             coinbaseTx2,
         ]);
 
@@ -73,7 +73,7 @@ export default class SharesManager {
         let shareTarget = Bignum.fromBuffer(headerHashBuf, { endian: 'little', size: 32 });
 
         let shareHex: string; // if the target of this share is less than network target, then submit the hex data to the daemon
-        if (this.blockTarget.ge(shareTarget)) {
+        if (/**/true) {
             shareHex = Buffer.concat([
                 headerBuffer,
                 Utils.varIntBuffer(this.template.transactions.length + 1),

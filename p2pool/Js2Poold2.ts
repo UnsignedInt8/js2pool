@@ -21,8 +21,9 @@ SharechainHelper.loadSharesAsync().then(shares => {
 });
 
 const opts = {
+    address: '1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9',
     algorithm: 'sha256d',
-    daemon: {
+    daemons: [{
         blocknotifylistener: {
             enabled: false,
             host: 'localhost',
@@ -32,7 +33,7 @@ const opts = {
         port: 8332,
         password: 'testpass',
         username: 'testuser',
-    },
+    }],
     peer: {
         port: 19990,
     },

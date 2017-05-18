@@ -15,11 +15,12 @@ import { SharechainBuilder } from "./chain/SharechainBuilder";
 import { StratumOptions } from "./pool/Js2Pool";
 
 export type AppOptions = {
-    coin: { name: string, },
-    daemon: DaemonOptions,
+    coin: { name: string },
+    daemons: DaemonOptions[],
     peer: PeerOptions,
     stratum: StratumOptions,
     bootstrapPeers: { host: string, port: number }[],
+    address: string,
 }
 
 export class App {
@@ -40,11 +41,13 @@ export class App {
         SharechainBuilder.TARGET_LOOKBEHIND = Bitcoin.TARGET_LOOKBEHIND;
         SharechainBuilder.PERIOD = Bitcoin.SHARE_PERIOD;
 
-        logger.info('|-------------- BOOTING JS2POOL --------------|');
-        logger.info('|                                             |');
-        logger.info('|-- https://github.com/unsignedint8/js2pool --|')
-        logger.info('|                                             |');
-        logger.info('|----------- Initializing Sharechain ---------|');
+        logger.info('|-------------------- JS2POOL ---------------------|');
+        logger.info('|                                                  |');
+        logger.info('|----- https://github.com/unsignedint8/js2pool ----|')
+        logger.info('|                                                  |');
+        logger.info('|-- Donation: 1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9 --|');
+        logger.info('|                                                  |');
+        logger.info('|---------- A DECENTRALIZED MINING POOL -----------|');
 
         let chain = Sharechain.Instance;
         SharechainHelper.init(coiname);

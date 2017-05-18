@@ -48,7 +48,7 @@ export class DaemonWatcher extends Event {
         if (!hash) return;
         if (this.lastNotifiedHash === hash) return;
 
-        await this.refreshBlockTemplateAsync();
+        this.refreshBlockTemplateAsync();
         super.trigger(DaemonWatcher.Events.blockNotified, this, hash);
         logger.info(`new block notified: ${hash}`);
     }

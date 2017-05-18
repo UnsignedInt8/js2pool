@@ -1,5 +1,5 @@
 
-import { DaemonWatcher, DaemonOptions, GetBlockTemplate } from "../../core/DaemonWatcher";
+import { DaemonWatcher, DaemonOptions, GetBlockTemplate, BlockTemplate } from "../../core/DaemonWatcher";
 import { Peer, PeerOptions } from "../p2p/Peer";
 import Bitcoin from '../coins/Bitcoin';
 import { BaseShare } from "../p2p/shares/index";
@@ -21,11 +21,12 @@ import SharesManager from "../../core/SharesManager";
 import { SmallBlockHeader } from "../p2p/shares/SmallBlockHeader";
 
 export type Js2PoolOptions = {
-    daemon: DaemonOptions,
+    daemons: DaemonOptions[],
     peer: PeerOptions,
     stratum: StratumOptions,
     algorithm: string,
     bootstrapPeers: { host: string, port: number }[],
+    address: string,
 }
 
 export type StratumOptions = {
@@ -48,8 +49,8 @@ type Task = {
 
 export class Js2Pool {
 
-    private daemonWatcher: DaemonWatcher;
-    private sharechainBuilder = new SharechainBuilder('1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9');
+    private daemonWatchers = new Array<DaemonWatcher>();
+    private sharechainBuilder: SharechainBuilder;
     private sharesManager: SharesManager;
     private readonly blocks = new Array<string>();
     private readonly clients = new Map<string, StratumClient>();
@@ -65,10 +66,14 @@ export class Js2Pool {
         this.sharechain.onNewestChanged(this.onNewestShareChanged.bind(this));
         this.sharechain.onCandidateArrived(this.onNewestShareChanged.bind(this));
 
-        this.daemonWatcher = new DaemonWatcher(opts.daemon);
-        this.daemonWatcher.onBlockTemplateUpdated(this.onMiningTemplateUpdated.bind(this));
-        this.daemonWatcher.onBlockNotified(this.onBlockNotified.bind(this));
-        this.daemonWatcher.beginWatching();
+        for (let daemon of opts.daemons) {
+            let watcher = new DaemonWatcher(daemon);
+            watcher.onBlockTemplateUpdated(this.onMiningTemplateUpdated.bind(this));
+            watcher.onBlockNotified(this.onBlockNotified.bind(this));
+            watcher.beginWatching();
+
+            this.daemonWatchers.push(watcher);
+        }
 
         this.peer = new Peer(opts.peer);
         this.peer.initPeersAsync(opts.bootstrapPeers);
@@ -78,10 +83,14 @@ export class Js2Pool {
         stratumServer.listen(opts.stratum.port);
 
         this.workerManager = manager;
+        this.sharechainBuilder = new SharechainBuilder(opts.address);
     }
 
-    private onNewestShareChanged(sender: Sharechain, share: BaseShare) {
-        this.daemonWatcher.refreshBlockTemplateAsync();
+    private async onNewestShareChanged(sender: Sharechain, share: BaseShare) {
+        for (let watcher of this.daemonWatchers) {
+            if (await watcher.refreshBlockTemplateAsync()) break; // just refresh once
+        }
+
         this.sharesCount++;
         if (this.sharesCount % 5 === 0) {
             sender.checkGaps();
@@ -134,7 +143,12 @@ export class Js2Pool {
         if (this.blocks.length < 4) return;
 
         let oldest = this.blocks.shift();
-        let block = await this.daemonWatcher.getBlockAsync(oldest);
+        let block: BlockTemplate;
+        for (let watcher of this.daemonWatchers) {
+            block = await watcher.getBlockAsync(oldest);
+            if (block) break;
+        }
+
         if (!block) return;
 
         this.peer.removeDeprecatedTxs(block.tx);
@@ -158,7 +172,6 @@ export class Js2Pool {
             if (!authorized) return;
             sender.sendDifficulty(initDifficulty);
             if (me.task) sender.sendTask(me.task.stratumParams);
-            console.log('task sent');
         });
 
         client.onSubmit((sender, result, message) => {
@@ -179,7 +192,7 @@ export class Js2Pool {
             }
 
             if (shareHex) {
-                me.daemonWatcher.submitBlockAsync(shareHex);
+                me.daemonWatchers.forEach(watcher => watcher.submitBlockAsync(shareHex));
             }
 
             // dead on arrival
@@ -203,7 +216,6 @@ export class Js2Pool {
             share.init();
             console.log(share);
             console.log('header', shareHash, shareTarget, result.extraNonce2);
-            console.log(shareTarget.toNumber(), Algos.BaseTarget);
             sender.sendSubmissionResult(message.id, true, null);
 
             // me.sharechainBuilder.buildShare()
