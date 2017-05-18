@@ -209,7 +209,7 @@ export class Peer {
     }
 
     private handleSharereq(sender: Node, request: TypeSharereq) {
-        let parents = Math.min(Math.min(request.parents, 1000 / request.hashes.length | 0), sender.isJs2PoolPeer ? 250 : 100) + 1;
+        let parents = Math.min(Math.min(request.parents, 1000 / request.hashes.length | 0), sender.isJs2PoolPeer ? 250 : 100);
         let stops = new Set(request.stops);
         let shares = new Array<BaseShare>();
 
