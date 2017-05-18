@@ -167,13 +167,7 @@ export class Js2Pool {
                 return;
             }
 
-            // dead on arrive
-            if (result.taskId != me.task.taskId) {
-                let msg = { miner: result.miner, taskId: result.taskId };
-                sender.sendSubmissionResult(message.id, false, null);
-                return;
-            }
-
+            // first, checking whether it satisfies the bitcoin network or not
             let task = me.task;
             let { part1: tx1, part2: tx2 } = task.coinbaseTx;
             let { shareTarget, shareHex, header, shareHash } = me.sharesManager.buildShare(tx1, tx2, task.merkleLink, result.nonce, '', result.extraNonce2, result.nTime);
@@ -188,6 +182,14 @@ export class Js2Pool {
                 me.daemonWatcher.submitBlockAsync(shareHex);
             }
 
+            // dead on arrival
+            if (result.taskId != me.task.taskId) {
+                let msg = { miner: result.miner, taskId: result.taskId };
+                sender.sendSubmissionResult(message.id, false, null);
+                logger.warn(`dead on arrival: ${sender.miner}, ${shareHash}`);
+                return;
+            }
+
             if (shareTarget.le(task.target)) {
                 this.sharechainBuilder.buildShare(task.shareVersion, SmallBlockHeader.fromObject(header), task.shareInfo, task.genTx, task.merkleLink, result.extraNonce2);
             }
@@ -199,7 +201,7 @@ export class Js2Pool {
             }
 
             share.init();
-            console.log('validity', share.validity, share.hash);
+            console.log(share);
             console.log('header', shareHash, shareTarget, result.extraNonce2);
             console.log(shareTarget.toNumber(), Algos.BaseTarget);
             sender.sendSubmissionResult(message.id, true, null);

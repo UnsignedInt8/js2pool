@@ -16,6 +16,7 @@ export default class SharesManager {
     private template: GetBlockTemplate;
     private blockTarget: Bignum;
     private targetDiff: Bignum;
+    private txs: Buffer;
     private shares = new Set<string>(); // share fingerprint -> timestamp
 
     proof: 'POW' | 'POS' = 'POW';
@@ -32,7 +33,7 @@ export default class SharesManager {
 
         this.template = template;
         this.blockTarget = template.target ? new Bignum(template.target, 16) : bitsToTarget(Number.parseInt(template.bits, 16));
-        // this.targetDiff = targetToDifficulty(this.blockTarget);
+        this.txs = Buffer.concat(this.template.transactions.map(tx => Buffer.from(tx.data, 'hex')));
 
         this.shares.clear();
     }
@@ -66,20 +67,18 @@ export default class SharesManager {
 
         let coinbaseTxid = this.txHasher(coinbaseTx);
         let merkleRoot = Utils.reverseBuffer(merkleLink.aggregate<Buffer, Buffer>(coinbaseTxid, (prev, curr) => Utils.sha256d(Buffer.concat([prev, curr])))).toString('hex');
-        let { buffer: headerBuf, header } = this.buildHeader(nonce, nTime, merkleRoot);
-        let headerHashBuf = this.headerHasher(headerBuf);
+        let { buffer: headerBuffer, header } = this.buildHeader(nonce, nTime, merkleRoot);
+        let headerHashBuf = this.headerHasher(headerBuffer);
         let shareHash = Utils.reverseBuffer(headerHashBuf).toString('hex');
-
         let shareTarget = Bignum.fromBuffer(headerHashBuf, { endian: 'little', size: 32 });
 
-        let shareHex: string;
-        if (/*this.blockTarget.ge(shareTarget)*/true) {
-            console.info('found block target: ', shareTarget);
+        let shareHex: string; // if the target of this share is less than network target, then submit the hex data to the daemon
+        if (this.blockTarget.ge(shareTarget)) {
             shareHex = Buffer.concat([
-                headerBuf,
+                headerBuffer,
                 Utils.varIntBuffer(this.template.transactions.length + 1),
                 coinbaseTx,
-                Buffer.concat(this.template.transactions.map(tx => Buffer.from(tx.data, 'hex'))),
+                this.txs,
                 this.template.masternode_payments ? Buffer.concat([Utils.varIntBuffer(this.template.votes.length)].concat(this.template.votes.map(vt => Buffer.from(vt, 'hex')))) : Buffer.alloc(0),
                 Buffer.from(this.proof === 'POS' ? [0] : []) //POS coins require a zero byte appended to block which the daemon replaces with the signature
             ]).toString('hex');
