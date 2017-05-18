@@ -43,7 +43,6 @@ type Task = {
     shareInfo: ShareInfo,
     target: Bignum,
     shareVersion: number,
-    shareCoinbaseTx: Buffer,
 }
 
 export class Js2Pool {
@@ -98,7 +97,7 @@ export class Js2Pool {
         if (!newestShare.hasValue() || !this.sharechain.calculatable) return;
 
         let knownTxs = template.transactions.toMap(item => item.txid || item.hash, item => item);
-        let { bits, maxBits, merkleLink, shareInfo, tx1, tx2, shareCoinbaseTx, version } = this.sharechainBuilder.buildMiningComponents(template, newestShare.value.hash, new Bignum(0), Array.from(knownTxs.keys()), knownTxs);
+        let { bits, maxBits, merkleLink, shareInfo, tx1, tx2, version } = this.sharechainBuilder.buildMiningComponents(template, newestShare.value.hash, new Bignum(0), Array.from(knownTxs.keys()), knownTxs);
 
         let stratumParams = [
             crypto.randomBytes(4).toString('hex'),
@@ -121,7 +120,6 @@ export class Js2Pool {
             shareInfo,
             target: Algos.bitsToTarget(bits),
             shareVersion: version,
-            shareCoinbaseTx,
         };
 
         Array.from(this.clients.values()).forEach(c => c.sendTask(stratumParams));
@@ -190,10 +188,15 @@ export class Js2Pool {
             }
 
             if (shareTarget.le(task.target)) {
-                this.sharechainBuilder.buildShare(task.shareVersion, SmallBlockHeader.fromObject(header), task.shareInfo, task.shareCoinbaseTx, task.merkleLink, result.extraNonce2);
+                this.sharechainBuilder.buildShare(task.shareVersion, SmallBlockHeader.fromObject(header), task.shareInfo, task.coinbaseTx.part1, task.coinbaseTx.part2, task.merkleLink, result.extraNonce2);
             }
 
-            let share = this.sharechainBuilder.buildShare(task.shareVersion, SmallBlockHeader.fromObject(header), task.shareInfo, task.shareCoinbaseTx, task.merkleLink, result.extraNonce2);
+            let share = this.sharechainBuilder.buildShare(task.shareVersion, SmallBlockHeader.fromObject(header), task.shareInfo, task.coinbaseTx.part1, task.coinbaseTx.part2, task.merkleLink, result.extraNonce2);
+            if (!share) {
+                sender.sendSubmissionResult(message.id, false, null);
+                return;
+            }
+            
             share.init();
             console.log('validity', share.validity, share.hash);
             console.log('header', shareHash, shareTarget, result.extraNonce2);

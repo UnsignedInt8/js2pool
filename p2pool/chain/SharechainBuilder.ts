@@ -135,23 +135,25 @@ export class SharechainBuilder {
             // TODO segwit
         }
 
-        let { tx1, tx2, shareCoinbaseTx } = this.buildCoinbaseTx(template, coinbaseScriptSig1, payments, shareInfo);
+        let { tx1, tx2 } = this.buildCoinbaseTx(template, coinbaseScriptSig1, payments, shareInfo);
         let merkleLink = (new MerkleTree([null].concat(desiredTxHashes.map(hash => Utils.uint256BufferFromHash(hash)))).steps);
 
         console.log('maxbits', maxBits.toString(16));
         console.log('far share hash', new Bignum(shareInfo.farShareHash, 16), );
         // console.log(fs.writeFile('/tmp/' + shareInfo.absheight, shareCoinbaseTx.toString('hex'), () => { }));
         // console.log('coinbase tx length', shareCoinbaseTx.toString('hex').length);
-        console.log('hash link', HashLink.fromPrefix(shareCoinbaseTx.slice(0, -32 - 8 - 4), GENTX_BEFORE_REFHASH));
-        return { shareInfo, merkleLink, tx1, tx2, shareCoinbaseTx, maxBits, bits, version: lastShare.VERSION };
+
+        return { shareInfo, merkleLink, tx1, tx2, maxBits, bits, version: lastShare.VERSION };
     }
 
     // As SHA256 by js is so slow, delay this function calling
-    buildShare(version: number, minHeader: SmallBlockHeader, shareInfo: ShareInfo, shareCoinbaseTx: Buffer, merkleLink: Buffer[], coinbaseNonce: string) {
+    buildShare(version: number, minHeader: SmallBlockHeader, shareInfo: ShareInfo, tx1: Buffer, tx2: Buffer, merkleLink: Buffer[], coinbaseNonce: string) {
+        if (!ShareVersionMapper[version]) return null;
+
         let share = new ShareVersionMapper[version]() as BaseShare;
         share.info = shareInfo;
         share.refMerkleLink = [];
-        share.hashLink = HashLink.fromPrefix(shareCoinbaseTx.slice(0, -32 - 8 - 4), GENTX_BEFORE_REFHASH);
+        share.hashLink = HashLink.fromPrefix(Buffer.concat([tx1, tx2]).slice(0, -32 - 8 - 4), GENTX_BEFORE_REFHASH);
         share.merkleLink = merkleLink;
         share.minHeader = minHeader;
         share.lastTxoutNonce = new Bignum(coinbaseNonce, 16);
@@ -187,47 +189,23 @@ export class SharechainBuilder {
         //     ]));
         // }
 
-
-        let tx1 = Buffer.concat([
+        let tx = Buffer.concat([
             Utils.packUInt32LE(1), // version
 
-            // Tx Inputs
-            Utils.varIntBuffer(1), // input count
-            Utils.uint256BufferFromHash('00'), // previous tx hash
-            Utils.packUInt32LE(Math.pow(2, 32) - 1), // previous tx output index 
-            Utils.varIntBuffer(coinbaseScriptSig1.length + SharechainBuilder.COINBASE_NONCE_LENGTH), // P2Pool always uses 8 bytes nonce
-            coinbaseScriptSig1,
-        ]);
-
-        //
-        // extra nonce here
-        //
-
-        let tx2 = Buffer.concat([
-            Utils.packUInt32LE(0xFFFFFFFF),  // Tx input sequence
-            // Tx inputs end
-
-            // Tx outputs
-            BufferWriter.writeList(outputs),
-            // Tx outputs end
-
-            Utils.packUInt32LE(0), // Tx lock time
-        ]);
-
-
-
-        let shareTx1 = Buffer.concat([
-            Utils.packUInt32LE(1), // version
-
-            // Tx Inputs
+            // Tx ins
             Utils.varIntBuffer(1), // input count
             Utils.uint256BufferFromHash('00'), // previous tx hash
             Utils.packUInt32LE(Math.pow(2, 32) - 1), // previous tx output index 
             Utils.varIntBuffer(coinbaseScriptSig1.length), // P2Pool always uses 8 bytes nonce
             coinbaseScriptSig1,
+            Utils.packUInt32LE(0xFFFFFFFF),  // Tx input sequence
+            // Tx ins end
+
+            BufferWriter.writeList(outputs), // Tx outs
+
+            Utils.packUInt32LE(0), // Tx lock time
         ]);
 
-
-        return { tx1, tx2, shareCoinbaseTx: Buffer.concat([shareTx1, tx2]) };
+        return { tx1: tx.slice(0, -SharechainBuilder.COINBASE_NONCE_LENGTH - 4), tx2: tx.slice(0, -4) };
     }
 }
