@@ -2,6 +2,11 @@
 
 The new generation P2Pool by Node.js
 
+## Features
+1. 100% Compatible with P2Pool
+2. Much lower CPU usage than P2Pool (TODO: SHA256 by C++)
+3. Clear code style and logic
+
 ## Prerequisites
 1. Node.js v6.0+
 2. Node-gyp v3.6+
