@@ -35,7 +35,7 @@ export class Peer {
     private readonly sharechain = Sharechain.Instance;
     private readonly pendingShareRequests = new Set<string>();
     readonly peers = new Map<string, Node>(); // ip:port -> Node
-    maxOutgoing = 12;
+    maxOutgoing = 10;
 
     constructor(opts: PeerOptions) {
         this.knownTxs.onPropertyChanged(this.handleKnownTxsChanged.bind(this));
@@ -163,7 +163,7 @@ export class Peer {
         this.knownTxs.set(knownTxs);
     }
 
-    private handleShares(sender: Node, wrappers: TypeShares[]) {
+    private handleShares(sender: Node, wrappers: TypeShares[], rawBuffer: Buffer) {
         if (!wrappers || wrappers.length === 0) return;
         if (wrappers.all(item => Sharechain.Instance.has(item.contents.hash))) return;
 
@@ -206,8 +206,7 @@ export class Peer {
         this.sharechain.add(wrappers.map(s => s.contents));
         this.knownTxs.set(newTxs);
 
-        Array.from(this.peers.values()).except([sender], (i1, i2) => i1.tag === i2.tag).each(peer => peer.sendSharesAsync(wrappers));
-        this.sharechain.verify();
+        kinq.toLinqable(this.peers.values()).except([sender], (i1, i2) => i1.tag === i2.tag).take(this.maxOutgoing).each(peer => peer.sendAsync(rawBuffer)); // reboardcasting buffer, so reduce the duplicate buffer computing
     }
 
     private handleSharereq(sender: Node, request: TypeSharereq) {
@@ -274,6 +273,14 @@ export class Peer {
 
     // ----------------- Peer work ---------------------
 
+    private handleNodeDisconnected(sender: Node) {
+        this.peers.delete(sender.tag);
+        if (this.peers.size > this.maxOutgoing / 2) return;
+
+        let count = this.maxOutgoing - this.peers.size;
+        Array.from(this.peers.values()).forEach(peer => peer.sendGetaddrsAsync(count));
+    }
+
     private registerNode(node: Node) {
         node.onVersionVerified(this.handleNodeVersion.bind(this));
         node.onRemember_tx(this.handleRemember_tx.bind(this));
@@ -283,7 +290,7 @@ export class Peer {
         node.onAddrs(this.handleAddrs.bind(this));
         node.onAddrme(this.handleAddrme.bind(this));
         node.onGetaddrs(this.handleGetaddrs.bind(this));
-        node.onEnd(function (sender: Node) { this.peers.delete(sender.tag); }.bind(this));
+        node.onEnd(this.handleNodeDisconnected.bind(this));
         this.peers.set(node.tag, node);
     }
 

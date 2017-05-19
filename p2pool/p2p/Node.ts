@@ -313,7 +313,7 @@ export default class Node extends Event {
 
     private handleShares(payload: Buffer) {
         let { shares } = Shares.fromBuffer(payload);
-        this.trigger(Node.Events.shares, this, shares);
+        this.trigger(Node.Events.shares, this, shares, payload);
     }
 
     private handleSharereq(payload: Buffer) {
@@ -328,7 +328,7 @@ export default class Node extends Event {
 
     /// -------------------- sendXXXAsync -------------------------
 
-    private async sendAsync(data: Buffer) {
+    async sendAsync(data: Buffer) {
         try {
             return await this.socket.writeAsync(data);
         } catch (error) {
@@ -509,7 +509,7 @@ export default class Node extends Event {
         return this;
     }
 
-    onShares(callback: (sender: Node, shares: { version: number, contents: BaseShare }[]) => void) {
+    onShares(callback: (sender: Node, shares: TypeShares[], rawBuffer: Buffer) => void) {
         super.register(Node.Events.shares, callback);
         return this;
     }
