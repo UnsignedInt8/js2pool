@@ -5,7 +5,7 @@ The new generation P2Pool by Node.js
 ## Prerequisites
 1. Node.js v6.0+
 2. Node-gyp v3.6+
-3. 2 GB+ Free Mem
+3. 4 GB+ Free Mem
 4. Linux/macOS x64/x86
 
 ## Installation
@@ -27,7 +27,10 @@ yum install -y nodejs
 # Using macOS
 brew install node
 
+###########
 # More Node.js installation info, please visit https://github.com/nodesource/distributions or https://nodejs.org/en/download/package-manager
+###########
+
 
 # node-gyp
 npm i -g node-gyp
