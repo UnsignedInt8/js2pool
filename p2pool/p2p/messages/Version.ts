@@ -9,7 +9,7 @@ import * as Bignum from 'bignum';
 import Addrs from "./Addrs";
 
 const PROTOCOL_VERSION = 1700;
-const APP_VERSION = '0.0.1';
+const APP_VERSION: string = require('../../../../package.json').version;
 
 type Address = {
     services: number, // 8 bytes all zero
