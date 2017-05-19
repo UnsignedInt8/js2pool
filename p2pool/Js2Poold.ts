@@ -17,7 +17,7 @@ import { DefaultWorkerManager } from './pool/DefaultWorkerManager';
 kinq.enable();
 
 process.on('uncaughtException', (err) => console.error(err));
-process.on('error', (err)=> console.error(err));
+process.on('error', (err) => console.error(err));
 
 const opts = {
     daemons: [{
@@ -43,10 +43,10 @@ const opts = {
             host: '123.163.48.115',
             port: 9777,
         },
-        {
-            host: '123.163.48.115',
-            port: 9333
-        },
+        // {
+        //     host: '123.163.48.115',
+        //     port: 9333
+        // },
         //{
         //     host: ' 83.217.203.130',
         //     port: 9333

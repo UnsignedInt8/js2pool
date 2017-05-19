@@ -30,6 +30,7 @@ export class Peer {
 
     private port: number;
     private server: Server;
+    private publicPeers = new Array<TypeAddrs>();
     private readonly knownTxs = ObservableProperty.init(new Map<string, TransactionTemplate>());
     private readonly knownTxsCaches = new Array<Map<string, TransactionTemplate>>();
     private readonly miningTxs = ObservableProperty.init(new Map<string, TransactionTemplate>());
@@ -91,7 +92,7 @@ export class Peer {
                 node.sendSharereqAsync({
                     id: new Bignum(requestId, 16),
                     hashes: [gap.descendent],
-                    parents: Math.min(gap.length, node.isJs2PoolPeer ? 250 : 79),
+                    parents: Math.min(gap.length, node.isJs2PoolPeer ? 500 : 79),
                 });
             }
 
@@ -258,6 +259,8 @@ export class Peer {
     }
 
     private handleAddrs(sender: Node, addrs: TypeAddrs[]) {
+        this.publicPeers = this.publicPeers.concat(addrs);
+        if (this.publicPeers.length > 32) this.publicPeers.splice(0, this.publicPeers.length - 32);
         if (this.peers.size >= this.maxOutgoing) return;
         let ips = addrs.where(addr => !this.peers.has(`${addr.ip}:${addr.port}`)).take(this.maxOutgoing - this.peers.size).select(addr => { return { host: addr.ip, port: addr.port } }).toArray();
         this.initPeersAsync(ips);
@@ -272,6 +275,7 @@ export class Peer {
 
     private handleGetaddrs(sender: Node, count: number) {
         let peers = kinq.toLinqable(this.peers.values()).take(count).select(p => { return { ip: p.peerAddress, port: p.peerPort, services: p.services, timestamp: Date.now() / 1000 | 0 } }).toArray();
+        if (peers.length < count) peers = peers.concat(<any[]>Array.from(this.publicPeers.take(12)));
         sender.sendAddrsAsync(peers);
     }
 
