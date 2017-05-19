@@ -18,7 +18,6 @@ import { DONATION_SCRIPT, DONATION_SCRIPT_BUF } from "../p2p/shares/BaseShare";
 export class PaymentCalculator {
     static CALC_SHARES_LENGTH = 24 * 60 * 6;
     static BLOCKSPREAD = 3;
-    static readonly DELAY_LENGTH = 6;
 
     sharechain = Sharechain.Instance;
     recentTotalWeight: Bignum;
@@ -34,7 +33,7 @@ export class PaymentCalculator {
     }
 
     /**
-     * Return ordered amount list
+     * Returns an ordered payment list
      */
     calc(previousShareHash: string, gbtCoinbaseValue: number, gbtBlockTarget: string): Array<(Buffer | Bignum)[]> {
 
