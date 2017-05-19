@@ -206,7 +206,7 @@ export class Peer {
         this.sharechain.add(wrappers.map(s => s.contents));
         this.knownTxs.set(newTxs);
 
-        kinq.toLinqable(this.peers.values()).except([sender], (i1, i2) => i1.tag === i2.tag).take(this.maxOutgoing).each(peer => peer.sendAsync(rawBuffer)); // reboardcasting buffer, so reduce the duplicate buffer computing
+        kinq.toLinqable(this.peers.values()).except([sender], (i1, i2) => i1.tag === i2.tag).take(this.maxOutgoing).each(peer => peer.sendAsync(rawBuffer)); // rebroadcasting the raw buffer, to improve performance
     }
 
     private handleSharereq(sender: Node, request: TypeSharereq) {
