@@ -27,10 +27,9 @@ yum install -y nodejs
 # Using macOS
 brew install node
 
-###########
-# More Node.js installation info, please visit https://github.com/nodesource/distributions or https://nodejs.org/en/download/package-manager
-###########
-
+##############################################################################################################################################
+# More Node.js installation info, please visit https://github.com/nodesource/distributions or https://nodejs.org/en/download/package-manager #
+##############################################################################################################################################
 
 # node-gyp
 npm i -g node-gyp
@@ -39,7 +38,7 @@ npm i -g node-gyp
 npm i -g typescript
 
 ```
-2. Installing Js2Pool from source
+2. Installing Js2Pool from source code
 ```
 git clone https://github.com/unsignedint8/js2pool.git && cd js2pool
 
