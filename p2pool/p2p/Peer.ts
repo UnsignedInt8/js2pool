@@ -18,6 +18,7 @@ import { SharechainHelper } from "../chain/SharechainHelper";
 import * as Utils from '../../misc/Utils';
 import * as MathEx from '../../misc/MathEx';
 import * as crypto from 'crypto';
+import { TypeAddrs } from "./messages/Addrs";
 
 export type PeerOptions = {
     maxConn?: number,
@@ -34,6 +35,7 @@ export class Peer {
     private readonly sharechain = Sharechain.Instance;
     private readonly pendingShareRequests = new Set<string>();
     readonly peers = new Map<string, Node>(); // ip:port -> Node
+    outgoing = 8;
 
     constructor(opts: PeerOptions) {
         this.knownTxs.onPropertyChanged(this.handleKnownTxsChanged.bind(this));
@@ -115,15 +117,16 @@ export class Peer {
 
     }
 
-    // ----------------- Node message events -------------------
+    // ----------------- Node message event handlers -------------------
 
     private async handleNodeVersion(sender: Node, version: Version) {
         await sender.sendHave_txAsync(Array.from(this.knownTxs.value.keys()));
         await sender.sendRemember_txAsync({ hashes: [], txs: Array.from(this.miningTxs.value.values()) });
 
+        if (this.peers.size < this.outgoing) sender.sendGetaddrsAsync(this.outgoing);
+
         if (<any>version.bestShareHash == 0) return;
         if (this.sharechain.has(version.bestShareHash)) return;
-
         sender.sendSharereqAsync({ id: new Bignum(Math.random() * 1000000 | 0), hashes: [version.bestShareHash], parents: 1 });
     }
 
@@ -251,6 +254,18 @@ export class Peer {
         logger.info(`received ${reply.wrapper.shares.length} shares from ${sender.tag}`);
     }
 
+    private handleAddrs(sender: Node, addrs: TypeAddrs[]) {
+
+    }
+
+    private handleAddrme(sender: Node, ip: string, port: number) {
+
+    }
+
+    private handleGetaddrs(sender: Node, count: number) {
+
+    }
+
     // ----------------- Peer work ---------------------
 
     private registerNode(node: Node) {
@@ -259,6 +274,9 @@ export class Peer {
         node.onShares(this.handleShares.bind(this));
         node.onSharereq(this.handleSharereq.bind(this));
         node.onSharereply(this.handleSharereply.bind(this));
+        node.onAddrs(this.handleAddrs.bind(this));
+        node.onAddrme(this.handleAddrme.bind(this));
+        node.onGetaddrs(this.handleGetaddrs.bind(this));
         node.onEnd(function (sender: Node) { this.peers.delete(sender.tag); }.bind(this));
         this.peers.set(node.tag, node);
     }
