@@ -286,10 +286,10 @@ export class Peer {
 
     private handlePeerDisconnected(sender: Node) {
         this.peers.delete(sender.tag);
-        if (this.peers.size > this.maxOutgoing / 2) return;
+        if (this.peers.size >= this.maxOutgoing) return;
 
         let count = this.maxOutgoing - this.peers.size;
-        Array.from(this.peers.values()).forEach(peer => peer.sendGetaddrsAsync(count));
+        kinq.toLinqable(this.peers.values()).take(count).each(peer => peer.sendGetaddrsAsync(count));
     }
 
     private registerNode(node: Node, interaction = true) {
