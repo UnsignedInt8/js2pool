@@ -35,7 +35,7 @@ export class Peer {
     private readonly sharechain = Sharechain.Instance;
     private readonly pendingShareRequests = new Set<string>();
     readonly peers = new Map<string, Node>(); // ip:port -> Node
-    outgoing = 12;
+    maxOutgoing = 12;
 
     constructor(opts: PeerOptions) {
         this.knownTxs.onPropertyChanged(this.handleKnownTxsChanged.bind(this));
@@ -123,7 +123,7 @@ export class Peer {
         await sender.sendHave_txAsync(Array.from(this.knownTxs.value.keys()));
         await sender.sendRemember_txAsync({ hashes: [], txs: Array.from(this.miningTxs.value.values()) });
 
-        if (this.peers.size < this.outgoing) sender.sendGetaddrsAsync(this.outgoing - this.peers.size);
+        if (this.peers.size < this.maxOutgoing) sender.sendGetaddrsAsync(this.maxOutgoing - this.peers.size);
 
         if (<any>version.bestShareHash == 0) return;
         if (this.sharechain.has(version.bestShareHash)) return;
@@ -255,8 +255,8 @@ export class Peer {
     }
 
     private handleAddrs(sender: Node, addrs: TypeAddrs[]) {
-        if (this.outgoing <= this.peers.size) return;
-        let ips = addrs.where(addr => !this.peers.has(`${addr.ip}:${addr.port}`)).take(this.outgoing - this.peers.size).select(addr => { return { host: addr.ip, port: addr.port } }).toArray();
+        if (this.peers.size >= this.maxOutgoing) return;
+        let ips = addrs.where(addr => !this.peers.has(`${addr.ip}:${addr.port}`)).take(this.maxOutgoing - this.peers.size).select(addr => { return { host: addr.ip, port: addr.port } }).toArray();
         this.initPeersAsync(ips);
     }
 
@@ -265,7 +265,8 @@ export class Peer {
     }
 
     private handleGetaddrs(sender: Node, count: number) {
-
+        let peers = kinq.toLinqable(this.peers.values()).take(count).select(p => { return { ip: p.peerAddress, port: p.peerPort, services: p.services, timestamp: Date.now() / 1000 | 0 } }).toArray();
+        sender.sendAddrsAsync(peers);
     }
 
     // ----------------- Peer work ---------------------

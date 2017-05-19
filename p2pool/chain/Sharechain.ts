@@ -128,6 +128,8 @@ export default class Sharechain extends Event {
             return false;
         }
 
+        if (this.newest.hasValue() && share.info.absheight < this.newest.value.info.absheight - Sharechain.MAX_CHAIN_LENGTH) return false;
+
         let shares = this.absheightIndexer.get(share.info.absheight);
         if (!shares) {
             shares = new Array<BaseShare>();
@@ -222,8 +224,17 @@ export default class Sharechain extends Event {
         let deprecatedShares = this.absheightIndexer.get(this.oldest.info.absheight);
         if (!deprecatedShares || deprecatedShares.length === 0) return;
 
+        let nextOldestHeight = this.oldest.info.absheight;
+        let newestHeight = this.newest.value.info.absheight;
         this.absheightIndexer.delete(this.oldest.info.absheight);
         for (let ds of deprecatedShares) this.hashIndexer.delete(ds.hash);
+        this.oldest = null;
+
+        while (nextOldestHeight++ < newestHeight) {
+            if (!this.absheightIndexer.has(nextOldestHeight)) continue;
+            this.oldest = this.absheightIndexer.get(nextOldestHeight)[0];
+            break;
+        }
     }
 
     fix() {
@@ -235,7 +246,7 @@ export default class Sharechain extends Event {
             if (parents[0].hash === current.info.data.previousShareHash) continue;
             let target = parents.singleOrDefault(p => p.hash === current.info.data.previousShareHash, null);
             if (!target) continue;
-            
+
             let others = parents.except([target], (i1, i2) => i1.hash === i2.hash).toArray();
             this.absheightIndexer.set(current.info.absheight - 1, [target].concat(others));
         }

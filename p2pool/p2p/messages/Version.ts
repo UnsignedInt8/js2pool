@@ -12,7 +12,7 @@ const PROTOCOL_VERSION = 1700;
 const APP_VERSION: string = require('../../../../package.json').version;
 
 type Address = {
-    services: number, // 8 bytes all zero
+    services: Bignum, // 8 bytes all zero
     ip: string, // 16 bytes
     port: number, // 2 bytes
 }

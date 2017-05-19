@@ -61,7 +61,7 @@ This project has not been finished yet. So, don't use it in production environme
 
 ## Donation
 
-Even if you do not donate anything to me, I'm maintaining this project. :p
+Even if you do not donate any satoshis to me, I'm maintaining this project. :p
 
 ```
 BTC: 1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9

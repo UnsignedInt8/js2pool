@@ -13,7 +13,7 @@ const PROTOCOL_ADDRESS_LENGTH = 26;
 const PAYLOAD_LENGTH = PROTOCOL_ADDRESS_LENGTH + 8; // address length + timestamp
 
 export type TypeAddrs = {
-    services?: number, // 8 bytes all zero
+    services?: Bignum, // 8 bytes all zero
     ip: string, // 16 bytes
     port: number, // 2 bytes
     timestamp?: number, // seconds, 8 bytes
@@ -37,7 +37,7 @@ export class MutliAddrs extends Payload {
 
 export default class Addrs extends Payload {
     timestamp: number; // 8 bytes, seconds 
-    services: number; // 8 bytes, all zero
+    services: Bignum; // 8 bytes, all zero
     ip: string; // 16 bytes
     port: number; // 2 bytes
 
@@ -49,7 +49,7 @@ export default class Addrs extends Payload {
     }
 
     static convertAddressToBuffer(addr: TypeAddrs) {
-        let services = new Bignum(addr.services).toBuffer({ endian: 'little', size: 8 });
+        let services = addr.services.toBuffer({ endian: 'little', size: 8 });
 
         let ip: Buffer;
         if (ipv4.test(addr.ip)) {
@@ -89,7 +89,7 @@ export default class Addrs extends Payload {
 
     static convertBufferToAddress(buf: Buffer) {
         return {
-            services: Bignum.fromBuffer(buf.slice(0, 8), { endian: 'little', size: 8 }).toNumber(),
+            services: Bignum.fromBuffer(buf.slice(0, 8), { endian: 'little', size: 8 }),
             ip: Addrs.parseIP(buf.slice(8, 24)),
             port: buf.readUInt16BE(24)
         };
@@ -100,7 +100,7 @@ export default class Addrs extends Payload {
         addrs.timestamp = obj.timestamp || parseInt((Date.now() / 1000).toFixed(0));
         addrs.ip = obj.ip;
         addrs.port = obj.port;
-        addrs.services = obj.services || 0;
+        addrs.services = new Bignum(obj.services) || new Bignum(0);
         return addrs;
     }
 

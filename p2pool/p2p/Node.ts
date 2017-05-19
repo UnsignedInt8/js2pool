@@ -21,6 +21,7 @@ import { TypeSharereq, default as Sharereq } from "./messages/Sharereq";
 import { TypeSharereply, default as Sharereply } from "./messages/Sharereply";
 import { TransactionTemplate } from "../../core/DaemonWatcher";
 import logger from '../../misc/Logger';
+import * as Bignum from 'bignum';
 import * as fs from 'fs';
 
 export default class Node extends Event {
@@ -77,6 +78,7 @@ export default class Node extends Event {
     peerAddress: string;
     peerPort: number;
     tag: string;
+    services = new Bignum(0);
     externalAddress?: string; // IP address from peer's view
     externalPort?: number; // the port from peer's view
     connectionTime = 300; // ms
@@ -205,7 +207,7 @@ export default class Node extends Event {
                 this.trigger(Node.Events.badPeer, this, 'version not verified');
                 return;
             }
-            
+
             if (this.peerAliveTimer) clearTimeout(this.peerAliveTimer);
             this.peerAliveTimer = setTimeout(this.close.bind(this, true, '100 seconds exceeded, timeout. close...'), 100 * 1000);
             this.msgHandlers.get(command)(payload);
@@ -225,6 +227,7 @@ export default class Node extends Event {
         this.isJs2PoolPeer = version.subVersion.startsWith('js2pool');
         this.externalAddress = version.addressTo.ip;
         this.externalPort = version.addressTo.port;
+        this.services = version.addressFrom.services;
 
         if (this.keepAliveTimer) clearInterval(this.keepAliveTimer);
         this.keepAliveTimer = setInterval(this.sendPingAsync.bind(this), 30 * 1000);
@@ -337,13 +340,13 @@ export default class Node extends Event {
         if (this.peerAliveTimer) clearTimeout(this.peerAliveTimer);
 
         let addrTo = {
-            services: 0,
+            services: new Bignum(0),
             ip: this.socket.remoteAddress,
             port: this.socket.remotePort,
         };
 
         let addrFrom = {
-            services: 0,
+            services: new Bignum(0),
             ip: this.socket.localAddress,
             port: this.socket.localPort,
         };
