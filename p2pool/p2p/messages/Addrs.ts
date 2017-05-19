@@ -71,26 +71,26 @@ export default class Addrs extends Payload {
         return buf;
     }
 
-    static convertBufferToAddress(buf: Buffer) {
-        function parseIP(input: Buffer) {
-            let v6 = [];
-            let v4 = [];
-            for (let a = 0; a < 16; a += 2) {
-                var twoBytes = input.slice(a, a + 2);
-                v6.push(twoBytes.toString('hex'));
-                if (a >= 12) {
-                    v4.push(twoBytes[0]);
-                    v4.push(twoBytes[1]);
-                }
+    static parseIP(input: Buffer) {
+        let v6 = [];
+        let v4 = [];
+        for (let a = 0; a < 16; a += 2) {
+            var twoBytes = input.slice(a, a + 2);
+            v6.push(twoBytes.toString('hex'));
+            if (a >= 12) {
+                v4.push(twoBytes[0]);
+                v4.push(twoBytes[1]);
             }
-            let ipv6Addr = v6.join(':');
-            let ipv4Addr = v4.join('.');
-            return ipv4.test(ipv4Addr) ? ipv4Addr : ipv6Addr; // TODO: check the validity of ip
         }
+        let ipv6Addr = v6.join(':');
+        let ipv4Addr = v4.join('.');
+        return ipv4.test(ipv4Addr) ? ipv4Addr : ipv6Addr; // TODO: check the validity of ip
+    }
 
+    static convertBufferToAddress(buf: Buffer) {
         return {
             services: Bignum.fromBuffer(buf.slice(0, 8), { endian: 'little', size: 8 }).toNumber(),
-            ip: parseIP(buf.slice(8, 24)),
+            ip: Addrs.parseIP(buf.slice(8, 24)),
             port: buf.readUInt16BE(24)
         };
     }
