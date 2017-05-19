@@ -115,7 +115,7 @@ export default class Node extends Event {
         let me = this;
         socket.setTimeout(10 * 1000, () => me.trigger(Node.Events.timeout, me));
         socket.once('end', () => me.close(false));
-        socket.once('error', err => {
+        socket.on('error', err => {
             logger.error(`${socket.remoteAddress}, ${err.message}`);
             me.close(true);
         });

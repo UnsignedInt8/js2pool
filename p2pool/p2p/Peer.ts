@@ -40,7 +40,7 @@ export class Peer {
     readonly maxOutgoing: number;
 
     constructor(opts: PeerOptions) {
-        this.maxOutgoing = MathEx.clip(opts.maxOutgoing || 1, 1, 24);
+        this.maxOutgoing = MathEx.clip(opts.maxOutgoing || 8, 2, 24);
 
         this.knownTxs.onPropertyChanged(this.handleKnownTxsChanged.bind(this));
         this.miningTxs.onPropertyChanged(this.handleMiningTxsChanged.bind(this));
@@ -67,7 +67,7 @@ export class Peer {
         node.initSocket(s);
         node.sendVersionAsync(this.sharechain.newest.hasValue() ? this.sharechain.newest.value.hash : null);
 
-        this.registerNode(node);
+        this.registerNode(node, this.peers.size <= this.maxOutgoing);
     }
 
     private handleChainCalculatable(sender: Sharechain) {
@@ -284,7 +284,7 @@ export class Peer {
 
     // ----------------- Peer work ---------------------
 
-    private handleNodeDisconnected(sender: Node) {
+    private handlePeerDisconnected(sender: Node) {
         this.peers.delete(sender.tag);
         if (this.peers.size > this.maxOutgoing / 2) return;
 
@@ -292,7 +292,10 @@ export class Peer {
         Array.from(this.peers.values()).forEach(peer => peer.sendGetaddrsAsync(count));
     }
 
-    private registerNode(node: Node) {
+    private registerNode(node: Node, interaction = true) {
+        node.onEnd(this.handlePeerDisconnected.bind(this));
+        if (!interaction) return;
+            
         node.onVersionVerified(this.handleNodeVersion.bind(this));
         node.onRemember_tx(this.handleRemember_tx.bind(this));
         node.onShares(this.handleShares.bind(this));
@@ -301,8 +304,7 @@ export class Peer {
         node.onAddrs(this.handleAddrs.bind(this));
         node.onAddrme(this.handleAddrme.bind(this));
         node.onGetaddrs(this.handleGetaddrs.bind(this));
-        node.onEnd(this.handleNodeDisconnected.bind(this));
-        this.peers.set(node.tag, node);
+        this.peers.set(node.tag, node);        
     }
 
     /**
