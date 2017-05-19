@@ -19,6 +19,7 @@ import * as Utils from '../../misc/Utils';
 import * as MathEx from '../../misc/MathEx';
 import * as crypto from 'crypto';
 import { TypeAddrs } from "./messages/Addrs";
+import { Message } from "./Message";
 
 export type PeerOptions = {
     maxConn?: number,
@@ -86,7 +87,6 @@ export class Peer {
             let requestId = Utils.sha256(`${gap.descendent}-${gap.length}`).toString('hex');
             if (this.pendingShareRequests.has(requestId)) continue;
 
-            console.log('gap descendent', gap.descendent, gap.descendentHeight, 'except', gap.descendentHeight - gap.length);
             for (let node of peers.take(8)) {
                 node.sendSharereqAsync({
                     id: new Bignum(requestId, 16),
@@ -206,7 +206,7 @@ export class Peer {
         this.sharechain.add(wrappers.map(s => s.contents));
         this.knownTxs.set(newTxs);
 
-        kinq.toLinqable(this.peers.values()).except([sender], (i1, i2) => i1.tag === i2.tag).take(this.maxOutgoing).each(peer => peer.sendAsync(rawBuffer)); // rebroadcasting the raw buffer, to improve performance
+        kinq.toLinqable(this.peers.values()).except([sender], (i1, i2) => i1.tag === i2.tag).take(this.maxOutgoing).each(peer => peer.sendAsync(Message.fromRawBuffer({ command: 'shares', payload: rawBuffer }).toBuffer())); // rebroadcasting the raw buffer, to improve performance
     }
 
     private handleSharereq(sender: Node, request: TypeSharereq) {
@@ -239,7 +239,11 @@ export class Peer {
             return;
         }
 
-        let shares = reply.wrapper.shares.map(s => s.contents).where(share => share.validity && !this.sharechain.has(share.hash)).toArray();
+        if (reply.wrapper.shares.some(s => !s)) {
+            console.log(sender.tag);
+            console.log(reply);
+        }
+        let shares = reply.wrapper.shares.map(s => s.contents).where(share => share && share.validity && !this.sharechain.has(share.hash)).toArray();
         if (shares.length === 0) this.sharechain.fix();
         this.sharechain.add(shares);
         SharechainHelper.saveShares(shares);

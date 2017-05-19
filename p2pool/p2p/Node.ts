@@ -259,7 +259,7 @@ export default class Node extends Event {
             return;
         }
 
-        this.trigger(Node.Events.addrMe, addrme.port);
+        this.trigger(Node.Events.addrMe, this, addrme.port);
     }
 
     private handleGetaddrs(payload: Buffer) {

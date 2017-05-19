@@ -100,7 +100,7 @@ export default class Addrs extends Payload {
         addrs.timestamp = obj.timestamp || parseInt((Date.now() / 1000).toFixed(0));
         addrs.ip = obj.ip;
         addrs.port = obj.port;
-        addrs.services = new Bignum(obj.services) || new Bignum(0);
+        addrs.services = new Bignum(obj.services || 0) || new Bignum(0);
         return addrs;
     }
 
