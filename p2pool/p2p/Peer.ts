@@ -260,8 +260,11 @@ export class Peer {
         this.initPeersAsync(ips);
     }
 
-    private handleAddrme(sender: Node, ip: string, port: number) {
-
+    private handleAddrme(sender: Node, port: number) {
+        if (this.peers.size < 1) return;
+        let peers = Array.from(this.peers.values());
+        let candidate = peers[Math.floor(Math.random() * (1 + peers.length - 1 - 0)) + 0]; // Math.floor( Math.random() * ( 1 + top - bottom ) ) + bottom;
+        candidate.sendAddrsAsync([{ ip: sender.peerAddress, port: port, services: sender.services, timestamp: Date.now() / 1000 | 0 }]);
     }
 
     private handleGetaddrs(sender: Node, count: number) {

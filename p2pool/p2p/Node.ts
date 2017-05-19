@@ -259,7 +259,7 @@ export default class Node extends Event {
             return;
         }
 
-        this.trigger(Node.Events.addrMe, this, this.peerAddress, addrme.port);
+        this.trigger(Node.Events.addrMe, addrme.port);
     }
 
     private handleGetaddrs(payload: Buffer) {
@@ -469,7 +469,7 @@ export default class Node extends Event {
         return this;
     }
 
-    onAddrme(callback: (sender: Node, ip: string, port: number) => void) {
+    onAddrme(callback: (sender: Node, port: number) => void) {
         super.register(Node.Events.addrMe, callback);
         return this;
     }
