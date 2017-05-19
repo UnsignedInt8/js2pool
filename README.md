@@ -57,7 +57,7 @@ This project has not been finished yet, so it is not usable at the moment. Comin
 ## Known issues
 
 1. SHA256 Performance (I'm trying to rewrite SHA256 by using Node.js C++ module, but I don't know much about C++. So, to implement it may take me a long time)
-2. Weights calculation may have a problem, if total weight exceeds the desired weight. (#p2pool/chain/PaymentCalculator.ts#62)
+2. Weights calculation may have a problem, if total weight exceeds the desired weight. (https://github.com/unsignedint8/js2pool/p2pool/chain/PaymentCalculator.ts#L61-L67)
 
 ## Donation
 
