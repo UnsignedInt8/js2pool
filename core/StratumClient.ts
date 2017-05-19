@@ -2,6 +2,8 @@
 import { Event } from "../nodejs/Event";
 import { Socket } from "net";
 import * as crypto from 'crypto';
+import * as Bignum from 'bignum';
+import * as Algos from './Algos';
 
 const Events = {
     end: 'End',
@@ -38,6 +40,7 @@ export default class StratumClient extends Event {
     subscriptionId: string = null;
     authorized = false;
     difficulty = 0;
+    target = new Bignum(0);
     remoteAddress: string;
     miner: string;
     keepAliveTimeout = 45;
@@ -246,7 +249,7 @@ export default class StratumClient extends Event {
         super.register(Events.taskTimeout, callback);
     }
 
-    onBanned(callback: (sender: StratumClient)=>void){
+    onBanned(callback: (sender: StratumClient) => void) {
         super.register(Events.ban, callback);
     }
 
@@ -303,6 +306,7 @@ export default class StratumClient extends Event {
 
     sendDifficulty(difficulty: number) {
         this.difficulty = difficulty;
+        this.target = Algos.difficultyToTarget(new Bignum(difficulty));
         this.sendJson({ id: null, method: "mining.set_difficulty", params: [difficulty] });
     }
 

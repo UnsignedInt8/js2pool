@@ -42,7 +42,7 @@ type Task = {
 
     // Js2Pool parameters
     shareInfo: ShareInfo,
-    target: Bignum,
+    p2poolTarget: Bignum,
     shareVersion: number,
     genTx: Buffer,
 }
@@ -128,7 +128,7 @@ export class Js2Pool {
             taskId: stratumParams[0],
             stratumParams,
             shareInfo,
-            target: Algos.bitsToTarget(bits),
+            p2poolTarget: Algos.bitsToTarget(bits),
             shareVersion: version,
             genTx
         };
@@ -174,20 +174,20 @@ export class Js2Pool {
             if (me.task) sender.sendTask(me.task.stratumParams);
         });
 
-        client.onSubmit((sender, result, message) => {
+        client.onSubmit((worker, result, message) => {
             if (!result || !message || !me.task) {
-                sender.sendSubmissionResult(message ? message.id : 0, false, null);
+                worker.sendSubmissionResult(message ? message.id : 0, false, null);
                 return;
             }
 
             // first, checking whether it satisfies the bitcoin network or not
             let task = me.task;
             let { part1: tx1, part2: tx2 } = task.coinbaseTx;
-            let { shareTarget, shareHex, header, shareHash } = me.sharesManager.buildShare(tx1, tx2, task.merkleLink, result.nonce, '', result.extraNonce2, result.nTime);
+            let { shareTarget, shareHex, header, shareHash } = me.sharesManager.buildShare(tx1, tx2, task.merkleLink, result.nonce, '', result.extraNonce2, result.nTime); // building the classic share info
 
             if (!shareTarget) {
                 let msg = { miner: result.miner, taskId: result.taskId, };
-                sender.sendSubmissionResult(message.id, false, null);
+                worker.sendSubmissionResult(message.id, false, null);
                 return;
             }
 
@@ -198,41 +198,32 @@ export class Js2Pool {
             // dead on arrival
             if (result.taskId != me.task.taskId) {
                 let msg = { miner: result.miner, taskId: result.taskId };
-                sender.sendSubmissionResult(message.id, false, null);
-                logger.warn(`dead on arrival: ${sender.miner}, ${shareHash}`);
+                worker.sendSubmissionResult(message.id, false, null);
+                logger.warn(`dead on arrival: ${worker.miner}, ${shareHash}`);
                 return;
             }
 
-            if (shareTarget.le(task.target)) {
-                this.sharechainBuilder.buildShare(task.shareVersion, SmallBlockHeader.fromObject(header), task.shareInfo, task.genTx, task.merkleLink, result.extraNonce2);
-            }
-
-            let share = this.sharechainBuilder.buildShare(task.shareVersion, SmallBlockHeader.fromObject(header), task.shareInfo, task.genTx, task.merkleLink, result.extraNonce2);
-            if (!share) {
-                sender.sendSubmissionResult(message.id, false, null);
-                return;
-            }
-
-            share.init();
-            console.log(share);
             console.log('header', shareHash, shareTarget, result.extraNonce2);
-            sender.sendSubmissionResult(message.id, true, null);
 
-            // me.sharechainBuilder.buildShare()
+            if (shareTarget.le(task.p2poolTarget)) {
+                let share = this.sharechainBuilder.buildShare(task.shareVersion, SmallBlockHeader.fromObject(header), task.shareInfo, task.genTx, task.merkleLink, result.extraNonce2); // building the p2pool specified share
 
-            // let share = me.sharesManager.buildShare(me.currentTask, result.nonce, sender.extraNonce1, result.extraNonce2, result.nTime);
-            // if (!share || share.shareDiff < sender.difficulty) {
-            //     let msg = { miner: result.miner, taskId: result.taskId, };
-            //     me.broadcastInvalidShare(msg);
-            //     client.sendSubmissionResult(message.id, false, null);
-            //     client.touchBad();
-            //     return;
-            // }
+                if (!share) {
+                    worker.sendSubmissionResult(message.id, false, null);
+                    return;
+                }
 
-            // let shareMessage = { miner: result.miner, hash: share.shareHash, diff: share.shareDiff, expectedDiff: sender.difficulty, timestamp: share.timestamp };
+                share.init();
 
-            // client.sendSubmissionResult(message.id, true, null);
-            // me.broadcastShare(shareMessage);
+                if (!share.validity) {
+                    worker.sendSubmissionResult(message.id, false, null);
+                    return;
+                }
+
+                me.peer.broadcastShare(share);
+            }
+
+            worker.sendSubmissionResult(message.id, shareTarget.le(worker.target), null);
         });
 
     }

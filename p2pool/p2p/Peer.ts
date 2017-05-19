@@ -40,7 +40,7 @@ export class Peer {
     readonly maxOutgoing: number;
 
     constructor(opts: PeerOptions) {
-        this.maxOutgoing = MathEx.clip(opts.maxOutgoing || 10, 2, 24);
+        this.maxOutgoing = MathEx.clip(opts.maxOutgoing || 1, 1, 24);
 
         this.knownTxs.onPropertyChanged(this.handleKnownTxsChanged.bind(this));
         this.miningTxs.onPropertyChanged(this.handleMiningTxsChanged.bind(this));
@@ -382,5 +382,10 @@ export class Peer {
 
         this.knownTxs.set(knownTxs);
         this.peers.forEach(node => txs.forEach(tx => node.rememberedTxs.delete(tx)));
+    }
+
+    broadcastShare(share: BaseShare) {
+        Array.from(this.peers.values()).forEach(peer => peer.sendSharesAsync([{ version: share.VERSION, contents: share }]));
+        this.sharechain.append(share);
     }
 }
