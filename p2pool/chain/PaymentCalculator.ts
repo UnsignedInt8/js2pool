@@ -58,6 +58,15 @@ export class PaymentCalculator {
                 continue;
             }
 
+            /** p2pool/data.py WeightsSkipList
+            def apply_delta(self, (share_count1, weights_list, total_weight1, total_donation_weight1), (share_count2, weights2, total_weight2, total_donation_weight2), (max_shares, desired_weight)):
+                if total_weight1 + total_weight2 > desired_weight and share_count2 == 1:
+                    assert (desired_weight - total_weight1) % 65535 == 0
+                    script, = weights2.iterkeys()
+                    new_weights = {script: (desired_weight - total_weight1)//65535*weights2[script]//(total_weight2//65535)}
+                    return share_count1 + share_count2, (weights_list, new_weights), desired_weight, total_donation_weight1 + (desired_weight - total_weight1)//65535*total_donation_weight2//(total_weight2//65535)
+                return share_count1 + share_count2, (weights_list, weights2), total_weight1 + total_weight2, total_donation_weight1 + total_donation_weight2
+             */
             shareWeight = share.weight;
             if (totalWeight.gt(desiredWeight)) {
                 totalWeight = desiredWeight;
