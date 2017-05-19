@@ -220,6 +220,7 @@ export class Js2Pool {
                     return;
                 }
 
+                logger.info(`found a share!!! ${share.hash}`);
                 me.peer.broadcastShare(share);
             }
 

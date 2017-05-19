@@ -72,8 +72,8 @@ export default class SharesManager {
         let shareHash = Utils.reverseBuffer(headerHashBuf).toString('hex');
         let shareTarget = Bignum.fromBuffer(headerHashBuf, { endian: 'little', size: 32 });
 
-        let shareHex: string; // if the target of this share is less than network target, then submit the hex data to the daemon
-        if (/**/true) {
+        let shareHex: string; // if the target of this share is less than the network target, then submit the hex data to the daemon
+        if (this.blockTarget.ge(shareTarget)) {
             shareHex = Buffer.concat([
                 headerBuffer,
                 Utils.varIntBuffer(this.template.transactions.length + 1),
