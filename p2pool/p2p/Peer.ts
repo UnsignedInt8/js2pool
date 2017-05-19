@@ -22,7 +22,7 @@ import { TypeAddrs } from "./messages/Addrs";
 import { Message } from "./Message";
 
 export type PeerOptions = {
-    maxConn?: number,
+    maxOutgoing?: number,
     port: number,
 }
 
@@ -37,9 +37,11 @@ export class Peer {
     private readonly sharechain = Sharechain.Instance;
     private readonly pendingShareRequests = new Set<string>();
     readonly peers = new Map<string, Node>(); // ip:port -> Node
-    maxOutgoing = 10;
+    readonly maxOutgoing: number;
 
     constructor(opts: PeerOptions) {
+        this.maxOutgoing = MathEx.clip(opts.maxOutgoing || 10, 2, 24);
+
         this.knownTxs.onPropertyChanged(this.handleKnownTxsChanged.bind(this));
         this.miningTxs.onPropertyChanged(this.handleMiningTxsChanged.bind(this));
 
@@ -125,6 +127,7 @@ export class Peer {
         await sender.sendRemember_txAsync({ hashes: [], txs: Array.from(this.miningTxs.value.values()) });
 
         if (this.peers.size < this.maxOutgoing) sender.sendGetaddrsAsync(this.maxOutgoing - this.peers.size);
+        if (version.addressTo.port === this.port) sender.sendAddrmeAsync(this.port);
 
         if (<any>version.bestShareHash == 0) return;
         if (this.sharechain.has(version.bestShareHash)) return;
