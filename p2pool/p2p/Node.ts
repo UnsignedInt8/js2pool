@@ -73,6 +73,7 @@ export default class Node extends Event {
     rememberedTxs = new Map<string, TransactionTemplate>();
     remoteRememberedTxsSize = 0;
     isJs2PoolPeer = false;
+    verackVerified = false;
     peerAddress: string;
     peerPort: number;
     tag: string;
@@ -200,6 +201,11 @@ export default class Node extends Event {
         }
 
         if (this.msgHandlers.has(command)) {
+            if (command !== 'version' && !this.verackVerified) {
+                this.trigger(Node.Events.badPeer, this, 'version not verified');
+                return;
+            }
+            
             if (this.peerAliveTimer) clearTimeout(this.peerAliveTimer);
             this.peerAliveTimer = setTimeout(this.close.bind(this, true, '100 seconds exceeded, timeout. close...'), 100 * 1000);
             this.msgHandlers.get(command)(payload);
@@ -222,6 +228,7 @@ export default class Node extends Event {
 
         if (this.keepAliveTimer) clearInterval(this.keepAliveTimer);
         this.keepAliveTimer = setInterval(this.sendPingAsync.bind(this), 30 * 1000);
+        this.verackVerified = true;
 
         this.trigger(Node.Events.version, this, version);
     }
