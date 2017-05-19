@@ -52,7 +52,7 @@ npm link
 
 ## Usage
 
-This project has not been finished yet, so it is not usable at the moment. Coming soon...
+This project has not been finished yet. So, don't use it in production environment. Coming soon...
 
 ## Known issues
 
