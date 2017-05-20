@@ -4,6 +4,6 @@ export class DefaultWorkerManager implements IWorkerManager {
     static readonly Instance = new DefaultWorkerManager();
 
     async authorizeAsync(worker: string, password: string) {
-        return { authorized: true, initDifficulty: 100000 };
+        return { authorized: true, initDifficulty: 1 };
     }
 }

@@ -27,7 +27,7 @@ type StratumMessage = {
     error?: boolean | any,
 };
 
-type StratumSubmission = {
+export type StratumSubmission = {
     miner: string,
     taskId: string,
     extraNonce2: string,

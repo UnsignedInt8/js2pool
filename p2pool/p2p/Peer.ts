@@ -243,10 +243,6 @@ export class Peer {
             return;
         }
 
-        if (reply.wrapper.shares.some(s => !s)) {
-            console.log(sender.tag);
-            console.log(reply);
-        }
         let shares = reply.wrapper.shares.map(s => s.contents).where(share => share && share.validity && !this.sharechain.has(share.hash)).toArray();
         if (shares.length === 0) this.sharechain.fix();
         this.sharechain.add(shares);
@@ -294,6 +290,7 @@ export class Peer {
 
     private registerNode(node: Node, interaction = true) {
         node.onEnd(this.handlePeerDisconnected.bind(this));
+        node.onGetaddrs(this.handleGetaddrs.bind(this));        
         if (!interaction) return;
             
         node.onVersionVerified(this.handleNodeVersion.bind(this));
@@ -303,7 +300,6 @@ export class Peer {
         node.onSharereply(this.handleSharereply.bind(this));
         node.onAddrs(this.handleAddrs.bind(this));
         node.onAddrme(this.handleAddrme.bind(this));
-        node.onGetaddrs(this.handleGetaddrs.bind(this));
         this.peers.set(node.tag, node);        
     }
 

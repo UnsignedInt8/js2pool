@@ -10,6 +10,7 @@ import { BaseShare } from "./p2p/shares/BaseShare";
 import Bitcoin from "./coins/Bitcoin";
 import { Js2Pool } from "./pool/Js2Pool";
 import { DefaultWorkerManager } from './pool/DefaultWorkerManager';
+import { App } from "./App";
 kinq.enable();
 
 SharechainHelper.init('bitcoin2');
@@ -22,7 +23,6 @@ SharechainHelper.loadSharesAsync().then(shares => {
 
 const opts = {
     address: '1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9',
-    algorithm: 'sha256d',
     daemons: [{
         blocknotifylistener: {
             enabled: false,
@@ -41,24 +41,16 @@ const opts = {
         port: 23456
     },
     bootstrapPeers: [{
-        host: 'localhost',
+        host: '123.163.48.115',
         port: 9777
+    }, {
+        host: '123.163.48.115',
+        port: 9333
     }],
     coin: {
         name: 'bitcoin',
-        algo: 'sha256',
+        algorithm: 'sha256d',
     }
 };
 
-setTimeout(async () => {
-    setTimeout(() => {
-        let pool = new Js2Pool(opts, DefaultWorkerManager.Instance);
-
-        setInterval(() => {
-            let node = pool.peer.peers.first()[1];
-            node.sendPingAsync();
-            node.sendSharereqAsync({ id: new Bignum(8964), parents: 2, hashes: ['00000000000003104e3b54d5c817acd91a2cc121dc23e81b3353bbcfaa1776ff'] });
-        }, 5000);
-    }, 2000);
-
-}, 20);
+App(opts);

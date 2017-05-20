@@ -14,23 +14,20 @@ import * as net from 'net';
 import { Socket } from "net";
 import * as crypto from 'crypto';
 import * as Utils from '../../misc/Utils';
-import StratumClient from "../../core/StratumClient";
+import StratumClient, { StratumSubmission } from "../../core/StratumClient";
 import { IWorkerManager } from "./IWorkerManager";
 import ShareInfo from "../p2p/shares/ShareInfo";
 import SharesManager from "../../core/SharesManager";
 import { SmallBlockHeader } from "../p2p/shares/SmallBlockHeader";
+import { Event } from "../../nodejs/Event";
+import { ShareResult } from "./StratumServer";
 
 export type Js2PoolOptions = {
     daemons: DaemonOptions[],
     peer: PeerOptions,
-    stratum: StratumOptions,
     algorithm: string,
     bootstrapPeers: { host: string, port: number }[],
     address: string,
-}
-
-export type StratumOptions = {
-    port: number;
 }
 
 type Task = {
@@ -48,13 +45,16 @@ type Task = {
     genTx: Buffer,
 }
 
-export class Js2Pool {
+export class Js2Pool extends Event {
+
+    static readonly Events = {
+        taskUpdated: 'TaskUpdated',
+    }
 
     private daemonWatchers = new Array<DaemonWatcher>();
     private sharechainBuilder: SharechainBuilder;
-    private sharesManager: SharesManager;
+
     private readonly blocks = new Array<string>();
-    private readonly clients = new Map<string, StratumClient>();
     private readonly sharechain = Sharechain.Instance;
     private readonly workerManager: IWorkerManager;
     private task: Task;
@@ -62,7 +62,8 @@ export class Js2Pool {
     peer: Peer;
 
     constructor(opts: Js2PoolOptions, manager: IWorkerManager) {
-        this.sharesManager = new SharesManager(opts.algorithm);
+        super();
+
 
         this.sharechain.onNewestChanged(this.handleNewestShareChanged.bind(this));
         this.sharechain.onCandidateArrived(this.handleNewestShareChanged.bind(this));
@@ -78,10 +79,6 @@ export class Js2Pool {
 
         this.peer = new Peer(opts.peer);
         this.peer.initPeersAsync(opts.bootstrapPeers);
-
-        let stratumServer = net.createServer(this.handleStratumClientConnected.bind(this));
-        stratumServer.on('error', (error) => logger.error(error.message));
-        stratumServer.listen(opts.stratum.port);
 
         this.workerManager = manager;
         this.sharechainBuilder = new SharechainBuilder(opts.address);
@@ -102,12 +99,11 @@ export class Js2Pool {
 
     private handleMiningTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
         this.peer.updateMiningTemplate(template);
-        this.sharesManager.updateGbt(template);
-        
+
         let newestShare = this.sharechain.newest;
-        if (!newestShare.hasValue() || !this.sharechain.calculatable){
+        if (!newestShare.hasValue() || !this.sharechain.calculatable) {
             this.sharechain.verify();
-             return;
+            return;
         }
 
         let knownTxs = template.transactions.toMap(item => item.txid || item.hash, item => item);
@@ -138,7 +134,7 @@ export class Js2Pool {
             genTx
         };
 
-        Array.from(this.clients.values()).forEach(c => c.sendTask(stratumParams));
+        super.trigger(Js2Pool.Events.taskUpdated, this, { params: stratumParams, template });
     }
 
     private async handleBlockNotified(sender: DaemonWatcher, hash: string) {
@@ -160,78 +156,29 @@ export class Js2Pool {
         logger.info('clean deprecated txs: ', block.tx.length);
     }
 
-    private handleStratumClientConnected(socket: Socket) {
-        let me = this;
-        let client = new StratumClient(socket, 0);
-        client.tag = crypto.randomBytes(8).toString('hex');
-        me.clients.set(client.tag, client);
+    onTaskUpdated(callback: (sender: Js2Pool, task: { params: (string | boolean | string[])[], template: GetBlockTemplate }) => void) {
+        super.register(Js2Pool.Events.taskUpdated, callback);
+    }
 
-        client.onSubscribe((sender, msg) => sender.sendSubscription(msg.id, SharechainBuilder.COINBASE_NONCE_LENGTH));
-        client.onEnd(sender => me.clients.delete(sender.tag));
-        client.onKeepingAliveTimeout(sender => sender.sendPing());
-        client.onTaskTimeout(sender => { });
+    notifySubmission(result: ShareResult) {
+        if (!this.task) return;
 
-        client.onAuthorize(async (sender, username, password, raw) => {
-            let { authorized, initDifficulty } = await me.workerManager.authorizeAsync(username, password);
-            sender.sendAuthorization(raw.id, authorized);
-            if (!authorized) return;
-            sender.sendDifficulty(me.task ? me.task.p2poolDiff.toNumber() : initDifficulty);
-            if (me.task) sender.sendTask(me.task.stratumParams);
-        });
+        let shareTarget = new Bignum(result.shareTarget, 16);
+        let task = this.task;
 
-        client.onSubmit((worker, result, message) => {
-            if (!result || !message || !me.task) {
-                worker.sendSubmissionResult(message ? message.id : 0, false, null);
+        if (shareTarget.le(task.p2poolTarget)) {
+            let share = this.sharechainBuilder.buildShare(task.shareVersion, SmallBlockHeader.fromObject(result.header), task.shareInfo, task.genTx, task.merkleLink, result.extraNonce); // building the p2pool specified share
+
+            if (!share) return;
+            share.init();
+
+            if (!share.validity) {
+                logger.error(`invalid share building`);
                 return;
             }
 
-            // first, checking whether it satisfies the bitcoin network or not
-            let task = me.task;
-            let { part1: tx1, part2: tx2 } = task.coinbaseTx;
-            let { shareTarget, shareHex, header, shareHash } = me.sharesManager.buildShare(tx1, tx2, task.merkleLink, result.nonce, '', result.extraNonce2, result.nTime); // building the classic share info
-
-            if (!shareTarget) {
-                let msg = { miner: result.miner, taskId: result.taskId, };
-                worker.sendSubmissionResult(message.id, false, null);
-                return;
-            }
-
-            if (shareHex) {
-                me.daemonWatchers.forEach(watcher => watcher.submitBlockAsync(shareHex));
-            }
-
-            // dead on arrival
-            if (result.taskId != me.task.taskId) {
-                let msg = { miner: result.miner, taskId: result.taskId };
-                worker.sendSubmissionResult(message.id, false, null);
-                logger.warn(`dead on arrival: ${worker.miner}, ${shareHash}`);
-                return;
-            }
-
-            console.log('header', shareHash, shareTarget, result.extraNonce2);
-
-            if (shareTarget.le(task.p2poolTarget)) {
-                let share = this.sharechainBuilder.buildShare(task.shareVersion, SmallBlockHeader.fromObject(header), task.shareInfo, task.genTx, task.merkleLink, result.extraNonce2); // building the p2pool specified share
-
-                if (!share) {
-                    worker.sendSubmissionResult(message.id, false, null);
-                    return;
-                }
-
-                share.init();
-
-                if (!share.validity) {
-                    logger.error(`invalid share building`);
-                    worker.sendSubmissionResult(message.id, false, null);
-                    return;
-                }
-
-                logger.info(`found a share!!! ${share.hash}`);
-                me.peer.broadcastShare(share);
-            }
-
-            worker.sendSubmissionResult(message.id, shareTarget.le(worker.target), null);
-        });
-
+            logger.info(`found a share!!! ${share.hash}`);
+            this.peer.broadcastShare(share);
+        }
     }
 }
