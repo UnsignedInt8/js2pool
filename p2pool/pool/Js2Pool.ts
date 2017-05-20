@@ -103,7 +103,6 @@ export class Js2Pool {
     private handleMiningTemplateUpdated(sender: DaemonWatcher, template: GetBlockTemplate) {
         this.peer.updateMiningTemplate(template);
         this.sharesManager.updateGbt(template);
-        console.log('update mining template');
         
         let newestShare = this.sharechain.newest;
         if (!newestShare.hasValue() || !this.sharechain.calculatable){
@@ -111,10 +110,9 @@ export class Js2Pool {
              return;
         }
 
-        console.log('building mining components');
         let knownTxs = template.transactions.toMap(item => item.txid || item.hash, item => item);
         let { bits, maxBits, merkleLink, shareInfo, tx1, tx2, genTx, version } = this.sharechainBuilder.buildMiningComponents(template, newestShare.value.hash, new Bignum(0), Array.from(knownTxs.keys()), knownTxs);
-        console.log(maxBits);
+
         let stratumParams = [
             crypto.randomBytes(4).toString('hex'),
             Utils.reverseByteOrder(Buffer.from(template.previousblockhash, 'hex')).toString('hex'),

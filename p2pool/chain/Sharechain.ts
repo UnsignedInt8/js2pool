@@ -311,7 +311,7 @@ export default class Sharechain extends Event {
         }
 
         this.verified = this.calculatable = verified >= Sharechain.CALC_CHAIN_LENGTH && this.length >= Sharechain.CALC_CHAIN_LENGTH;
-        logger.info(`sharechain verified: ${verified}, length: ${this.length}, size: ${this.size}, ${this.calculatable}`);
+        logger.info(`sharechain verified: ${verified}, length: ${this.length}, size: ${this.size}, calculable: ${this.calculatable}`);
 
         return this.verified;
     }
