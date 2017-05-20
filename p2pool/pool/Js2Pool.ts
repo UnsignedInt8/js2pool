@@ -168,10 +168,11 @@ export class Js2Pool extends Event {
 
         if (shareTarget.le(task.p2poolTarget)) {
             let share = this.sharechainBuilder.buildShare(task.shareVersion, SmallBlockHeader.fromObject(result.header), task.shareInfo, task.genTx, task.merkleLink, result.extraNonce); // building the p2pool specified share
-
             if (!share) return;
+
             share.init();
 
+            console.log('master', share.hash);
             if (!share.validity) {
                 logger.error(`invalid share building`);
                 return;

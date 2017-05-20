@@ -28,7 +28,7 @@ export type AppOptions = {
 
 const Cmds = {
     updateTask: 'UpdateTask',
-    sendResult: 'SendResult',
+    SubmitResult: 'SubmitResult',
 }
 
 export async function App(opts: AppOptions) {
@@ -53,13 +53,13 @@ export async function App(opts: AppOptions) {
 
     if (cluster.isWorker) {
         let server = new StratumServer({ port: opts.stratum.port, algorithm: coin.ALGORITHM, daemons: opts.daemons }, DefaultWorkerManager.Instance);
-        server.onSubmit((sender, result) => process.send({ cmd: Cmds.sendResult, result }));
+        server.onSubmit((sender, result) => process.send({ cmd: Cmds.SubmitResult, result }));
 
         process.on('message', msg => {
             if (!msg || !msg.cmd) return;
-            console.log('worker', msg.task);
             server.updateTask(msg.task.params, msg.task.template);
         });
+
         return;
     }
 
@@ -70,7 +70,7 @@ export async function App(opts: AppOptions) {
     logger.info('|-- Donation: 1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9 --|');
     logger.info('|                                                  |');
     logger.info('|---------- A DECENTRALIZED MINING POOL -----------|');
-    
+
     SharechainHelper.init(coiname);
     let chain = Sharechain.Instance;
     let shares = await SharechainHelper.loadSharesAsync();
@@ -91,14 +91,12 @@ export async function App(opts: AppOptions) {
         }
     });
 
-    for (const id in cluster.workers) {
-        cluster.workers[id].on('message', msg => {
-            if (!msg || msg.cmd) return;
-            if (msg.cmd === Cmds.sendResult) {
-                js2pool.notifySubmission(msg.result);
-            }
-        });
-    }
+    let worker = cluster.fork();
+    worker.on('message', msg => {
+        if (!msg || !msg.cmd) return;
+        if (msg.cmd === Cmds.SubmitResult) {
+            js2pool.notifySubmission(msg.result);
+        }
+    });
 
-    cluster.fork();
 }
