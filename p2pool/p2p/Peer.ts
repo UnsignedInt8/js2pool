@@ -83,14 +83,14 @@ export class Peer {
 
         logger.warn(`Sharechain gaps found, count: ${gaps.length}, length: ${gaps.sum(g => g.length)}`);
 
-        let peers = kinq.toLinqable(this.peers.values()).orderByDescending(p => p.isJs2PoolPeer).toArray();
+        let peers = this.peers.values();
         let randomGaps = gaps.length > 1 ? MathEx.shuffle(gaps) : gaps;
 
         for (let gap of randomGaps) {
             let requestId = Utils.sha256(`${gap.descendent}-${gap.length}`).toString('hex');
             if (this.pendingShareRequests.has(requestId)) continue;
 
-            for (let node of peers.take(8)) {
+            for (let node of MathEx.shuffle(peers).take(3)) {
                 node.sendSharereqAsync({
                     id: new Bignum(requestId, 16),
                     hashes: [gap.descendent],
