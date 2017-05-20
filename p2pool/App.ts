@@ -12,10 +12,11 @@ import { SharechainHelper } from "./chain/SharechainHelper";
 import Sharechain from "./chain/Sharechain";
 import logger from '../misc/Logger';
 import { SharechainBuilder } from "./chain/SharechainBuilder";
-import { StratumOptions } from "./pool/Js2Pool";
+import { StratumOptions, Js2Pool } from "./pool/Js2Pool";
+import { DefaultWorkerManager } from "./pool/DefaultWorkerManager";
 
 export type AppOptions = {
-    coin: { name: string },
+    coin: { name: string, algorithm: string, },
     daemons: DaemonOptions[],
     peer: PeerOptions,
     stratum: StratumOptions,
@@ -32,11 +33,11 @@ export class App {
         if (!coin) throw Error(`${opts.coin.name} is not supported`);
 
         BaseShare.MAX_TARGET = coin.MAX_TARGET;
-        SharechainBuilder.MIN_TARGET = Bitcoin.MIN_TARGET;
         BaseShare.IDENTIFIER = coin.IDENTIFIER;
         BaseShare.SEGWIT_ACTIVATION_VERSION = coin.SEGWIT_ACTIVATION_VERSION;
         BaseShare.POWFUNC = coin.POWFUNC;
         Message.MAGIC = coin.MSGPREFIX;
+        SharechainBuilder.MIN_TARGET = Bitcoin.MIN_TARGET;
         SharechainBuilder.MAX_TARGET = Bitcoin.MAX_TARGET;
         SharechainBuilder.TARGET_LOOKBEHIND = Bitcoin.TARGET_LOOKBEHIND;
         SharechainBuilder.PERIOD = Bitcoin.SHARE_PERIOD;
@@ -57,6 +58,15 @@ export class App {
         SharechainHelper.loadSharesAsync().then(shares => {
             chain.add(shares);
             chain.fix();
+
+            new Js2Pool({
+                daemons: opts.daemons,
+                address: opts.address,
+                algorithm: coin.ALGORITHM,
+                peer: opts.peer,
+                stratum: opts.stratum,
+                bootstrapPeers: opts.bootstrapPeers,
+            }, DefaultWorkerManager.Instance);
         });
 
         process.on('uncaughtException', (err) => logger.error(err));
