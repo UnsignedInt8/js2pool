@@ -70,10 +70,7 @@ export async function App(opts: AppOptions) {
     logger.info('|-- Donation: 1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9 --|');
     logger.info('|                                                  |');
     logger.info('|---------- A DECENTRALIZED MINING POOL -----------|');
-    logger.info('');
-    logger.info('');
-    logger.info('');
-
+    
     SharechainHelper.init(coiname);
     let chain = Sharechain.Instance;
     let shares = await SharechainHelper.loadSharesAsync();
@@ -102,4 +99,6 @@ export async function App(opts: AppOptions) {
             }
         });
     }
+
+    cluster.fork();
 }

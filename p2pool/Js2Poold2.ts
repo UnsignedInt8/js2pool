@@ -36,6 +36,7 @@ const opts = {
     }],
     peer: {
         port: 19990,
+        maxOutgoing: 3,
     },
     stratum: {
         port: 23456

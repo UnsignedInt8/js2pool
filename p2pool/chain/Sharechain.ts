@@ -322,12 +322,12 @@ export default class Sharechain extends Event {
         let gaps = new Array<Gap>();
         let child = this.newest.value;
 
-        for (let [parentHeight, shares] of Array.from(this.absheightIndexer).sort((a, b) => b[0] - a[0]).skip(1)) {
+        for (let [parentHeight, shares] of Array.from(this.absheightIndexer).sort((a, b) => b[0] - a[0]).take(Sharechain.CALC_CHAIN_LENGTH + 1).skip(1)) {
 
             if (parentHeight + 1 !== child.info.absheight || shares[0].hash !== child.info.data.previousShareHash) {
                 let length = child.info.absheight - parentHeight + 1;
                 console.log('error share', shares[0].hash, shares[0].info.absheight, 'total length', shares.length);
-                // let descendents = this.absheightIndexer.get(descendentHeight + 1) || this.absheightIndexer.get(descendentHeight);
+
                 gaps.push({ descendent: child.hash, length: length, descendentHeight: child.info.absheight });
             }
 

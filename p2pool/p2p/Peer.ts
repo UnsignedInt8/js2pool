@@ -83,7 +83,7 @@ export class Peer {
 
         logger.warn(`Sharechain gaps found, count: ${gaps.length}, length: ${gaps.sum(g => g.length)}`);
 
-        let peers = this.peers.values();
+        let peers = Array.from(this.peers.values());
         let randomGaps = gaps.length > 1 ? MathEx.shuffle(gaps) : gaps;
 
         for (let gap of randomGaps) {
@@ -91,6 +91,7 @@ export class Peer {
             if (this.pendingShareRequests.has(requestId)) continue;
 
             for (let node of MathEx.shuffle(peers).take(3)) {
+                console.log('send share req');
                 node.sendSharereqAsync({
                     id: new Bignum(requestId, 16),
                     hashes: [gap.descendent],
