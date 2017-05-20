@@ -22,7 +22,7 @@ export default class SharesManager {
     proof: 'POW' | 'POS' = 'POW';
 
     constructor(algorithm: string, configs?: { normalHash?: boolean }) {
-        if (!algorithm) { process.exit(-1); throw new Error('Algorithm must not be empty'); }
+        if (!algorithm) throw new Error('Algorithm must not be empty');
         this.txHasher = ['keccak', 'blake', 'fugue', 'groestl'].includes(algorithm) && (configs && !configs.normalHash) ? Utils.sha256 : Utils.sha256d;
         this.mutliplier = Algos[algorithm].multiplier || 1;
         this.headerHasher = Algos[algorithm].hash(configs || {})

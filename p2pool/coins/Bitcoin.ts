@@ -26,7 +26,7 @@ export default class Bitcoin {
     static readonly NEW_MINIMUM_PROTOCOL_VERSION = 1700;
     static readonly SEGWIT_ACTIVATION_VERSION = 17;
     static readonly POWFUNC: (data: Buffer) => Buffer = Algos.sha256d.hash();
-    static readonly ALGORITHM: 'sha256d';
+    static readonly ALGORITHM = 'sha256d';
 }
 
 Object.freeze(Bitcoin);
