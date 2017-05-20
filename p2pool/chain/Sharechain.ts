@@ -293,7 +293,7 @@ export default class Sharechain extends Event {
         let hash = this.newest.value.hash;
         let absheight = this.newest.value.info.absheight;
 
-        while (true) {
+        while (absheight > (Math.min(this.oldest ? this.oldest.info.absheight : this.newest.value.info.absheight - Sharechain.MAX_CHAIN_LENGTH))) {
             let shares = this.absheightIndexer.get(absheight);
             if (!shares || shares.length === 0) break;
 

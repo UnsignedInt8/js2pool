@@ -33,6 +33,7 @@ const opts = {
     }],
     peer: {
         port: 17951,
+        maxOutgoing: 3,
     },
     stratum: {
         port: 23456,
@@ -43,10 +44,10 @@ const opts = {
             host: '123.163.48.115',
             port: 9777,
         },
-        // {
-        //     host: '123.163.48.115',
-        //     port: 9333
-        // },
+        {
+            host: '123.163.48.115',
+            port: 9333
+        },
         //{
         //     host: ' 83.217.203.130',
         //     port: 9333

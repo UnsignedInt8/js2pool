@@ -43,6 +43,7 @@ type Task = {
     // Js2Pool parameters
     shareInfo: ShareInfo,
     p2poolTarget: Bignum,
+    p2poolDiff: Bignum,
     shareVersion: number,
     genTx: Buffer,
 }
@@ -129,6 +130,7 @@ export class Js2Pool {
             stratumParams,
             shareInfo,
             p2poolTarget: Algos.bitsToTarget(bits),
+            p2poolDiff: Algos.bitsToDifficulty(bits),
             shareVersion: version,
             genTx
         };
@@ -170,7 +172,7 @@ export class Js2Pool {
             let { authorized, initDifficulty } = await me.workerManager.authorizeAsync(username, password);
             sender.sendAuthorization(raw.id, authorized);
             if (!authorized) return;
-            sender.sendDifficulty(initDifficulty);
+            sender.sendDifficulty(me.task ? me.task.p2poolDiff.toNumber() : initDifficulty);
             if (me.task) sender.sendTask(me.task.stratumParams);
         });
 
@@ -216,6 +218,7 @@ export class Js2Pool {
                 share.init();
 
                 if (!share.validity) {
+                    logger.error(`invalid share building`);
                     worker.sendSubmissionResult(message.id, false, null);
                     return;
                 }
