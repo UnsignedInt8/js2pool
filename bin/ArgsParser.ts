@@ -10,9 +10,9 @@ type PackageInfo = {
     version: string,
 };
 
-let packageInfo = JSON.parse(fs.readFileSync('../../package.json').toString('utf8')) as PackageInfo;
+let version = require('../../package.json').version;
 
-let cmd = <any>commander.version(packageInfo.version)
+let cmd = <any>commander.version(version)
     .option('-c, --config <path>', 'Configruation File Path', String)
     .parse(process.argv);
 
