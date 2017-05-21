@@ -259,7 +259,7 @@ export class Peer {
         this.publicPeers = this.publicPeers.concat(addrs);
         if (this.publicPeers.length > 32) this.publicPeers.splice(0, this.publicPeers.length - 32);
         if (this.peers.size >= this.maxOutgoing) return;
-        let ips = addrs.where(addr => !this.peers.has(`${addr.ip}:${addr.port}`)).take(this.maxOutgoing - this.peers.size).select(addr => { return { host: addr.ip, port: addr.port } }).toArray();
+        let ips = addrs.where(addr => !this.peers.has(`${addr.ip}:${addr.port}`)).distinct((i1, i2) => i1.ip === i2.ip && i1.port === i2.port).take(this.maxOutgoing - this.peers.size).select(addr => { return { host: addr.ip, port: addr.port } }).toArray();
         this.initPeersAsync(ips);
     }
 
@@ -283,6 +283,7 @@ export class Peer {
         if (this.peers.size >= this.maxOutgoing) return;
 
         if (this.peers.size === 0) {
+            this.pendingShareRequests.clear();
             this.initPeersAsync(this.publicPeers.splice(0, this.maxOutgoing).map(p => { return { host: p.ip, port: p.port } }));
             return;
         }
