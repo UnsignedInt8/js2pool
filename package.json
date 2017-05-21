@@ -4,7 +4,8 @@
   "description": "A decentralized mining pool",
   "main": "index.js",
   "bin": {
-    "js2pool-blocknotifier": "./dist/bin/BlockNotifier.js"
+    "js2pool-blocknotifier": "./dist/bin/BlockNotifier.js",
+    "js2pool": "./dist/bin/Js2Pool.js"
   },
   "scripts": {
     "test": "node_modules/.bin/mocha ./dist/test/*.js --no-timeouts"

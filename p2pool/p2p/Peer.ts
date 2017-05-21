@@ -84,7 +84,7 @@ export class Peer {
         logger.warn(`Sharechain gaps found, count: ${gaps.length}, length: ${gaps.sum(g => g.length)}`);
 
         let peers = Array.from(this.peers.values());
-        for (let gap of gaps.take(1)) {
+        for (let gap of MathEx.shuffle(gaps).take(1)) {
             let requestId = Utils.sha256(`${gap.descendent}-${gap.length}`).toString('hex');
             if (this.pendingShareRequests.has(requestId)) continue;
 
