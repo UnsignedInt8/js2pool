@@ -282,15 +282,20 @@ export class Peer {
         this.peers.delete(sender.tag);
         if (this.peers.size >= this.maxOutgoing) return;
 
+        if (this.peers.size === 0) {
+            this.initPeersAsync(this.publicPeers.splice(0, this.maxOutgoing).map(p => { return { host: p.ip, port: p.port } }));
+            return;
+        }
+
         let count = this.maxOutgoing - this.peers.size;
         kinq.toLinqable(this.peers.values()).take(count).each(peer => peer.sendGetaddrsAsync(count));
     }
 
     private registerNode(node: Node, interaction = true) {
         node.onEnd(this.handlePeerDisconnected.bind(this));
-        node.onGetaddrs(this.handleGetaddrs.bind(this));        
+        node.onGetaddrs(this.handleGetaddrs.bind(this));
         if (!interaction) return;
-            
+
         node.onVersionVerified(this.handleNodeVersion.bind(this));
         node.onRemember_tx(this.handleRemember_tx.bind(this));
         node.onShares(this.handleShares.bind(this));
@@ -298,7 +303,7 @@ export class Peer {
         node.onSharereply(this.handleSharereply.bind(this));
         node.onAddrs(this.handleAddrs.bind(this));
         node.onAddrme(this.handleAddrme.bind(this));
-        this.peers.set(node.tag, node);        
+        this.peers.set(node.tag, node);
     }
 
     /**
