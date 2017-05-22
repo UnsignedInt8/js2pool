@@ -151,7 +151,7 @@ export class Peer {
 
         let knownTxs = new Map(this.knownTxs.value);
         for (let tx of txs) {
-            let txHash = tx.getHash();
+            let txHash: string = tx.getHash();
             if (sender.rememberedTxs.has(txHash)) {
                 sender.close(false, 'Peer referenced transaction twice, disconnecting');
                 return;
@@ -315,11 +315,11 @@ export class Peer {
         let added = newValue.except(oldValue).select(item => item[0]).toArray();
         let removed = oldValue.except(newValue).select(item => item[0]).toArray();;
 
-        if (added.any()) {
+        if (added.length) {
             this.peers.forEach(p => p.sendHave_txAsync(added));
         }
 
-        if (removed.any()) {
+        if (removed.length) {
             this.peers.forEach(p => p.sendLosing_txAsync(removed));
         }
 
@@ -337,11 +337,11 @@ export class Peer {
         let added = newValue.except(oldValue).select(item => item[1]).toArray();
         let removed = oldValue.except(newValue).select(item => item[1]).toArray();
 
-        if (added.any()) {
+        if (added.length) {
             this.peers.forEach(p => p.sendRemember_txAsync({ hashes: added.where(tx => p.remoteTxHashs.has(tx.txid || tx.hash)).select(tx => tx.txid || tx.hash).toArray(), txs: added.where(tx => !p.remoteTxHashs.has(tx.txid || tx.hash)).toArray() }));
         }
 
-        if (removed.any()) {
+        if (removed.length) {
             let totalSize = removed.sum(item => item.data.length / 2);
             this.peers.forEach(p => p.sendForget_txAsync(removed.map(tx => tx.txid || tx.hash), totalSize));
         }
