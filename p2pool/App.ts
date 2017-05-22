@@ -63,7 +63,7 @@ export async function App(opts: AppOptions) {
 
     process.on('uncaughtException', (err) => logger.error(err));
     process.on('error', (err) => logger.error(err));
-    
+
     logger.info('|-------------------- JS2POOL ---------------------|');
     logger.info('|                                                  |');
     logger.info('|----- https://github.com/unsignedint8/js2pool ----|')
@@ -94,13 +94,18 @@ export async function App(opts: AppOptions) {
 
     let fork = () => {
         let worker = cluster.fork();
+        
         worker.on('message', msg => {
             if (!msg || !msg.cmd) return;
             if (msg.cmd === Cmds.SubmitResult) {
                 js2pool.notifySubmission(msg.result);
             }
         });
-        worker.on('exit', () => fork());
+
+        worker.on('exit', () => {
+            worker.removeAllListeners();
+            fork();
+        });
     }
 
     for (let i = 0; i < os.cpus.length; i++) {
