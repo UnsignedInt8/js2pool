@@ -15,6 +15,7 @@ import { SharechainBuilder } from "./chain/SharechainBuilder";
 import { Js2Pool } from "./pool/Js2Pool";
 import { DefaultWorkerManager } from "./pool/DefaultWorkerManager";
 import * as cluster from 'cluster';
+import * as os from 'os';
 import { StratumOptions, StratumServer } from "./pool/StratumServer";
 
 export type AppOptions = {
@@ -48,9 +49,6 @@ export async function App(opts: AppOptions) {
     SharechainBuilder.TARGET_LOOKBEHIND = Bitcoin.TARGET_LOOKBEHIND;
     SharechainBuilder.PERIOD = Bitcoin.SHARE_PERIOD;
 
-    process.on('uncaughtException', (err) => logger.error(err));
-    process.on('error', (err) => logger.error(err));
-
     if (cluster.isWorker) {
         let server = new StratumServer({ port: opts.stratum.port, algorithm: coin.ALGORITHM, daemons: opts.daemons }, DefaultWorkerManager.Instance);
         server.onSubmit((sender, result) => process.send({ cmd: Cmds.SubmitResult, result }));
@@ -63,6 +61,9 @@ export async function App(opts: AppOptions) {
         return;
     }
 
+    process.on('uncaughtException', (err) => logger.error(err));
+    process.on('error', (err) => logger.error(err));
+    
     logger.info('|-------------------- JS2POOL ---------------------|');
     logger.info('|                                                  |');
     logger.info('|----- https://github.com/unsignedint8/js2pool ----|')
@@ -91,12 +92,19 @@ export async function App(opts: AppOptions) {
         }
     });
 
-    let worker = cluster.fork();
-    worker.on('message', msg => {
-        if (!msg || !msg.cmd) return;
-        if (msg.cmd === Cmds.SubmitResult) {
-            js2pool.notifySubmission(msg.result);
-        }
-    });
+    let fork = () => {
+        let worker = cluster.fork();
+        worker.on('message', msg => {
+            if (!msg || !msg.cmd) return;
+            if (msg.cmd === Cmds.SubmitResult) {
+                js2pool.notifySubmission(msg.result);
+            }
+        });
+        worker.on('exit', () => fork());
+    }
+
+    for (let i = 0; i < os.cpus.length; i++) {
+        fork();
+    }
 
 }
