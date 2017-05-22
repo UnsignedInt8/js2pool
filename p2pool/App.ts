@@ -61,8 +61,7 @@ export async function App(opts: AppOptions) {
         return;
     }
 
-    process.on('uncaughtException', (err) => logger.error(err));
-    process.on('error', (err) => logger.error(err));
+    if (!cluster.isMaster) return;
 
     logger.info('|-------------------- JS2POOL ---------------------|');
     logger.info('|                                                  |');
@@ -71,6 +70,9 @@ export async function App(opts: AppOptions) {
     logger.info('|-- Donation: 1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9 --|');
     logger.info('|                                                  |');
     logger.info('|---------- A DECENTRALIZED MINING POOL -----------|');
+
+    process.on('uncaughtException', (err) => logger.error(err));
+    process.on('error', (err) => logger.error(err));
 
     SharechainHelper.init(coiname);
     let chain = Sharechain.Instance;
@@ -94,7 +96,7 @@ export async function App(opts: AppOptions) {
 
     let fork = () => {
         let worker = cluster.fork();
-        
+
         worker.on('message', msg => {
             if (!msg || !msg.cmd) return;
             if (msg.cmd === Cmds.SubmitResult) {
@@ -108,8 +110,9 @@ export async function App(opts: AppOptions) {
         });
     }
 
-    for (let i = 0; i < os.cpus.length; i++) {
+    for (let i = 0; i < os.cpus().length; i++) {
         fork();
+        console.log('fork', i);
     }
 
 }
