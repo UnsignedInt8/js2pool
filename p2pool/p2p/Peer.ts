@@ -175,8 +175,6 @@ export class Peer {
 
             for (let txHash of share.info.newTransactionHashes) {
                 if (this.knownTxs.value.has(txHash)) {
-                    let tx = this.knownTxs.value.get(txHash);
-                    newTxs.set(txHash, tx);
                     continue;
                 }
 

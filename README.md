@@ -66,14 +66,6 @@ This project has not been finished yet. So, don't use it in production environme
 1. SHA256 Performance (I'm trying to rewrite SHA256 by using Node.js C++ module, but I don't know much about C++. So, to implement it may take me a long time)
 2. Weights calculation may have a problem, when total weights exceed the desired weight. [PaymentCalculator#L61-L75](https://github.com/UnsignedInt8/js2pool/blob/master/p2pool/chain/PaymentCalculator.ts#L61-L75)
 
-## Donation
-
-Even if you do not donate any satoshis to me, I'm still maintaining this project. :p
-
-```
-BTC: 1Q9tQR94oD5BhMYAPWpDKDab8WKSqTbxP9
-```
-
 
 ## License
 GPL v3.0
